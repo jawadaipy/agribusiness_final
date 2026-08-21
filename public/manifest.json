@@ -1,0 +1,56 @@
+{
+  "name": "AgriBusiness Pakistan",
+  "short_name": "AgriBusiness",
+  "description": "Pakistan's trusted agri-tech marketplace — connecting farmers, companies, and consultants.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9faf6",
+  "theme_color": "#012d1d",
+  "orientation": "portrait-primary",
+  "lang": "en-PK",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "label": "AgriBusiness Marketplace"
+    }
+  ],
+  "categories": ["business", "agriculture", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Marketplace",
+      "short_name": "Market",
+      "description": "Browse agri listings",
+      "url": "/apps/agri-biz",
+      "icons": [{"src": "/favicon.svg", "sizes": "any"}]
+    },
+    {
+      "name": "Post a Listing",
+      "short_name": "Post",
+      "description": "List your product",
+      "url": "/onboarding",
+      "icons": [{"src": "/favicon.svg", "sizes": "any"}]
+    }
+  ]
+}

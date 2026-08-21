@@ -1,0 +1,839 @@
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
+import { formatCooldown, getAuthFeedback } from "@/lib/auth-feedback";
+
+export const Route = createFileRoute("/onboarding")({
+  head: () => ({
+    title: "Account Portal | AgriBusiness Pakistan",
+    meta: [
+      {
+        name: "description",
+        content:
+          "Sign in or register for your AgriBusiness account and join the premium agri-tech ecosystem.",
+      },
+      { property: "og:title", content: "Join AgriBusiness" },
+      {
+        property: "og:description",
+        content: "Create your professional agricultural profile today.",
+      },
+      { property: "og:type", content: "website" },
+    ],
+  }),
+  component: OnboardingPage,
+});
+
+export const OFFICIAL_DISCIPLINES = [
+  "Agricultural Engineering and Technology",
+  "Agribusiness Family Care",
+  "Agriculture",
+  "Basic Sciences",
+  "Business Management Sciences",
+  "Computer Science",
+  "Construction",
+  "Education",
+  "Electronic and Print Media",
+  "Engineering (Civil, Mechanical Electric and Electronics)",
+  "Food Science and Technology",
+  "Health and Diagnostics",
+  "Horticultural Sciences",
+  "Information Technology",
+  "Lab Equipments and Chemicals",
+  "Law and Lawyers",
+  "Marketing (General Order Supplies)",
+  "Oil Industry",
+  "Poultry Science/Animal Science",
+  "Real-Estate",
+  "Sugar Industry",
+  "Textile Industry",
+  "Veterinary Science-DVM",
+  "Others",
+];
+
+function OnboardingPage() {
+  const { t, isRTL } = useTranslation();
+  const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
+  const [step, setStep] = useState(1);
+  const [userRole, setUserRole] = useState<string>("farmer");
+  const navigate = useNavigate();
+
+  // Form State
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    password: "",
+    city: "Faisalabad",
+    primaryDiscipline: "Agriculture",
+  });
+
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>(["Agriculture"]);
+  const [keywordSearch, setKeywordSearch] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = window.setTimeout(() => setCooldownSeconds((current) => current - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldownSeconds]);
+
+  const roles = [
+    {
+      id: "farmer",
+      label: "Farmer / Producer",
+      icon: "agriculture",
+      desc: "Sell crops and livestock, post farm RFPs, and access crop advisory.",
+    },
+    {
+      id: "buyer",
+      label: "Buyer / Trader / Miller",
+      icon: "shopping_cart",
+      desc: "Procure bulk commodities, post buying requirements, and find verified producers.",
+    },
+    {
+      id: "consultant",
+      label: "Agronomist / Consultant / Vet",
+      icon: "psychology",
+      desc: "Offer field services, bid on projects, and diagnose crop or livestock cases.",
+    },
+    {
+      id: "company",
+      label: "Enterprise / Supplier",
+      icon: "domain",
+      desc: "Trade inputs and machinery, list services, and post corporate tenders.",
+    },
+    {
+      id: "student",
+      label: "Student / Researcher",
+      icon: "school",
+      desc: "Access agricultural research, university courses, and internships.",
+    },
+  ];
+
+  const toggleKeyword = (kw: string) => {
+    setSelectedKeywords((prev) =>
+      prev.includes(kw) ? (prev.length > 1 ? prev.filter((k) => k !== kw) : prev) : [...prev, kw],
+    );
+  };
+
+  const filteredKeywords = OFFICIAL_DISCIPLINES.filter((k) =>
+    k.toLowerCase().includes(keywordSearch.toLowerCase()),
+  );
+
+  const handleStep2Submit = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.fullName || formData.fullName.trim().length < 2)
+      newErrors.fullName = "Please enter your full name.";
+    if (!formData.email || !formData.email.includes("@"))
+      newErrors.email = "Please enter a valid email address.";
+    if (!formData.password || formData.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters.";
+    if (!formData.phone || formData.phone.length < 9)
+      newErrors.phone = "Please enter a valid Pakistani phone number.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+    setStep(3);
+  };
+
+  const handleSignUpSubmit = async () => {
+    setIsLoading(true);
+    setApiError("");
+    setSuccessMessage("");
+
+    try {
+      const email = formData.email.trim();
+      const password = formData.password;
+
+      // 1. Call Supabase Auth signup
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: formData.fullName.trim(),
+            user_type: userRole,
+            phone: formData.phone.trim(),
+            city: formData.city,
+            primary_discipline: formData.primaryDiscipline,
+            keywords: selectedKeywords,
+          },
+        },
+      });
+
+      if (error) {
+        const feedback = getAuthFeedback(error.message);
+        setApiError(feedback.message);
+        setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
+        setIsLoading(false);
+        return;
+      }
+
+      // If session is returned immediately, redirect to dashboard
+      if (data.session) {
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+
+      // If no session returned immediately, automatically attempt sign in with credentials
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInData?.session) {
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+
+      if (signInError) {
+        // If email confirmation is still enabled in Supabase project, notify the user gracefully
+        setSuccessMessage(
+          "Your account was created successfully! You can now sign in to your dashboard.",
+        );
+        setAuthMode("login");
+      } else {
+        navigate({ to: "/dashboard", replace: true });
+      }
+    } catch (err: unknown) {
+      const feedback = getAuthFeedback(
+        err instanceof Error ? err.message : "An unexpected error occurred during signup.",
+      );
+      setApiError(feedback.message);
+      setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setApiError("");
+    setSuccessMessage("");
+
+    if (!formData.email || !formData.password) {
+      setApiError("Please enter both email and password.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const email = formData.email.trim();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: formData.password,
+      });
+
+      if (error) {
+        const feedback = getAuthFeedback(error.message);
+        setApiError(feedback.message);
+        setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
+      } else {
+        navigate({ to: "/dashboard", replace: true });
+      }
+    } catch (err: unknown) {
+      setApiError(
+        err instanceof Error ? err.message : "Login failed. Please check your credentials.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!formData.email.trim() || cooldownSeconds > 0 || isResendingConfirmation) return;
+    setApiError("");
+    setSuccessMessage("");
+    setIsResendingConfirmation(true);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: formData.email.trim(),
+      });
+      if (error) {
+        const feedback = getAuthFeedback(error.message);
+        setApiError(feedback.message);
+        setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
+        return;
+      }
+      setCooldownSeconds(60);
+      setSuccessMessage(
+        "A new confirmation email was requested. Check your inbox and spam folder before requesting another one.",
+      );
+    } catch (err: unknown) {
+      const feedback = getAuthFeedback(
+        err instanceof Error ? err.message : "We could not request another confirmation email.",
+      );
+      setApiError(feedback.message);
+      setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
+    } finally {
+      setIsResendingConfirmation(false);
+    }
+  };
+
+  return (
+    <div className={cn("min-h-screen bg-background flex flex-col md:flex-row", isRTL && "rtl")}>
+      {/* Left Panel - Corporate Branding */}
+      <div className="hidden lg:flex w-[420px] bg-primary p-12 flex-col justify-between text-white relative overflow-hidden text-left shrink-0">
+        <div className="relative z-10">
+          <Link
+            to="/"
+            className="font-display text-2xl font-bold tracking-tight mb-12 block hover:opacity-80 transition-opacity"
+          >
+            AgriBusiness <span className="text-secondary">PK</span>
+          </Link>
+          <span className="inline-block px-3 py-1 bg-secondary text-primary font-bold text-[10px] uppercase tracking-wider rounded-md mb-4">
+            Unified Agri-Ecosystem
+          </span>
+          <h1 className="font-display text-4xl font-bold leading-tight mb-4 tracking-tight">
+            Pakistan's Premier Agri-Tech Platform.
+          </h1>
+          <p className="text-white/80 text-xs leading-relaxed max-w-xs font-medium">
+            Join verified agronomists, millers, exporters, and progressive growers nationwide.
+          </p>
+        </div>
+
+        {/* Step Progress Visual */}
+        {authMode === "signup" && (
+          <div className="relative z-10 space-y-6">
+            {[
+              { n: 1, label: "Role & Identity", desc: "Select user classification" },
+              { n: 2, label: "Credentials", desc: "Basic details & security" },
+              { n: 3, label: "Disciplines", desc: "Select official expertise sectors" },
+            ].map((s) => (
+              <div
+                key={s.n}
+                className={cn(
+                  "flex gap-4 items-start transition-all duration-300",
+                  step === s.n ? "opacity-100 translate-x-1" : "opacity-40",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-9 h-9 rounded-xl border flex items-center justify-center font-black text-xs shrink-0 shadow transition-all",
+                    step === s.n
+                      ? "border-secondary bg-secondary text-primary font-bold"
+                      : "border-white/30 text-white",
+                  )}
+                >
+                  {s.n}
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider">{s.label}</div>
+                  <div className="text-[11px] text-white/70 font-medium">{s.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Decorative background glow */}
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary-container rounded-full opacity-40 blur-3xl"></div>
+        <div className="absolute top-1/4 -right-20 w-64 h-64 bg-secondary/10 rounded-full blur-2xl"></div>
+      </div>
+
+      {/* Right Panel - Form Content */}
+      <div className="flex-1 flex flex-col relative text-left">
+        {/* Top Bar Switcher */}
+        <div className="p-4 sm:p-6 flex justify-between items-center border-b border-outline-variant/30 bg-white">
+          <Link to="/" className="lg:hidden font-display font-bold text-primary text-lg">
+            AgriBusiness
+          </Link>
+
+          <div className="flex items-center gap-2 bg-surface-container-low p-1 rounded-xl border border-outline-variant/40 ml-auto">
+            <button
+              onClick={() => {
+                setAuthMode("signup");
+                setApiError("");
+                setSuccessMessage("");
+                setAwaitingConfirmation(false);
+              }}
+              className={cn(
+                "px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                authMode === "signup"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-on-surface-variant hover:text-primary",
+              )}
+            >
+              Sign Up
+            </button>
+            <button
+              onClick={() => {
+                setAuthMode("login");
+                setApiError("");
+              }}
+              className={cn(
+                "px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                authMode === "login"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-on-surface-variant hover:text-primary",
+              )}
+            >
+              Log In
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-y-auto">
+          <div className="w-full max-w-xl">
+            {/* Feedback Messages */}
+            {successMessage && (
+              <div className="mb-6 p-4 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {apiError && (
+              <div className="mb-6 p-4 rounded-xl bg-error/10 text-error border border-error/20 text-xs font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">error</span>
+                <span>{apiError}</span>
+              </div>
+            )}
+
+            {/* === LOGIN MODE === */}
+            {authMode === "login" && (
+              <form
+                onSubmit={handleLoginSubmit}
+                className="space-y-4 animate-in fade-in duration-300"
+              >
+                <div className="mb-6">
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+                    Welcome Back
+                  </h2>
+                  <p className="text-xs text-on-surface-variant font-medium mt-1">
+                    Sign in to your AgriBusiness workspace and active listings.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-xs font-medium text-primary focus:outline-none focus:border-primary transition-all"
+                    placeholder="e.g. arshad.khan@agribiz.pk"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-xs font-medium text-primary focus:outline-none focus:border-primary transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3 bg-primary text-on-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isLoading ? "Signing in..." : "Sign In to Workspace"}
+                    <span className="material-symbols-outlined text-[16px]">login</span>
+                  </button>
+                </div>
+
+                <div className="pt-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("signup");
+                      setStep(1);
+                    }}
+                    className="text-xs font-bold text-primary hover:underline cursor-pointer"
+                  >
+                    Don't have an account? Create a free profile
+                  </button>
+                </div>
+                <div className="pt-5 text-center">
+                  <div className="mx-auto mb-3 h-px w-full max-w-xs bg-outline-variant/70" />
+                  <Link
+                    to="/admin-login"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">admin_panel_settings</span>
+                    Admin Portal
+                  </Link>
+                </div>
+              </form>
+            )}
+
+            {/* === SIGNUP STEP 1: ROLE SELECTION === */}
+            {authMode === "signup" && awaitingConfirmation && (
+              <section className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-left animate-in fade-in duration-300">
+                <div className="flex gap-3">
+                  <span className="material-symbols-outlined text-[26px] text-emerald-700">mark_email_read</span>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-800">Email confirmation required</span>
+                    <h2 className="mt-1 font-display text-2xl font-bold text-primary">Confirm your email to activate your workspace</h2>
+                    <p className="mt-3 text-xs leading-5 text-emerald-950/75">
+                      We only open a role-specific workspace after Supabase has confirmed that you control this email address. This protects listings, project proposals, and company records from fraudulent signups.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 rounded-xl border border-emerald-200 bg-white/75 p-3 text-xs text-emerald-950/80">
+                  <p className="font-bold">1. Open the email sent to {formData.email.trim()}.</p>
+                  <p className="mt-1">2. Select the confirmation link. 3. Return here and sign in.</p>
+                </div>
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("login");
+                      setApiError("");
+                    }}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-bold text-white"
+                  >
+                    Continue to sign in <span className="material-symbols-outlined text-[16px]">login</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={cooldownSeconds > 0 || isResendingConfirmation}
+                    onClick={() => void handleResendConfirmation()}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-4 py-3 text-xs font-bold text-emerald-900 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isResendingConfirmation
+                      ? "Requesting email…"
+                      : cooldownSeconds > 0
+                        ? `Resend available in ${formatCooldown(cooldownSeconds)}`
+                        : "Resend confirmation email"}
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {authMode === "signup" && !awaitingConfirmation && step === 1 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Step 1 of 3
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
+                    Select Your Role
+                  </h2>
+                  <p className="text-xs text-on-surface-variant font-medium mt-1">
+                    Choose how you plan to participate in the agricultural marketplace.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {roles.map((role) => (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => setUserRole(role.id)}
+                      className={cn(
+                        "flex flex-col items-start p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden group cursor-pointer",
+                        userRole === role.id
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-outline-variant/40 bg-white hover:border-primary/40 hover:shadow-xs",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-all",
+                          userRole === role.id
+                            ? "bg-primary text-white"
+                            : "bg-surface-container-low text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary",
+                        )}
+                      >
+                        <span className="material-symbols-outlined text-[22px]">{role.icon}</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-primary mb-1">{role.label}</h3>
+                      <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed">
+                        {role.desc}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-8 py-3 bg-primary text-on-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                  >
+                    Continue to Credentials
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* === SIGNUP STEP 2: CREDENTIALS === */}
+            {authMode === "signup" && !awaitingConfirmation && step === 2 && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Step 2 of 3
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
+                    Account Credentials
+                  </h2>
+                  <p className="text-xs text-on-surface-variant font-medium mt-1">
+                    Provide your name, phone, email, and password.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      Full Name
+                    </label>
+                    <input
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      className={cn(
+                        "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
+                        errors.fullName
+                          ? "border-error"
+                          : "border-outline-variant/40 focus:border-primary",
+                      )}
+                      placeholder="e.g. Dr. Arshad Khan / Malik Bilal"
+                    />
+                    {errors.fullName && <p className="text-error text-[10px]">{errors.fullName}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className={cn(
+                        "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
+                        errors.email
+                          ? "border-error"
+                          : "border-outline-variant/40 focus:border-primary",
+                      )}
+                      placeholder="name@example.com / gmail.com"
+                    />
+                    {errors.email && <p className="text-error text-[10px]">{errors.email}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      Phone Number (WhatsApp)
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className={cn(
+                        "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
+                        errors.phone
+                          ? "border-error"
+                          : "border-outline-variant/40 focus:border-primary",
+                      )}
+                      placeholder="03XXXXXXXXX / +923001234567"
+                    />
+                    {errors.phone && <p className="text-error text-[10px]">{errors.phone}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className={cn(
+                        "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
+                        errors.password
+                          ? "border-error"
+                          : "border-outline-variant/40 focus:border-primary",
+                      )}
+                      placeholder="At least 6 characters"
+                    />
+                    {errors.password && <p className="text-error text-[10px]">{errors.password}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      City / District
+                    </label>
+                    <select
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none"
+                    >
+                      <option>Faisalabad</option>
+                      <option>Multan</option>
+                      <option>Lahore</option>
+                      <option>Sargodha</option>
+                      <option>Rahim Yar Khan</option>
+                      <option>Sahiwal</option>
+                      <option>Karachi</option>
+                      <option>Peshawar</option>
+                      <option>Quetta</option>
+                      <option>Islamabad</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      Primary Discipline
+                    </label>
+                    <select
+                      value={formData.primaryDiscipline}
+                      onChange={(e) =>
+                        setFormData({ ...formData, primaryDiscipline: e.target.value })
+                      }
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none"
+                    >
+                      {OFFICIAL_DISCIPLINES.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStep2Submit}
+                    className="px-8 py-3 bg-primary text-on-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                  >
+                    Select Disciplines & Complete
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* === SIGNUP STEP 3: 24 OFFICIAL DISCIPLINES SELECTION === */}
+            {authMode === "signup" && !awaitingConfirmation && step === 3 && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Step 3 of 3
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
+                    Official Disciplines & Keywords
+                  </h2>
+                  <p className="text-xs text-on-surface-variant font-medium mt-1">
+                    Select the categories and keywords that represent your agricultural expertise or
+                    business operations.
+                  </p>
+                </div>
+
+                {/* Search keywords */}
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[18px]">
+                    search
+                  </span>
+                  <input
+                    value={keywordSearch}
+                    onChange={(e) => setKeywordSearch(e.target.value)}
+                    placeholder="Search 24 official disciplines..."
+                    className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium text-primary focus:outline-none"
+                  />
+                </div>
+
+                {/* 24 Disciplines Grid */}
+                <div className="max-h-64 overflow-y-auto pr-1 flex flex-wrap gap-2 p-1 border border-outline-variant/30 rounded-2xl bg-white shadow-inner">
+                  {filteredKeywords.map((kw) => {
+                    const isSelected = selectedKeywords.includes(kw);
+                    return (
+                      <button
+                        key={kw}
+                        type="button"
+                        onClick={() => toggleKeyword(kw)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-left flex items-center gap-1.5",
+                          isSelected
+                            ? "bg-primary text-white border-primary shadow-xs"
+                            : "bg-surface-container-low text-on-surface-variant border-outline-variant/40 hover:border-primary/40 hover:bg-surface-container",
+                        )}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {isSelected ? "check_circle" : "add"}
+                        </span>
+                        <span>{kw}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="bg-primary/5 p-3.5 rounded-xl border border-primary/10 flex items-start gap-2.5">
+                  <span className="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">
+                    verified
+                  </span>
+                  <p className="text-[11px] text-primary/80 font-medium leading-relaxed">
+                    Selected disciplines ({selectedKeywords.length}) will appear on your public
+                    profile and qualify you for verified RFP matches and trade leads.
+                  </p>
+                </div>
+
+                <div className="pt-3 flex justify-between items-center">
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => setStep(2)}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={handleSignUpSubmit}
+                    className="px-8 py-3 bg-secondary text-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-white transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isLoading ? "Creating Account..." : "Complete Registration"}
+                    {!isLoading && (
+                      <span className="material-symbols-outlined text-[16px]">task_alt</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
