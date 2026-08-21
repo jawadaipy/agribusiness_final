@@ -3,17 +3,22 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<{
     name: string;
     initials: string;
     userType: string;
     email: string;
   } | null>(null);
+
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications(profileId);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -61,6 +66,7 @@ export function Navbar() {
             .join("")
             .toUpperCase() || "ME";
 
+        setProfileId(user.id);
         setCurrentUser({
           name: name,
           initials: initials,
@@ -68,6 +74,7 @@ export function Navbar() {
           email: user.email || "",
         });
       } else {
+        setProfileId(null);
         setCurrentUser(null);
       }
     });
@@ -89,6 +96,7 @@ export function Navbar() {
             .join("")
             .toUpperCase() || "ME";
 
+        setProfileId(user.id);
         setCurrentUser({
           name: name,
           initials: initials,
@@ -96,6 +104,7 @@ export function Navbar() {
           email: user.email || "",
         });
       } else {
+        setProfileId(null);
         setCurrentUser(null);
       }
     });
@@ -112,8 +121,10 @@ export function Navbar() {
 
   const navLinks = [
     { label: t("nav_marketplace"), to: "/apps/agri-biz" as const, icon: "storefront" },
+    { label: "Browse Listings", to: "/marketplace" as const, icon: "inventory_2" },
     { label: t("nav_projects"), to: "/projects" as const, icon: "engineering" },
     { label: t("nav_network"), to: "/search" as const, icon: "groups" },
+    { label: "Messages", to: "/messages" as const, icon: "chat" },
     { label: t("nav_education"), to: "/apps/education" as const, icon: "school" },
     { label: "Our Apps", to: "/apps" as const, icon: "apps" },
   ];
@@ -204,6 +215,16 @@ export function Navbar() {
             <span className="material-symbols-outlined text-[14px]">language</span>
             {t("nav_lang_toggle")}
           </button>
+
+          {/* Notification bell — only shown when logged in */}
+          {currentUser && (
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllRead}
+            />
+          )}
 
           {/* === LOGGED IN STATE === */}
           {currentUser ? (

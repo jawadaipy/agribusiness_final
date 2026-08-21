@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as SearchRouteImport } from './routes/search'
@@ -44,6 +47,21 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -112,6 +130,9 @@ export interface FileRoutesByFullPath {
   '/admin-login': typeof AdminLoginRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/messages': typeof MessagesRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/search': typeof SearchRoute
@@ -130,6 +151,9 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/messages': typeof MessagesRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/search': typeof SearchRoute
@@ -149,6 +173,9 @@ export interface FileRoutesById {
   '/admin-login': typeof AdminLoginRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/messages': typeof MessagesRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/search': typeof SearchRoute
@@ -169,6 +196,9 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/categories'
     | '/dashboard'
+    | '/marketplace'
+    | '/messages'
+    | '/notifications'
     | '/onboarding'
     | '/projects'
     | '/search'
@@ -187,6 +217,9 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/categories'
     | '/dashboard'
+    | '/marketplace'
+    | '/messages'
+    | '/notifications'
     | '/onboarding'
     | '/projects'
     | '/search'
@@ -205,6 +238,9 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/categories'
     | '/dashboard'
+    | '/marketplace'
+    | '/messages'
+    | '/notifications'
     | '/onboarding'
     | '/projects'
     | '/search'
@@ -224,6 +260,9 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   CategoriesRoute: typeof CategoriesRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  MarketplaceRoute: typeof MarketplaceRoute
+  MessagesRoute: typeof MessagesRoute
+  NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
   SearchRoute: typeof SearchRoute
@@ -264,6 +303,27 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -382,6 +442,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   CategoriesRoute: CategoriesRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  MarketplaceRoute: MarketplaceRoute,
+  MessagesRoute: MessagesRoute,
+  NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
   SearchRoute: SearchRoute,

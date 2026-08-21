@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { MemberProfile } from "@/lib/member";
 import { supabase } from "@/lib/supabase";
 import { ConnectionInbox } from "@/components/dashboard/ConnectionInbox";
+import { ProposalInbox } from "@/components/dashboard/ProposalInbox";
+import { ProfileCompletenessBar } from "@/components/dashboard/ProfileCompletenessBar";
 import { CitySelect } from "@/components/shared/CitySelect";
 import { PrimaryActionButton } from "@/components/shared/PrimaryActionButton";
 import { AGRI_SERVICES } from "@/lib/constants";
@@ -1059,7 +1061,37 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
           </button>
         ))}
       </div>
-      <div className="mt-5 space-y-4">{schemaUnavailable && <SchemaNotice message="This role’s secure profile table is not available yet. Apply Migrations 09 and 11 to a staging Supabase project and verify their RLS tests before production. Marketplace and project records may continue to use the already-existing tables." />}{error && <Notice tone="error" message={error} />}{success && <Notice tone="success" message={success} />}{tab === "profile" && renderRoleProfile()}{tab === "publish" && (isStudent ? <div className="rounded-xl bg-surface-container-low p-5 text-xs leading-6 text-on-surface-variant"><p className="font-bold text-primary">Portfolio first</p><p className="mt-2">Save your academic profile and an optional public portfolio link. Student accounts do not publish commercial listings, which keeps marketplace supply accountable to producers, companies, and consultants.</p></div> : isBuyer ? <>{renderProjectForm()}{renderMyProjects()}</> : <>{renderListingForm()}{renderListings()}</>)}{tab === "opportunities" && (isFarmer || isCompany ? <>{renderProjectForm()}{renderMyProjects()}</> : renderOpenProjects())}{tab === "connections" && <ConnectionInbox profileId={profile.id} />}</div>
+
+      <div className="mt-5 space-y-4">
+        {schemaUnavailable && <SchemaNotice message="This role's secure profile table is not available yet. Apply Migrations 09 and 11 to a staging Supabase project and verify their RLS tests before production. Marketplace and project records may continue to use the already-existing tables." />}
+        {error && <Notice tone="error" message={error} />}
+        {success && <Notice tone="success" message={success} />}
+
+        {tab === "profile" && (
+          <div className="space-y-5">
+            <ProfileCompletenessBar profile={profile as Parameters<typeof ProfileCompletenessBar>[0]["profile"]} />
+            {renderRoleProfile()}
+          </div>
+        )}
+
+        {tab === "publish" && (
+          isStudent
+            ? <div className="rounded-xl bg-surface-container-low p-5 text-xs leading-6 text-on-surface-variant"><p className="font-bold text-primary">Portfolio first</p><p className="mt-2">Save your academic profile and an optional public portfolio link. Student accounts do not publish commercial listings, which keeps marketplace supply accountable to producers, companies, and consultants.</p></div>
+            : isBuyer
+            ? <>{renderProjectForm()}{renderMyProjects()}</>
+            : <>{renderListingForm()}{renderListings()}</>
+        )}
+
+        {tab === "opportunities" && (
+          isFarmer || isCompany
+            ? <>{renderProjectForm()}{renderMyProjects()}<ProposalInbox profileId={profile.id} /></>
+            : isBuyer
+            ? <>{renderProjectForm()}{renderMyProjects()}<ProposalInbox profileId={profile.id} /></>
+            : renderOpenProjects()
+        )}
+
+        {tab === "connections" && <ConnectionInbox profileId={profile.id} />}
+      </div>
     </section>
   );
 }
