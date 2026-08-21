@@ -83,8 +83,21 @@ export function ConnectionInbox({ profileId }: { profileId: string }) {
     setLoading(false);
   };
 
-  useEffect(() => {
-    void loadRequests();
+  useEffect(() => { void loadRequests();
+    // Subscribe to realtime changes for connection_requests involving this profile
+    const channel = supabase.channel('connection-requests-' + profileId)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'connection_requests',
+        // Use proper OR filter for realtime updates
+        filter: `requester_profile_id=eq.${profileId}|recipient_profile_id=eq.${profileId}`
+      }, (payload) => {
+        // Reload when any insert, update, or delete occurs
+        void loadRequests();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [profileId]);
 
   const pendingIncoming = useMemo(() => incoming.filter((request) => request.status === "pending"), [incoming]);
