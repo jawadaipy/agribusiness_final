@@ -9,7 +9,7 @@ export const Route = createFileRoute("/apps/")({
     meta: [
       {
         name: "description",
-        content: "Explore AgriBusiness suite of companion apps: Agri Biz Classifieds, Animal Clinic, and Plant Clinic.",
+        content: "Explore AgriBusiness suite of companion apps: Agri Biz Trading Floor, Animal Clinic, Plant Clinic, and Agri-Education Portal.",
       },
     ],
   }),
@@ -74,6 +74,25 @@ function AppsIndexPage() {
         "Photo analysis helps experts diagnose leaf spots, blights, and pests with precision."
       ],
       cta: "Open Plant Clinic"
+    },
+    {
+      id: "education",
+      name: "Agri-Education & Research",
+      tagline: "Agricultural Academia & Vocational Training",
+      badge: "Education & Research Portal",
+      icon: "school",
+      color: "from-teal-600 to-cyan-800",
+      accent: "bg-teal-400 text-teal-950",
+      link: "/apps/education",
+      image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80&auto=format&fit=crop",
+      overview: "A comprehensive academic and vocational training portal providing agricultural university courses, research publications, modern farming webinars, and thesis guidance for students, agronomists, and researchers across Pakistan.",
+      features: [
+        "Structured courses in agronomy, precision irrigation, dairy science, and agri-robotics.",
+        "Peer-reviewed research library curated with leading Pakistani and global agricultural universities.",
+        "Practical field guides, farm management workshops, and downloadable training material.",
+        "Direct connection with professors, industry mentors, and agribusiness internships."
+      ],
+      cta: "Explore Agri-Education"
     }
   ];
 

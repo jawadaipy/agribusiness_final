@@ -24,22 +24,22 @@ export function getAuthFeedback(providerMessage: string): AuthFeedback {
   ) {
     return {
       message:
-        "Email confirmation is temporarily paused to protect this account. Please wait before requesting another email, then check your inbox and spam folder.",
-      retryAfterSeconds: retryAfterSeconds ?? 60,
+        "Authentication requests are temporarily rate-limited. Please wait a few moments before trying again.",
+      retryAfterSeconds: retryAfterSeconds ?? 30,
     };
   }
 
   if (normalized.includes("email not confirmed") || normalized.includes("email not verified")) {
     return {
       message:
-        "Please confirm the email link we sent before signing in. If you cannot find it, check spam/junk and request one new confirmation email after the cooldown.",
+        "Unable to sign in directly. Please ensure 'Confirm email' is disabled in your Supabase Auth provider settings for instant access.",
     };
   }
 
   if (normalized.includes("already registered") || normalized.includes("already exists")) {
     return {
       message:
-        "This email may already be registered. Try signing in, or use the confirmation/recovery flow if you cannot access the account.",
+        "This email is already registered. Please sign in with your credentials.",
     };
   }
 

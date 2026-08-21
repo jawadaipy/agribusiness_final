@@ -75,9 +75,7 @@ function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
-  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
 
   useEffect(() => {
     if (cooldownSeconds <= 0) return;
@@ -186,7 +184,7 @@ function OnboardingPage() {
         return;
       }
 
-      // If no session returned immediately, automatically attempt sign in with credentials
+      // Automatically sign in with credentials to establish active session
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -198,7 +196,6 @@ function OnboardingPage() {
       }
 
       if (signInError) {
-        // If email confirmation is still enabled in Supabase project, notify the user gracefully
         setSuccessMessage(
           "Your account was created successfully! You can now sign in to your dashboard.",
         );
@@ -249,38 +246,6 @@ function OnboardingPage() {
       );
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleResendConfirmation = async () => {
-    if (!formData.email.trim() || cooldownSeconds > 0 || isResendingConfirmation) return;
-    setApiError("");
-    setSuccessMessage("");
-    setIsResendingConfirmation(true);
-
-    try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: formData.email.trim(),
-      });
-      if (error) {
-        const feedback = getAuthFeedback(error.message);
-        setApiError(feedback.message);
-        setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
-        return;
-      }
-      setCooldownSeconds(60);
-      setSuccessMessage(
-        "A new confirmation email was requested. Check your inbox and spam folder before requesting another one.",
-      );
-    } catch (err: unknown) {
-      const feedback = getAuthFeedback(
-        err instanceof Error ? err.message : "We could not request another confirmation email.",
-      );
-      setApiError(feedback.message);
-      setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
-    } finally {
-      setIsResendingConfirmation(false);
     }
   };
 
@@ -359,7 +324,6 @@ function OnboardingPage() {
                 setAuthMode("signup");
                 setApiError("");
                 setSuccessMessage("");
-                setAwaitingConfirmation(false);
               }}
               className={cn(
                 "px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
@@ -484,50 +448,7 @@ function OnboardingPage() {
             )}
 
             {/* === SIGNUP STEP 1: ROLE SELECTION === */}
-            {authMode === "signup" && awaitingConfirmation && (
-              <section className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-left animate-in fade-in duration-300">
-                <div className="flex gap-3">
-                  <span className="material-symbols-outlined text-[26px] text-emerald-700">mark_email_read</span>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-800">Email confirmation required</span>
-                    <h2 className="mt-1 font-display text-2xl font-bold text-primary">Confirm your email to activate your workspace</h2>
-                    <p className="mt-3 text-xs leading-5 text-emerald-950/75">
-                      We only open a role-specific workspace after Supabase has confirmed that you control this email address. This protects listings, project proposals, and company records from fraudulent signups.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-5 rounded-xl border border-emerald-200 bg-white/75 p-3 text-xs text-emerald-950/80">
-                  <p className="font-bold">1. Open the email sent to {formData.email.trim()}.</p>
-                  <p className="mt-1">2. Select the confirmation link. 3. Return here and sign in.</p>
-                </div>
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("login");
-                      setApiError("");
-                    }}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-bold text-white"
-                  >
-                    Continue to sign in <span className="material-symbols-outlined text-[16px]">login</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={cooldownSeconds > 0 || isResendingConfirmation}
-                    onClick={() => void handleResendConfirmation()}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-4 py-3 text-xs font-bold text-emerald-900 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isResendingConfirmation
-                      ? "Requesting email…"
-                      : cooldownSeconds > 0
-                        ? `Resend available in ${formatCooldown(cooldownSeconds)}`
-                        : "Resend confirmation email"}
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {authMode === "signup" && !awaitingConfirmation && step === 1 && (
+            {authMode === "signup" && step === 1 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div>
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
@@ -586,7 +507,7 @@ function OnboardingPage() {
             )}
 
             {/* === SIGNUP STEP 2: CREDENTIALS === */}
-            {authMode === "signup" && !awaitingConfirmation && step === 2 && (
+            {authMode === "signup" && step === 2 && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div>
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
@@ -744,7 +665,7 @@ function OnboardingPage() {
             )}
 
             {/* === SIGNUP STEP 3: 24 OFFICIAL DISCIPLINES SELECTION === */}
-            {authMode === "signup" && !awaitingConfirmation && step === 3 && (
+            {authMode === "signup" && step === 3 && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div>
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
