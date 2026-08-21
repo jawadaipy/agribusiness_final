@@ -123,6 +123,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
   const [myProjects, setMyProjects] = useState<ProjectRecord[]>([]);
   const [openProjects, setOpenProjects] = useState<ProjectRecord[]>([]);
   const [organization, setOrganization] = useState<OrganizationRecord | null>(null);
+  const [pendingConnectionCount, setPendingConnectionCount] = useState(0);
 
   const [farmerForm, setFarmerForm] = useState({
     farmName: "",
@@ -196,20 +197,22 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
 
   const tabLabels = useMemo(
     () => [
-      { id: "profile" as const, label: isCompany ? "Company profile" : "My profile", icon: "account_circle" },
+      { id: "profile" as const, label: isCompany ? "Company profile" : "My profile", icon: "account_circle", badge: 0 },
       {
         id: "publish" as const,
         label: isBuyer ? "Buying requirements" : isFarmer ? "My produce" : isConsultant ? "My services" : isCompany ? "Publish" : "Portfolio",
         icon: isBuyer ? "shopping_cart" : isCompany ? "add_business" : "inventory_2",
+        badge: 0,
       },
       {
         id: "opportunities" as const,
         label: isBuyer ? "Supply opportunities" : isFarmer ? "Farm needs" : isConsultant ? "Projects" : isCompany ? "My opportunities" : "Find opportunities",
         icon: "work",
+        badge: 0,
       },
-      { id: "connections" as const, label: "Connections", icon: "group_add" },
+      { id: "connections" as const, label: "Connections", icon: "group_add", badge: pendingConnectionCount },
     ],
-    [isBuyer, isCompany, isConsultant, isFarmer],
+    [isBuyer, isCompany, isConsultant, isFarmer, pendingConnectionCount],
   );
 
   const loadWorkspace = async () => {
@@ -217,7 +220,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     setSchemaUnavailable(false);
     setError("");
 
-    const [listingsResult, projectsResult] = await Promise.all([
+    const [listingsResult, projectsResult, pendingResult] = await Promise.all([
       supabase
         .from("listings")
         .select("id,title,price,unit,quantity,city,status,created_at")
@@ -228,6 +231,11 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
         .select("id,title,description,budget_min,budget_max,currency,deadline,required_skills,location,city,is_remote,status,created_at")
         .eq("profile_id", profile.id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("connection_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_profile_id", profile.id)
+        .eq("status", "pending"),
     ]);
 
     if (listingsResult.error || projectsResult.error) {
@@ -235,6 +243,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     }
     setMyListings((listingsResult.data ?? []) as ListingRecord[]);
     setMyProjects((projectsResult.data ?? []) as ProjectRecord[]);
+    setPendingConnectionCount(pendingResult.count ?? 0);
 
     if (isFarmer) {
       const { data, error: detailError } = await supabase
@@ -1032,7 +1041,24 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
         <div><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-on-surface-variant">Operational workspace</p><h2 className="mt-1 font-display text-2xl text-primary">Create records that belong to your account</h2><p className="mt-2 max-w-2xl text-[11px] leading-5 text-on-surface-variant">Each action is saved through the signed-in Supabase account and is still constrained by role-specific database policies.</p></div>
         <button type="button" onClick={() => void loadWorkspace()} className="control-secondary inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold"><span className="material-symbols-outlined text-[16px]">refresh</span>Refresh records</button>
       </div>
-      <div className="mt-5 flex flex-wrap gap-2">{tabLabels.map((item) => <button key={item.id} type="button" onClick={() => setTab(item.id)} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${tab === item.id ? "bg-primary text-on-primary" : "control-secondary"}`}><span className="material-symbols-outlined text-[16px]">{item.icon}</span>{item.label}</button>)}</div>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {tabLabels.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setTab(item.id)}
+            className={`relative inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${tab === item.id ? "bg-primary text-on-primary" : "control-secondary"}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
+            {item.label}
+            {item.badge > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-error px-1 text-[9px] font-bold text-white">
+                {item.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
       <div className="mt-5 space-y-4">{schemaUnavailable && <SchemaNotice message="This role’s secure profile table is not available yet. Apply Migrations 09 and 11 to a staging Supabase project and verify their RLS tests before production. Marketplace and project records may continue to use the already-existing tables." />}{error && <Notice tone="error" message={error} />}{success && <Notice tone="success" message={success} />}{tab === "profile" && renderRoleProfile()}{tab === "publish" && (isStudent ? <div className="rounded-xl bg-surface-container-low p-5 text-xs leading-6 text-on-surface-variant"><p className="font-bold text-primary">Portfolio first</p><p className="mt-2">Save your academic profile and an optional public portfolio link. Student accounts do not publish commercial listings, which keeps marketplace supply accountable to producers, companies, and consultants.</p></div> : isBuyer ? <>{renderProjectForm()}{renderMyProjects()}</> : <>{renderListingForm()}{renderListings()}</>)}{tab === "opportunities" && (isFarmer || isCompany ? <>{renderProjectForm()}{renderMyProjects()}</> : renderOpenProjects())}{tab === "connections" && <ConnectionInbox profileId={profile.id} />}</div>
     </section>
   );
