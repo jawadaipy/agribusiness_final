@@ -128,9 +128,143 @@ function ProfilePage() {
 
 function ConnectionPanel({ profile, isOwner, connection, contact, contactNotice, feedback, feedbackClass, loading, onAction }: { profile: ProfileView; isOwner: boolean; connection: ConnectionState | null; contact: ContactCard | null; contactNotice: string; feedback: string; feedbackClass: string; loading: boolean; onAction: () => Promise<void> }) {
   if (isOwner) return <section className="rounded-3xl border border-outline-variant/40 bg-white p-6 text-left shadow-sm"><p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Private contact settings</p><h2 className="mt-2 font-display text-xl text-primary">Your contact details</h2><p className="mt-2 text-xs leading-5 text-on-surface-variant">Only you can see these by default. Edit your profile to choose which methods accepted connections may receive.</p><div className="mt-5 space-y-3 border-t border-outline-variant/30 pt-4">{profile.email ? <InfoItem icon="mail" label="Email" value={profile.email} /> : null}{profile.phone ? <InfoItem icon="phone" label="Phone" value={profile.phone} /> : <p className="text-xs text-on-surface-variant">No private phone number saved.</p>}</div></section>;
-  if (connection?.status === "accepted") return <section className="rounded-3xl border border-primary/25 bg-white p-6 text-left shadow-sm"><p className="text-[10px] font-bold uppercase tracking-wider text-primary">Connection accepted</p><h2 className="mt-2 font-display text-xl text-primary">You are connected</h2><p className="mt-2 text-xs leading-5 text-on-surface-variant">This member has accepted the connection. Only opted-in contact methods are visible below.</p>{contactNotice ? <p className="mt-4 rounded-xl border border-secondary/30 bg-secondary-container p-3 text-xs leading-5 text-on-secondary-container">{contactNotice}</p> : null}<div className="mt-5 space-y-3 border-t border-outline-variant/30 pt-4">{contact?.email ? <InfoItem icon="mail" label="Shared email" value={contact.email} /> : null}{contact?.phone ? <InfoItem icon="phone" label="Shared phone" value={contact.phone} /> : null}{!contact?.email && !contact?.phone && !contactNotice ? <p className="text-xs leading-5 text-on-surface-variant">This member has not opted to share a phone or email with accepted connections.</p> : null}</div></section>;
+  if (connection?.status === "accepted") return (
+    <section className="rounded-3xl border border-primary/25 bg-white p-6 text-left shadow-sm space-y-5">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Connection accepted</p>
+        <h2 className="mt-1 font-display text-xl text-primary">You are connected</h2>
+        <p className="mt-1 text-xs leading-5 text-on-surface-variant">This member has accepted your connection.</p>
+      </div>
+      {contactNotice ? <p className="rounded-xl border border-secondary/30 bg-secondary-container p-3 text-xs leading-5 text-on-secondary-container">{contactNotice}</p> : null}
+      {(contact?.email || contact?.phone) && (
+        <div className="space-y-2 border-t border-outline-variant/30 pt-3">
+          {contact?.email ? <InfoItem icon="mail" label="Shared email" value={contact.email} /> : null}
+          {contact?.phone ? <InfoItem icon="phone" label="Shared phone" value={contact.phone} /> : null}
+        </div>
+      )}
+      <div className="border-t border-outline-variant/30 pt-4">
+        <ProfileDirectChat targetProfileId={profile.id} targetName={profile.fullName} />
+      </div>
+    </section>
+  );
   const isRequester = connection?.requester_profile_id === profile.id ? false : connection?.status === "pending";
   return <section className="rounded-3xl border border-outline-variant/40 bg-white p-6 text-left shadow-sm"><p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Connect safely</p>{connection?.status === "pending" && !isRequester ? <><h2 className="mt-2 font-display text-xl text-primary">Request received</h2><p className="mt-2 text-xs leading-5 text-on-surface-variant">This member has requested to connect with you. Review, accept, decline, or block the request in your dashboard inbox.</p><Link to="/dashboard" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-wider text-on-primary shadow-md"><span className="material-symbols-outlined text-[18px]">group_add</span>Open connections inbox</Link></> : connection?.status === "pending" ? <><h2 className="mt-2 font-display text-xl text-primary">Request sent</h2><p className="mt-2 text-xs leading-5 text-on-surface-variant">The recipient can respond from Dashboard → Connections. Contact details remain private while the request is pending.</p>{feedback ? <p className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${feedbackClass}`}>{feedback}</p> : null}<button onClick={() => void onAction()} disabled={loading} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/60 py-3 text-xs font-bold uppercase tracking-wider text-primary disabled:opacity-50"><span className="material-symbols-outlined text-[18px]">undo</span>{loading ? "Withdrawing…" : "Withdraw request"}</button></> : connection ? <><h2 className="mt-2 font-display text-xl text-primary">Connection request {connection.status}</h2><p className="mt-2 text-xs leading-5 text-on-surface-variant">No contact details are available for this connection state.</p></> : <><h2 className="mt-2 font-display text-xl text-primary">Request a connection</h2><p className="mt-2 text-xs leading-5 text-on-surface-variant">Send a private request. The recipient receives it in their dashboard and controls whether to accept.</p>{feedback ? <p className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${feedbackClass}`}>{feedback}</p> : null}<button onClick={() => void onAction()} disabled={loading} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-wider text-on-primary shadow-md disabled:opacity-50"><span className="material-symbols-outlined text-[18px]">person_add</span>{loading ? "Sending request…" : "Request connection"}</button></>}</section>;
+}
+
+function ProfileDirectChat({ targetProfileId, targetName }: { targetProfileId: string; targetName: string }) {
+  const [messages, setMessages] = useState<{ id: string; sender_profile_id: string; body: string; created_at: string }[]>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const [myId, setMyId] = useState<string | null>(null);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: authData }) => {
+      const currentUserId = authData.user?.id;
+      if (!currentUserId) { setLoading(false); return; }
+      setMyId(currentUserId);
+
+      // Find or create thread
+      const { data: threads } = await supabase
+        .from("threads")
+        .select("id,participant_ids")
+        .contains("participant_ids", [currentUserId, targetProfileId]);
+
+      let activeId = threads?.[0]?.id;
+      if (!activeId) {
+        const { data: newThread } = await supabase
+          .from("threads")
+          .insert({ participant_ids: [currentUserId, targetProfileId] })
+          .select("id")
+          .single();
+        activeId = newThread?.id;
+      }
+
+      if (activeId) {
+        setThreadId(activeId);
+        const { data: msgs } = await supabase
+          .from("messages")
+          .select("id,sender_profile_id,body,created_at")
+          .eq("thread_id", activeId)
+          .order("created_at", { ascending: true })
+          .limit(20);
+        setMessages(msgs ?? []);
+
+        // Realtime
+        const channel = supabase
+          .channel(`profile-chat:${activeId}`)
+          .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `thread_id=eq.${activeId}` },
+            (payload) => setMessages((prev) => [...prev, payload.new as (typeof prev)[0]]),
+          )
+          .subscribe();
+        return () => { void supabase.removeChannel(channel); };
+      }
+      setLoading(false);
+    });
+  }, [targetProfileId]);
+
+  const send = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim() || !threadId || !myId || sending) return;
+    setSending(true);
+    await supabase.from("messages").insert({
+      thread_id: threadId,
+      sender_profile_id: myId,
+      body: text.trim(),
+      message_type: "text",
+    });
+    await supabase.from("threads").update({ last_message_at: new Date().toISOString() }).eq("id", threadId);
+    setText("");
+    setSending(false);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
+          <span className="material-symbols-outlined text-[14px]">chat</span> Direct Message
+        </span>
+        <span className="text-[10px] text-on-surface-variant/70">Chat with {targetName.split(" ")[0]}</span>
+      </div>
+
+      <div className="max-h-48 overflow-y-auto space-y-2 rounded-xl bg-surface-container-low p-3 border border-outline-variant/30">
+        {loading ? (
+          <p className="text-[11px] text-on-surface-variant/60">Loading conversation…</p>
+        ) : messages.length === 0 ? (
+          <p className="text-[11px] text-on-surface-variant/60 text-center py-2">No messages yet. Say hello to {targetName.split(" ")[0]}!</p>
+        ) : (
+          messages.map((m) => {
+            const isMe = m.sender_profile_id === myId;
+            return (
+              <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] rounded-xl px-3 py-1.5 text-xs leading-4 shadow-2xs ${isMe ? "bg-primary text-on-primary" : "bg-white text-primary border border-outline-variant/40"}`}>
+                  <p>{m.body}</p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <form onSubmit={send} className="flex gap-2">
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={`Message ${targetName.split(" ")[0]}…`}
+          className="flex-1 rounded-xl border border-outline-variant/60 bg-white px-3 py-2 text-xs font-medium text-primary outline-none focus:border-primary"
+        />
+        <button
+          type="submit"
+          disabled={sending || !text.trim()}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-on-primary transition hover:bg-primary-container disabled:opacity-40"
+        >
+          <span className="material-symbols-outlined text-[16px]">send</span>
+        </button>
+      </form>
+    </div>
+  );
 }
 
 function ProfileEditor({ editForm, setEditForm, saveLoading, feedback, onSubmit, onCancel }: { editForm: ProfileView; setEditForm: (value: ProfileView) => void; saveLoading: boolean; feedback: string; onSubmit: (event: React.FormEvent) => void; onCancel: () => void }) {

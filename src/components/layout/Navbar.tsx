@@ -124,7 +124,6 @@ export function Navbar() {
     { label: "Browse Listings", to: "/marketplace" as const, icon: "inventory_2" },
     { label: t("nav_projects"), to: "/projects" as const, icon: "engineering" },
     { label: t("nav_network"), to: "/search" as const, icon: "groups" },
-    { label: "Messages", to: "/messages" as const, icon: "chat" },
     { label: t("nav_education"), to: "/apps/education" as const, icon: "school" },
     { label: "Our Apps", to: "/apps" as const, icon: "apps" },
   ];
