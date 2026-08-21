@@ -7,6 +7,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { MemberProfile } from "@/lib/member";
 import { supabase } from "@/lib/supabase";
 import { ConnectionInbox } from "@/components/dashboard/ConnectionInbox";
+import { CitySelect } from "@/components/shared/CitySelect";
+import { PrimaryActionButton } from "@/components/shared/PrimaryActionButton";
+import { AGRI_SERVICES } from "@/lib/constants";
 
 type ListingRecord = {
   id: string;
@@ -163,6 +166,10 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     city: profile.city ?? "",
     province: "",
   });
+  // editing an existing listing or project (null = create mode)
+  const [editingListing, setEditingListing] = useState<ListingRecord | null>(null);
+  const [editingProject, setEditingProject] = useState<ProjectRecord | null>(null);
+
   const [listingForm, setListingForm] = useState({
     title: "",
     description: "",
@@ -171,6 +178,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     quantity: "",
     location: "",
     city: profile.city ?? "",
+    services: [] as string[],
   });
   const [projectForm, setProjectForm] = useState({
     title: "",
@@ -182,6 +190,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     location: "",
     city: profile.city ?? "",
     isRemote: false,
+    services: [] as string[],
   });
   const [proposalDrafts, setProposalDrafts] = useState<Record<string, { note: string; quote: string }>>({});
 
@@ -502,36 +511,65 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     await loadWorkspace();
   };
 
-  const createListing = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const saveListing = async (status: "active" | "draft") => {
     if (listingForm.title.trim().length < 3) {
       setError("Use a clear product or service title of at least three characters.");
       return;
     }
-    await submit(
-      () =>
-        supabase.from("listings").insert({
-          profile_id: profile.id,
-          title: listingForm.title.trim(),
-          description: listingForm.description.trim() || null,
-          price: toNullableNumber(listingForm.price),
-          unit: listingForm.unit.trim() || null,
-          quantity: toNullableNumber(listingForm.quantity),
-          location: listingForm.location.trim() || null,
-          city: listingForm.city.trim() || null,
-          status: "active",
-        }),
-      isFarmer
-        ? "Your producer listing is now saved under your account."
-        : "Your service or company listing is now saved under your account.",
-    );
-    setListingForm({ title: "", description: "", price: "", unit: "", quantity: "", location: "", city: profile.city ?? "" });
+    const payload = {
+      profile_id: profile.id,
+      title: listingForm.title.trim(),
+      description: listingForm.description.trim() || null,
+      price: toNullableNumber(listingForm.price),
+      unit: listingForm.unit.trim() || null,
+      quantity: toNullableNumber(listingForm.quantity),
+      location: listingForm.location.trim() || null,
+      city: listingForm.city || null,
+      services: listingForm.services.length ? listingForm.services : null,
+      status,
+    };
+    if (editingListing) {
+      await submit(
+        () => supabase.from("listings").update(payload).eq("id", editingListing.id),
+        status === "draft" ? "Draft saved." : "Listing updated and published.",
+      );
+      setEditingListing(null);
+    } else {
+      await submit(
+        () => supabase.from("listings").insert(payload),
+        status === "draft" ? "Saved as draft." : isFarmer ? "Your producer listing is now live." : "Your service listing is now live.",
+      );
+    }
+    setListingForm({ title: "", description: "", price: "", unit: "", quantity: "", location: "", city: profile.city ?? "", services: [] });
   };
 
-  const createProject = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const startEditListing = (listing: ListingRecord) => {
+    setEditingListing(listing);
+    setListingForm({
+      title: listing.title,
+      description: "",
+      price: listing.price !== null ? String(listing.price) : "",
+      unit: listing.unit ?? "",
+      quantity: listing.quantity !== null ? String(listing.quantity) : "",
+      location: "",
+      city: listing.city ?? "",
+      services: [],
+    });
+    setTab("publish");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const deleteListing = async (id: string) => {
+    if (!window.confirm("Delete this listing permanently?")) return;
+    await submit(
+      () => supabase.from("listings").delete().eq("id", id),
+      "Listing deleted.",
+    );
+  };
+
+  const saveProject = async (status: "open" | "draft") => {
     if (projectForm.title.trim().length < 5 || projectForm.description.trim().length < 5) {
-      setError("Provide a concise title and a clear requirement description before publishing an opportunity.");
+      setError("Provide a concise title and a clear requirement description before publishing.");
       return;
     }
     const budgetMin = toNullableNumber(projectForm.budgetMin);
@@ -540,24 +578,59 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
       setError("Maximum budget cannot be lower than minimum budget.");
       return;
     }
+    const payload = {
+      profile_id: profile.id,
+      title: projectForm.title.trim(),
+      description: projectForm.description.trim(),
+      budget_min: budgetMin,
+      budget_max: budgetMax,
+      deadline: projectForm.deadline || null,
+      required_skills: splitValues(projectForm.skills),
+      location: projectForm.location.trim() || null,
+      city: projectForm.city || null,
+      services: projectForm.services.length ? projectForm.services : null,
+      is_remote: projectForm.isRemote,
+      status,
+    };
+    if (editingProject) {
+      await submit(
+        () => supabase.from("projects").update(payload).eq("id", editingProject.id),
+        status === "draft" ? "Draft saved." : "Opportunity updated and published.",
+      );
+      setEditingProject(null);
+    } else {
+      await submit(
+        () => supabase.from("projects").insert(payload),
+        status === "draft" ? "Saved as draft." : isCompany ? "Opportunity published." : isBuyer ? "Buying requirement published." : "Farm need published.",
+      );
+    }
+    setProjectForm({ title: "", description: "", budgetMin: "", budgetMax: "", deadline: "", skills: "", location: "", city: profile.city ?? "", isRemote: false, services: [] });
+  };
+
+  const startEditProject = (project: ProjectRecord) => {
+    setEditingProject(project);
+    setProjectForm({
+      title: project.title,
+      description: project.description ?? "",
+      budgetMin: project.budget_min !== null ? String(project.budget_min) : "",
+      budgetMax: project.budget_max !== null ? String(project.budget_max) : "",
+      deadline: project.deadline ?? "",
+      skills: joinValues(project.required_skills),
+      location: project.location ?? "",
+      city: project.city ?? "",
+      isRemote: project.is_remote,
+      services: [],
+    });
+    setTab("opportunities");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const deleteProject = async (id: string) => {
+    if (!window.confirm("Delete this opportunity permanently?")) return;
     await submit(
-      () =>
-        supabase.from("projects").insert({
-          profile_id: profile.id,
-          title: projectForm.title.trim(),
-          description: projectForm.description.trim(),
-          budget_min: budgetMin,
-          budget_max: budgetMax,
-          deadline: projectForm.deadline || null,
-          required_skills: splitValues(projectForm.skills),
-          location: projectForm.location.trim() || null,
-          city: projectForm.city.trim() || null,
-          is_remote: projectForm.isRemote,
-          status: "open",
-        }),
-      isCompany ? "Opportunity published. Only its owner will be allowed to review submitted proposals." : isBuyer ? "Buying requirement published. Relevant producers can now discover it." : "Farm need published. Relevant providers can now discover it.",
+      () => supabase.from("projects").delete().eq("id", id),
+      "Opportunity deleted.",
     );
-    setProjectForm({ title: "", description: "", budgetMin: "", budgetMax: "", deadline: "", skills: "", location: "", city: profile.city ?? "", isRemote: false });
   };
 
   const submitProposal = async (projectId: string) => {
@@ -595,7 +668,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
             <input type="url" value={organizationForm.website} onChange={(e) => setOrganizationForm({ ...organizationForm, website: e.target.value })} className={inputClass} placeholder="https://example.com" />
           </Field>
           <Field label="City">
-            <input value={organizationForm.city} onChange={(e) => setOrganizationForm({ ...organizationForm, city: e.target.value })} className={inputClass} placeholder="City" />
+            <CitySelect value={organizationForm.city} onChange={(c) => setOrganizationForm({ ...organizationForm, city: c })} />
           </Field>
           <Field label="Province">
             <input value={organizationForm.province} onChange={(e) => setOrganizationForm({ ...organizationForm, province: e.target.value })} className={inputClass} placeholder="Province" />
@@ -669,42 +742,282 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
   };
 
   const renderListingForm = () => (
-    <form onSubmit={createListing} className="grid gap-4 md:grid-cols-2">
-      <Field label={isFarmer ? "Product / commodity title" : "Product or service title"} required><input required value={listingForm.title} onChange={(e) => setListingForm({ ...listingForm, title: e.target.value })} className={inputClass} placeholder={isFarmer ? "e.g. Fresh wheat, 2026 harvest" : "e.g. Precision irrigation design service"} /></Field>
-      <Field label="City"><input value={listingForm.city} onChange={(e) => setListingForm({ ...listingForm, city: e.target.value })} className={inputClass} placeholder="City" /></Field>
-      <Field label="Price (PKR)" help="Leave blank if price is on request."><input min="0" type="number" value={listingForm.price} onChange={(e) => setListingForm({ ...listingForm, price: e.target.value })} className={inputClass} placeholder="e.g. 4500" /></Field>
-      <Field label="Unit"><input value={listingForm.unit} onChange={(e) => setListingForm({ ...listingForm, unit: e.target.value })} className={inputClass} placeholder="e.g. per 40kg, per acre, per visit" /></Field>
-      <Field label="Available quantity"><input min="0" type="number" value={listingForm.quantity} onChange={(e) => setListingForm({ ...listingForm, quantity: e.target.value })} className={inputClass} placeholder="Optional" /></Field>
-      <Field label="Location"><input value={listingForm.location} onChange={(e) => setListingForm({ ...listingForm, location: e.target.value })} className={inputClass} placeholder="Mandi, district, or service area" /></Field>
-      <Field label="Description" className="md:col-span-2"><textarea value={listingForm.description} onChange={(e) => setListingForm({ ...listingForm, description: e.target.value })} className={`${inputClass} min-h-28 resize-y`} placeholder="State the product condition, grade, availability, or service scope. Contact details stay private." /></Field>
-      <div className="md:col-span-2"><button disabled={submitting} className={buttonClass}>{submitting ? "Publishing…" : isFarmer ? "Publish produce listing" : "Publish product or service"}</button></div>
-    </form>
+    <div className="rounded-2xl border border-outline-variant/50 bg-surface-container-low p-5">
+      <h3 className="mb-4 font-display text-lg text-primary">
+        {editingListing ? "Edit listing" : isFarmer ? "New produce listing" : "New product or service"}
+      </h3>
+      <form
+        onSubmit={(e) => { e.preventDefault(); void saveListing("active"); }}
+        className="grid gap-4 md:grid-cols-2"
+      >
+        <Field label={isFarmer ? "Product / commodity title" : "Product or service title"} required>
+          <input required value={listingForm.title} onChange={(e) => setListingForm({ ...listingForm, title: e.target.value })} className={inputClass} placeholder={isFarmer ? "e.g. Fresh wheat, 2026 harvest" : "e.g. Precision irrigation design service"} />
+        </Field>
+        <Field label="City" required>
+          <CitySelect required value={listingForm.city} onChange={(c) => setListingForm({ ...listingForm, city: c })} />
+        </Field>
+        <Field label="Price (PKR)" help="Leave blank if price is on request.">
+          <input min="0" type="number" value={listingForm.price} onChange={(e) => setListingForm({ ...listingForm, price: e.target.value })} className={inputClass} placeholder="e.g. 4500" />
+        </Field>
+        <Field label="Unit">
+          <input value={listingForm.unit} onChange={(e) => setListingForm({ ...listingForm, unit: e.target.value })} className={inputClass} placeholder="e.g. per 40kg, per acre, per visit" />
+        </Field>
+        <Field label="Available quantity">
+          <input min="0" type="number" value={listingForm.quantity} onChange={(e) => setListingForm({ ...listingForm, quantity: e.target.value })} className={inputClass} placeholder="Optional" />
+        </Field>
+        <Field label="Location" help="Mandi, district, or service area">
+          <input value={listingForm.location} onChange={(e) => setListingForm({ ...listingForm, location: e.target.value })} className={inputClass} placeholder="e.g. Sargodha Fruit Market" />
+        </Field>
+        <Field label="Description" className="md:col-span-2">
+          <textarea value={listingForm.description} onChange={(e) => setListingForm({ ...listingForm, description: e.target.value })} className={`${inputClass} min-h-28 resize-y`} placeholder="State the product condition, grade, availability, or service scope." />
+        </Field>
+        {/* Services offered */}
+        <fieldset className="md:col-span-2">
+          <legend className={labelClass}>Services / categories (choose all that apply)</legend>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {AGRI_SERVICES.map((s) => (
+              <label key={s} className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:bg-primary/5">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-primary"
+                  checked={listingForm.services.includes(s)}
+                  onChange={(e) =>
+                    setListingForm({
+                      ...listingForm,
+                      services: e.target.checked
+                        ? [...listingForm.services, s]
+                        : listingForm.services.filter((v) => v !== s),
+                    })
+                  }
+                />
+                {s}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div className="flex items-center gap-3 md:col-span-2">
+          <PrimaryActionButton
+            publishLabel={editingListing ? "Update & publish" : isFarmer ? "Publish produce listing" : "Publish listing"}
+            draftLabel="Save as draft"
+            loading={submitting}
+            onPublish={() => void saveListing("active")}
+            onDraft={() => void saveListing("draft")}
+          />
+          {editingListing && (
+            <button
+              type="button"
+              onClick={() => { setEditingListing(null); setListingForm({ title: "", description: "", price: "", unit: "", quantity: "", location: "", city: profile.city ?? "", services: [] }); }}
+              className="control-secondary rounded-xl px-4 py-3 text-xs font-bold"
+            >
+              Cancel edit
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
   );
 
   const renderProjectForm = () => (
-    <form onSubmit={createProject} className="grid gap-4 md:grid-cols-2">
-      <Field label={isBuyer ? "Buying requirement title" : isCompany ? "Opportunity / RFP title" : "Farm need title"} required><input required value={projectForm.title} onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })} className={inputClass} placeholder={isBuyer ? "e.g. Procurement: Grade A wheat, 500 MT" : isCompany ? "e.g. Irrigation efficiency assessment" : "e.g. Need a drip irrigation consultant"} /></Field>
-      <Field label="Deadline"><input type="date" value={projectForm.deadline} onChange={(e) => setProjectForm({ ...projectForm, deadline: e.target.value })} className={inputClass} /></Field>
-      <Field label="Minimum budget (PKR)"><input min="0" type="number" value={projectForm.budgetMin} onChange={(e) => setProjectForm({ ...projectForm, budgetMin: e.target.value })} className={inputClass} placeholder="Optional" /></Field>
-      <Field label="Maximum budget (PKR)"><input min="0" type="number" value={projectForm.budgetMax} onChange={(e) => setProjectForm({ ...projectForm, budgetMax: e.target.value })} className={inputClass} placeholder="Optional" /></Field>
-      <Field label={isBuyer ? "Commodity, grade, or logistics tags" : "Required skills"} className="md:col-span-2" help="Separate entries with commas."><input value={projectForm.skills} onChange={(e) => setProjectForm({ ...projectForm, skills: e.target.value })} className={inputClass} placeholder={isBuyer ? "Wheat, Grade A, 12% moisture, Punjab collection" : "Agronomy, soil testing, cold-chain logistics"} /></Field>
-      <Field label="City"><input value={projectForm.city} onChange={(e) => setProjectForm({ ...projectForm, city: e.target.value })} className={inputClass} placeholder="City" /></Field>
-      <Field label="Location"><input value={projectForm.location} onChange={(e) => setProjectForm({ ...projectForm, location: e.target.value })} className={inputClass} placeholder="Site, district, or service area" /></Field>
-      {!isBuyer ? <label className="md:col-span-2 flex cursor-pointer items-center gap-2 text-xs font-medium text-on-surface-variant"><input type="checkbox" checked={projectForm.isRemote} onChange={(e) => setProjectForm({ ...projectForm, isRemote: e.target.checked })} className="h-4 w-4 rounded border-outline text-primary" /> Remote or hybrid work is possible</label> : null}
-      <Field label={isBuyer ? "Buying requirement details" : "Requirement description"} className="md:col-span-2" required><textarea required value={projectForm.description} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} className={`${inputClass} min-h-32 resize-y`} placeholder={isBuyer ? "State commodity, quantity, grade, collection area, delivery timing, payment terms, and how producers should respond." : "Describe the outcome, context, deliverables, and how applicants should frame their proposal."} /></Field>
-      <div className="md:col-span-2"><button disabled={submitting} className={buttonClass}>{submitting ? "Publishing…" : isBuyer ? "Publish buying requirement" : isCompany ? "Publish opportunity" : "Publish farm need"}</button></div>
-    </form>
+    <div className="rounded-2xl border border-outline-variant/50 bg-surface-container-low p-5">
+      <h3 className="mb-4 font-display text-lg text-primary">
+        {editingProject ? "Edit opportunity" : isBuyer ? "New buying requirement" : isCompany ? "New opportunity / RFP" : "New farm need"}
+      </h3>
+      <form
+        onSubmit={(e) => { e.preventDefault(); void saveProject("open"); }}
+        className="grid gap-4 md:grid-cols-2"
+      >
+        <Field label={isBuyer ? "Buying requirement title" : isCompany ? "Opportunity / RFP title" : "Farm need title"} required>
+          <input required value={projectForm.title} onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })} className={inputClass} placeholder={isBuyer ? "e.g. Procurement: Grade A wheat, 500 MT" : isCompany ? "e.g. Irrigation efficiency assessment" : "e.g. Need a drip irrigation consultant"} />
+        </Field>
+        <Field label="Deadline">
+          <input type="date" value={projectForm.deadline} onChange={(e) => setProjectForm({ ...projectForm, deadline: e.target.value })} className={inputClass} />
+        </Field>
+        <Field label="Minimum budget (PKR)">
+          <input min="0" type="number" value={projectForm.budgetMin} onChange={(e) => setProjectForm({ ...projectForm, budgetMin: e.target.value })} className={inputClass} placeholder="Optional" />
+        </Field>
+        <Field label="Maximum budget (PKR)">
+          <input min="0" type="number" value={projectForm.budgetMax} onChange={(e) => setProjectForm({ ...projectForm, budgetMax: e.target.value })} className={inputClass} placeholder="Optional" />
+        </Field>
+        <Field label={isBuyer ? "Commodity, grade, or logistics tags" : "Required skills"} className="md:col-span-2" help="Separate entries with commas.">
+          <input value={projectForm.skills} onChange={(e) => setProjectForm({ ...projectForm, skills: e.target.value })} className={inputClass} placeholder={isBuyer ? "Wheat, Grade A, 12% moisture, Punjab collection" : "Agronomy, soil testing, cold-chain logistics"} />
+        </Field>
+        <Field label="City" required>
+          <CitySelect required value={projectForm.city} onChange={(c) => setProjectForm({ ...projectForm, city: c })} />
+        </Field>
+        <Field label="Location" help="Site, district, or service area">
+          <input value={projectForm.location} onChange={(e) => setProjectForm({ ...projectForm, location: e.target.value })} className={inputClass} placeholder="e.g. Faisalabad Industrial Estate" />
+        </Field>
+        {!isBuyer ? (
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-on-surface-variant md:col-span-2">
+            <input type="checkbox" checked={projectForm.isRemote} onChange={(e) => setProjectForm({ ...projectForm, isRemote: e.target.checked })} className="h-4 w-4 rounded border-outline text-primary" />
+            Remote or hybrid work is possible
+          </label>
+        ) : null}
+        <Field label={isBuyer ? "Buying requirement details" : "Requirement description"} className="md:col-span-2" required>
+          <textarea required value={projectForm.description} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} className={`${inputClass} min-h-32 resize-y`} placeholder={isBuyer ? "State commodity, quantity, grade, collection area, delivery timing, payment terms." : "Describe the outcome, context, deliverables, and how applicants should frame their proposal."} />
+        </Field>
+        {/* Services tags */}
+        <fieldset className="md:col-span-2">
+          <legend className={labelClass}>Services / categories (choose all that apply)</legend>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {AGRI_SERVICES.map((s) => (
+              <label key={s} className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:bg-primary/5">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-primary"
+                  checked={projectForm.services.includes(s)}
+                  onChange={(e) =>
+                    setProjectForm({
+                      ...projectForm,
+                      services: e.target.checked
+                        ? [...projectForm.services, s]
+                        : projectForm.services.filter((v) => v !== s),
+                    })
+                  }
+                />
+                {s}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div className="flex items-center gap-3 md:col-span-2">
+          <PrimaryActionButton
+            publishLabel={editingProject ? "Update & publish" : isBuyer ? "Publish buying requirement" : isCompany ? "Publish opportunity" : "Publish farm need"}
+            draftLabel="Save as draft"
+            loading={submitting}
+            onPublish={() => void saveProject("open")}
+            onDraft={() => void saveProject("draft")}
+          />
+          {editingProject && (
+            <button
+              type="button"
+              onClick={() => { setEditingProject(null); setProjectForm({ title: "", description: "", budgetMin: "", budgetMax: "", deadline: "", skills: "", location: "", city: profile.city ?? "", isRemote: false, services: [] }); }}
+              className="control-secondary rounded-xl px-4 py-3 text-xs font-bold"
+            >
+              Cancel edit
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
   );
 
   const renderListings = () => (
     <div className="mt-6">
-      <div className="flex items-center justify-between"><h3 className="font-display text-xl text-primary">My published records</h3><span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{myListings.length} saved</span></div>
-      {myListings.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">No listing has been created yet. Publish a real product or service above; it will then appear here under your account.</p> : <div className="mt-4 grid gap-3 md:grid-cols-2">{myListings.map((listing) => <article key={listing.id} className="rounded-xl border border-outline-variant bg-white p-4"><div className="flex justify-between gap-3"><h4 className="text-sm font-bold text-primary">{listing.title}</h4><span className="rounded-full bg-primary/10 px-2 py-1 text-[9px] font-bold uppercase text-primary">{listing.status}</span></div><p className="mt-2 text-sm font-bold text-primary">{formatPkr(listing.price)} {listing.unit ? <span className="text-[10px] font-medium text-on-surface-variant">/ {listing.unit}</span> : null}</p><p className="mt-1 text-[11px] text-on-surface-variant">{listing.quantity !== null ? `${listing.quantity} available · ` : ""}{listing.city || "Location not specified"}</p></article>)}</div>}
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-display text-xl text-primary">My listings</h3>
+        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{myListings.length} total</span>
+      </div>
+      {myListings.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">
+          No listing yet. Use the form above to publish or save a draft.
+        </p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {myListings.map((listing) => (
+            <article key={listing.id} className="rounded-xl border border-outline-variant bg-white p-4">
+              <div className="flex justify-between gap-3">
+                <h4 className="text-sm font-bold text-primary">{listing.title}</h4>
+                <span
+                  className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
+                    listing.status === "draft"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {listing.status === "draft" ? "Draft" : listing.status}
+                </span>
+              </div>
+              <p className="mt-2 text-sm font-bold text-primary">
+                {formatPkr(listing.price)}{" "}
+                {listing.unit ? <span className="text-[10px] font-medium text-on-surface-variant">/ {listing.unit}</span> : null}
+              </p>
+              <p className="mt-1 text-[11px] text-on-surface-variant">
+                {listing.quantity !== null ? `${listing.quantity} available · ` : ""}
+                {listing.city || "City not set"}
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => startEditListing(listing)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-[10px] font-bold text-primary transition hover:bg-surface-container"
+                >
+                  <span className="material-symbols-outlined text-[13px]">edit</span> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deleteListing(listing.id)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-[10px] font-bold text-error transition hover:bg-error/10"
+                >
+                  <span className="material-symbols-outlined text-[13px]">delete</span> Delete
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 
   const renderMyProjects = () => (
-    <div className="mt-6"><div className="flex items-center justify-between"><h3 className="font-display text-xl text-primary">My published opportunities</h3><span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{myProjects.length} saved</span></div>{myProjects.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">No requirement or RFP has been published yet. Only you can later review the proposals submitted to your projects.</p> : <div className="mt-4 space-y-3">{myProjects.map((project) => <article key={project.id} className="rounded-xl border border-outline-variant bg-white p-4"><div className="flex justify-between gap-3"><div><h4 className="text-sm font-bold text-primary">{project.title}</h4><p className="mt-1 text-[11px] leading-5 text-on-surface-variant">{project.description}</p></div><span className="h-fit rounded-full bg-primary/10 px-2 py-1 text-[9px] font-bold uppercase text-primary">{project.status}</span></div><p className="mt-3 text-[11px] font-medium text-on-surface-variant">{project.budget_min !== null || project.budget_max !== null ? `${formatPkr(project.budget_min)} – ${formatPkr(project.budget_max)}` : "Budget on request"}{project.deadline ? ` · Deadline ${new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short" }).format(new Date(project.deadline))}` : ""}</p></article>)}</div>}</div>
+    <div className="mt-6">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-display text-xl text-primary">My opportunities</h3>
+        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{myProjects.length} total</span>
+      </div>
+      {myProjects.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">
+          No opportunity or RFP yet. Use the form above to publish or save a draft.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {myProjects.map((project) => (
+            <article key={project.id} className="rounded-xl border border-outline-variant bg-white p-4">
+              <div className="flex justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-bold text-primary">{project.title}</h4>
+                  <p className="mt-1 text-[11px] leading-5 text-on-surface-variant">{project.description}</p>
+                </div>
+                <span
+                  className={`h-fit rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
+                    project.status === "draft"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {project.status === "draft" ? "Draft" : project.status}
+                </span>
+              </div>
+              <p className="mt-3 text-[11px] font-medium text-on-surface-variant">
+                {project.budget_min !== null || project.budget_max !== null
+                  ? `${formatPkr(project.budget_min)} – ${formatPkr(project.budget_max)}`
+                  : "Budget on request"}
+                {project.deadline
+                  ? ` · Deadline ${new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short" }).format(new Date(project.deadline))}`
+                  : ""}
+                {project.city ? ` · ${project.city}` : ""}
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => startEditProject(project)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-[10px] font-bold text-primary transition hover:bg-surface-container"
+                >
+                  <span className="material-symbols-outlined text-[13px]">edit</span> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deleteProject(project.id)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-[10px] font-bold text-error transition hover:bg-error/10"
+                >
+                  <span className="material-symbols-outlined text-[13px]">delete</span> Delete
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
   );
 
   const renderOpenProjects = () => (
