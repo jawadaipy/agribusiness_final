@@ -2,20 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { RateTicker } from "@/components/shared/RateTicker";
 import { Hero } from "@/components/home/Hero";
-import { CategoryGrid } from "@/components/home/CategoryGrid";
-import { EcosystemApps } from "@/components/home/EcosystemApps";
-import { HowItWorks } from "@/components/home/HowItWorks";
-import { AppHub } from "@/components/home/AppHub";
+import { RoleStrip, HowItWorksMinimal, AppsStrip, CtaBand } from "@/components/home/Sections";
 import { FeaturedProjects } from "@/components/home/FeaturedProjects";
-import { Pricing } from "@/components/home/Pricing";
 import { Footer } from "@/components/layout/Footer";
 
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
-    title: "AgriBusiness — Pakistan's Premier Agri-Tech Marketplace",
+    title: "AgriBusiness — Pakistan's Agri Professional Network",
     meta: [
-      { name: "description", content: "The ultimate agri-tech platform for Pakistan's agricultural community." },
+      { name: "description", content: "The professional network where Pakistan's farmers, buyers, consultants, enterprises, and researchers do real business." },
     ],
   }),
 });
@@ -27,12 +23,11 @@ function Index() {
       <main>
         <Hero />
         <RateTicker />
-        <EcosystemApps />
-        <CategoryGrid />
-        <AppHub />
+        <RoleStrip />
+        <HowItWorksMinimal />
+        <AppsStrip />
         <FeaturedProjects />
-        <HowItWorks />
-        <Pricing />
+        <CtaBand />
       </main>
       <Footer />
     </div>
