@@ -3,6 +3,7 @@
  * calendar for the current month, mandi rates, and derived advisories.
  */
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import type { MemberProfile } from "@/lib/member";
 import { supabase } from "@/lib/supabase";
 import {
@@ -220,6 +221,24 @@ export function FarmerIntelligence({ profile }: { profile: MemberProfile }) {
         <p className="mt-2 text-[9px] leading-4 text-on-surface-variant/60">
           Advisory text is seasonal guidance, not a prescription. Confirm doses and timings with a verified consultant or your local extension office.
         </p>
+      </div>
+
+      <div className="mt-3">
+        <Link
+          to="/resources"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/5 p-4 transition hover:bg-primary/10"
+        >
+          <span className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary">
+              <span className="material-symbols-outlined text-[20px]">account_balance</span>
+            </span>
+            <span>
+              <span className="block text-xs font-bold text-primary">Government schemes for your farm</span>
+              <span className="mt-0.5 block text-[10px] leading-4 text-on-surface-variant">Kisan Card, subsidized loans, crop insurance, and land records — check what you qualify for.</span>
+            </span>
+          </span>
+          <span className="material-symbols-outlined text-[18px] text-primary">chevron_right</span>
+        </Link>
       </div>
     </section>
   );

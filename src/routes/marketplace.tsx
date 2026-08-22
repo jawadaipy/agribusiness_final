@@ -8,6 +8,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { supabase } from "@/lib/supabase";
 import { CITIES, AGRI_SERVICES } from "@/lib/constants";
+import { SaveButton } from "@/components/shared/SaveButton";
+import { fetchSavedIds } from "@/lib/saved-items";
 
 export const Route = createFileRoute("/marketplace")({
   head: () => ({
@@ -47,7 +49,7 @@ const TYPE_LABELS: Record<string, string> = {
   buyer: "Buyer",
 };
 
-function ListingCardView({ listing }: { listing: ListingCard }) {
+function ListingCardView({ listing, savedInitially }: { listing: ListingCard; savedInitially: boolean }) {
   const initials = (listing.profile?.full_name ?? "?")
     .split(" ")
     .filter(Boolean)
@@ -76,8 +78,11 @@ function ListingCardView({ listing }: { listing: ListingCard }) {
             )}
           </p>
         </div>
-        <span className="ml-auto rounded-full bg-primary/8 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
-          {listing.status}
+        <span className="ml-auto flex items-center gap-1.5">
+          <span className="rounded-full bg-primary/8 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
+            {listing.status}
+          </span>
+          <SaveButton kind="listing" targetId={listing.id} initiallySaved={savedInitially} compact />
         </span>
       </div>
 
@@ -138,6 +143,7 @@ function MarketplacePage() {
   const [cityFilter, setCityFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [serviceFilter, setServiceFilter] = useState("");
+  const [savedListingIds, setSavedListingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     supabase
@@ -159,6 +165,11 @@ function MarketplacePage() {
         setFiltered(mapped);
         setLoading(false);
       });
+    // Pre-fill bookmark state for signed-in members
+    supabase.auth.getUser().then(({ data: authData }) => {
+      if (!authData.user) return;
+      void fetchSavedIds(authData.user.id).then(({ listingIds }) => setSavedListingIds(listingIds));
+    });
   }, []);
 
   useEffect(() => {
@@ -252,7 +263,7 @@ function MarketplacePage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filtered.map((listing) => (
-                <ListingCardView key={listing.id} listing={listing} />
+                <ListingCardView key={listing.id} listing={listing} savedInitially={savedListingIds.has(listing.id)} />
               ))}
             </div>
           )}

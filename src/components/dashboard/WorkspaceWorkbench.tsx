@@ -8,6 +8,7 @@ import type { MemberProfile } from "@/lib/member";
 import { supabase } from "@/lib/supabase";
 import { ConnectionInbox } from "@/components/dashboard/ConnectionInbox";
 import { ProposalInbox } from "@/components/dashboard/ProposalInbox";
+import { SavedItemsPanel } from "@/components/dashboard/SavedItemsPanel";
 import { ProfileCompletenessBar } from "@/components/dashboard/ProfileCompletenessBar";
 import { CitySelect } from "@/components/shared/CitySelect";
 import { PrimaryActionButton } from "@/components/shared/PrimaryActionButton";
@@ -53,7 +54,7 @@ type OrganizationRecord = {
   province: string | null;
 };
 
-type Tab = "profile" | "publish" | "opportunities" | "connections";
+type Tab = "profile" | "publish" | "opportunities" | "connections" | "saved";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-outline bg-white px-3 py-2.5 text-xs font-medium text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15";
@@ -213,6 +214,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
         badge: 0,
       },
       { id: "connections" as const, label: "Connections", icon: "group_add", badge: pendingConnectionCount },
+      { id: "saved" as const, label: "Saved", icon: "bookmark", badge: 0 },
     ],
     [isBuyer, isCompany, isConsultant, isFarmer, pendingConnectionCount],
   );
@@ -1107,6 +1109,8 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
         )}
 
         {tab === "connections" && <ConnectionInbox profileId={profile.id} />}
+
+        {tab === "saved" && <SavedItemsPanel profileId={profile.id} />}
       </div>
     </section>
   );

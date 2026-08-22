@@ -17,6 +17,7 @@ const strings = {
     // Navigation
     nav_marketplace: "Marketplace",
     nav_feed: "Feed",
+    nav_schemes: "Gov Schemes",
     nav_projects: "Projects",
     nav_network: "Network",
     nav_education: "Education",
@@ -124,6 +125,7 @@ const strings = {
     // Navigation
     nav_marketplace: "بازار",
     nav_feed: "فیڈ",
+    nav_schemes: "حکومتی اسکیمز",
     nav_projects: "منصوبے",
     nav_network: "نیٹ ورک",
     nav_education: "تعلیم",

@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabase";
 import { getAuthenticatedMember } from "@/lib/member";
 import { formatPKR } from "@/lib/format";
 import { motion, AnimatePresence } from "framer-motion";
+import { SaveButton } from "@/components/shared/SaveButton";
+import { fetchSavedIds } from "@/lib/saved-items";
 
 type ProjectRecord = {
   id: string;
@@ -51,6 +53,7 @@ function ProjectsPage() {
     description: "",
     deadline: "",
   });
+  const [savedProjectIds, setSavedProjectIds] = useState<Set<string>>(new Set());
 
   const loadProjects = async () => {
     setIsLoading(true);
@@ -78,6 +81,11 @@ function ProjectsPage() {
 
   useEffect(() => {
     void loadProjects();
+    // Pre-fill bookmark state for signed-in members
+    supabase.auth.getUser().then(({ data: authData }) => {
+      if (!authData.user) return;
+      void fetchSavedIds(authData.user.id).then(({ projectIds }) => setSavedProjectIds(projectIds));
+    });
   }, []);
 
   const filteredProjects = projects.filter((project) =>
@@ -305,6 +313,9 @@ function ProjectsPage() {
                               Deadline: {project.deadline}
                             </span>
                           )}
+                          <span className="ml-auto">
+                            <SaveButton kind="project" targetId={project.id} initiallySaved={savedProjectIds.has(project.id)} compact />
+                          </span>
                         </div>
 
                         <Link

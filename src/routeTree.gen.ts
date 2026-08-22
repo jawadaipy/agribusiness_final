@@ -19,6 +19,7 @@ import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppsIndexRouteImport } from './routes/apps/index'
@@ -78,6 +79,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/projects'
+    | '/resources'
     | '/search'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/projects'
+    | '/resources'
     | '/search'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/projects'
+    | '/resources'
     | '/search'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
@@ -278,6 +290,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
+  ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
   AppsAgriBizRoute: typeof AppsAgriBizRoute
   AppsAnimalClinicRoute: typeof AppsAnimalClinicRoute
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -468,6 +488,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
+  ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
   AppsAgriBizRoute: AppsAgriBizRoute,
   AppsAnimalClinicRoute: AppsAnimalClinicRoute,

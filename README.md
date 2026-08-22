@@ -15,6 +15,7 @@
 | Portal / Companion App | Route | Target Audience & Purpose |
 |---|---|---|
 | 📰 **Network Feed** | `/feed` | LinkedIn-style professional feed: field updates, questions, offers, and milestones from every role, with replies, smart-match suggestions, and the mandi snapshot rail. |
+| 🏦 **Government Schemes Directory** | `/resources` | Curated, province-filtered guide to Pakistani agri support programs — Kisan Card, ZTBL/SBP financing, crop insurance, land records, and extension advisory, each with official source links. |
 | 🏪 **Agri-Biz Trading Floor** | `/apps/agri-biz` | Free B2B classifieds and marketplace for crops, livestock, machinery, inputs, and fertilizers across Pakistani mandis. |
 | 🌿 **Plant Clinic** | `/apps/plant-clinic` | Clinical crop health diagnosis, pest identification, symptom analysis, and agronomist consultations. |
 | 🐄 **Animal Clinic** | `/apps/animal-clinic` | Telehealth for livestock and dairy farmers with direct prescriptions from veterinary specialists and university researchers. |
@@ -60,6 +61,15 @@ Plus **live stat cards** for every role (connections, pending requests, and role
 ### 🛠 Resilience Fix
 Publishing forms now fall back gracefully when a database predates the optional `listings.services` / `projects.services` tag columns — inserts retry once without the column, so publishing works on both old and migrated databases.
 
+### 🔖 Bookmarks (saved_items)
+The previously unused `saved_items` table is now the platform's bookmark system:
+- **Save buttons** on marketplace listing cards and open opportunity cards (signed-out visitors are routed to onboarding).
+- **Saved tab** in every member's workspace — bookmarked listings and opportunities with prices, budgets, quick links, and one-click removal.
+- Owner-scoped RLS: members only ever see and change their own bookmarks.
+
+### 🏦 Government Schemes Directory (`/resources`)
+Eleven curated programs across all provinces and AJK/GB — Punjab Kisan Card, PM Youth Business & Agriculture Loans, ZTBL financing, SBP agricultural credit, Crop Loan Insurance, Punjab/Sindh land records, extension advisory, and provincial support windows. Province + type filters, Urdu names, eligibility checklists, step-by-step application guidance, official source links, and a clear "verify before you apply" disclaimer. The farmer intelligence panel links into it directly.
+
 ### 🔑 Demo Accounts (password for all: `DemoAgri2026!`)
 | Role | Email | City |
 |---|---|---|
@@ -73,14 +83,13 @@ Publishing forms now fall back gracefully when a database predates the optional 
 
 ## 🗺️ Suggested Roadmap (next iterations)
 
-1. **Reactions & bookmarks** — a `network_post_likes` table plus the existing (unused) `saved_items` table wired to "Save post / Save listing" buttons.
+1. **Post reactions** — a `network_post_likes` table for lightweight endorsement of feed posts (bookmarks above already cover saving).
 2. **Profile analytics** — `profile_views` table + "Who viewed your profile" card; weekly digest email.
 3. **Skills & endorsements** — `skill_endorsements` table; endorse buttons on profiles, endorsed skills surfaced in matching.
 4. **Urdu feed localization** — composer prompts and advisory text already exist in English; extend the i18n dictionary into `/feed` and the farmer intelligence panel.
 5. **WhatsApp/SMS digests** — feed highlights and mandi alerts via the existing WhatsApp support channel for low-bandwidth growers.
-6. **Government schemes directory** — Kisan Card, subsidy windows, and agri-loan programs as a curated, city-filtered resource.
-7. **Events & webinars module** — company-hosted field days and university webinars with RSVPs feeding the notification system.
-8. **Escrow-backed trade** — connect the existing Stripe/JazzCash edge functions to feed offers for protected first transactions.
+6. **Events & webinars module** — company-hosted field days and university webinars with RSVPs feeding the notification system.
+7. **Escrow-backed trade** — connect the existing Stripe/JazzCash edge functions to feed offers for protected first transactions.
 
 ---
 
