@@ -4,17 +4,52 @@
  * Network pulse on the right is live database data.
  */
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
 const HERO_IMAGE = "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80&auto=format&fit=crop";
+const HERO_FALLBACK = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=80&auto=format&fit=crop";
 
 type PulseRate = { commodity: string; city: string; modal_price: number; trend: string };
 type PulsePost = { title: string; kind: string };
 type PulseMember = { display_name: string | null; user_type: string; city: string | null };
 
 const FACTS = ["5 member roles", "34 cities", "24 disciplines", "Live mandi rates"];
+
+const enterStagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.09, delayChildren: 0.1 } },
+};
+const enterItem: Variants = {
+  hidden: { opacity: 0, y: 22 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+};
+
+/** Counts up when scrolled into view; static under reduced motion. */
+function Counter({ to }: { to: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "0px 0px -5% 0px" });
+  const reduced = useReducedMotion();
+  const [value, setValue] = useState(reduced ? to : 0);
+
+  useEffect(() => {
+    if (!inView || reduced) return;
+    let raf = 0;
+    const start = performance.now();
+    const duration = 900;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      setValue(Math.round((1 - Math.pow(1 - p, 3)) * to));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, reduced, to]);
+
+  return <span ref={ref}>{value}</span>;
+}
 
 function NetworkPulse() {
   const [rate, setRate] = useState<PulseRate | null>(null);
@@ -135,29 +170,36 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden pt-16 md:pt-20">
-      {/* Field photograph — the page's one image, tinted evergreen for text contrast */}
+      {/* Field photograph — tinted just enough for text contrast, bright enough to enjoy */}
       <div className="absolute inset-0" aria-hidden="true">
-        <img src={HERO_IMAGE} alt="" className="h-full w-full object-cover" loading="eager" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B3D27]/95 via-[#0F5132]/80 to-primary/45" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
+        <img
+          src={HERO_IMAGE}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="eager"
+          onError={(e) => { (e.target as HTMLImageElement).src = HERO_FALLBACK; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B3D27]/92 via-[#0F5132]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B3D27]/45 via-transparent to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </div>
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
         <div className="grid items-center gap-12 pb-20 pt-10 lg:grid-cols-12 lg:gap-10 lg:pb-24 lg:pt-14">
-          {/* Copy — minimal */}
-          <div className="lg:col-span-7">
-            <p className="eyebrow text-secondary">Pakistan's agri professional network</p>
+          {/* Copy — minimal, staged entrance */}
+          <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-7">
+            <motion.p variants={enterItem} className="eyebrow text-secondary">Pakistan's agri professional network</motion.p>
 
-            <h1 className="display-hero mt-5 text-[42px] text-white sm:text-[52px] lg:text-[64px]">
+            <motion.h1 variants={enterItem} className="display-hero mt-5 text-[42px] text-white sm:text-[52px] lg:text-[64px]">
               {t("hero_headline_1")} <em className="text-secondary">{t("hero_headline_2")}</em>
-            </h1>
+            </motion.h1>
 
-            <p className="mt-4 max-w-lg text-sm leading-6 text-white/80">
+            <motion.p variants={enterItem} className="mt-4 max-w-lg text-sm leading-6 text-white/80">
               Verified growers, buyers, consultants, enterprises, and researchers — doing real business.
-            </p>
+            </motion.p>
 
             {/* Search */}
-            <form onSubmit={handleSearch} className="mt-7 flex max-w-xl items-center gap-2 rounded-2xl bg-white p-2 shadow-[0_8px_28px_rgba(0,0,0,0.25)]">
+            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-7 flex max-w-xl items-center gap-2 rounded-2xl bg-white p-2 shadow-[0_8px_28px_rgba(0,0,0,0.25)]">
               <span className="material-symbols-outlined pl-2.5 text-[20px] text-on-surface-variant/60" aria-hidden="true">search</span>
               <input
                 type="text"
@@ -170,28 +212,46 @@ export function Hero() {
               <button type="submit" className="press shrink-0 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-on-primary transition hover:bg-primary-container">
                 Search
               </button>
-            </form>
+            </motion.form>
 
             {/* CTA */}
-            <div className="mt-7">
+            <motion.div variants={enterItem} className="mt-7">
               <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-primary shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-secondary-light">
                 Join the network — free
                 <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
               </Link>
-            </div>
+            </motion.div>
 
-            {/* Facts — always one line */}
-            <p className="mt-9 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-white/20 pt-5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 no-scrollbar">
-              {FACTS.map((fact, index) => (
-                <span key={fact} className="flex items-center gap-2.5">
-                  {index > 0 ? <span className="h-1 w-1 rounded-full bg-secondary" aria-hidden="true" /> : null}
-                  <span className="stat-num">{fact}</span>
-                </span>
-              ))}
-            </p>
-          </div>
+            {/* Facts — one line, counting up */}
+            <motion.p variants={enterItem} className="mt-9 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-white/20 pt-5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 no-scrollbar">
+              {FACTS.map((fact, index) => {
+                const match = fact.match(/^(\d+)\s+(.*)$/);
+                return (
+                  <span key={fact} className="flex items-center gap-2.5">
+                    {index > 0 ? <span className="h-1 w-1 rounded-full bg-secondary" aria-hidden="true" /> : null}
+                    <span className="stat-num">
+                      {match ? (
+                        <>
+                          <Counter to={Number(match[1])} /> {match[2]}
+                        </>
+                      ) : (
+                        fact
+                      )}
+                    </span>
+                  </span>
+                );
+              })}
+            </motion.p>
+          </motion.div>
 
-          <NetworkPulse />
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5"
+          >
+            <NetworkPulse />
+          </motion.div>
         </div>
       </div>
     </section>

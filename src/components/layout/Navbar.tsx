@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
@@ -10,6 +10,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [navSearch, setNavSearch] = useState("");
   const [profileId, setProfileId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<{
     name: string;
@@ -24,6 +25,7 @@ export function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { t, lang, setLang } = useTranslation();
   const { location } = useRouterState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
@@ -179,9 +181,16 @@ export function Navbar() {
           <input
             id="global-search"
             type="search"
+            value={navSearch}
+            onChange={(e) => setNavSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                navigate({ to: "/search", search: { q: navSearch.trim() } });
+              }
+            }}
             className="w-full bg-surface-container-low/70 border border-outline-variant/50 rounded-full py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all font-medium placeholder:text-on-surface-variant/50"
-            placeholder={lang === "ur" ? "تلاش کریں..." : "Search network, products..."}
-            aria-label="Search marketplace"
+            placeholder={lang === "ur" ? "تلاش کریں..." : "Search people, produce… press Enter"}
+            aria-label="Search the network"
           />
         </div>
 

@@ -65,7 +65,7 @@ function AppsIndexPage() {
       color: "from-emerald-700 to-teal-900",
       accent: "bg-emerald-400 text-emerald-950",
       link: "/apps/plant-clinic",
-      image: "https://images.unsplash.com/photo-1592982537447-6f296d9ccbd3?w=800&q=80&auto=format&fit=crop",
+      image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&q=80&auto=format&fit=crop",
       overview: "This App provides dedicated help regarding plants, fruits, flowers, seeds, vegetables, and field crops. Farmers can easily describe their problem and get fast responses from qualified agronomists and peer growers.",
       features: [
         "Covers plants, fruits, flowers, seeds, field crops, and soil nutrition.",
