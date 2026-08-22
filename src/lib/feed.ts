@@ -75,11 +75,13 @@ async function fetchAuthors(ids: string[]): Promise<Map<string, FeedAuthor>> {
 }
 
 export async function fetchNetworkPosts(limit = 50): Promise<{ posts: FeedPost[]; error: string | null }> {
+  // The network tag filter runs in the database — no fetch-wide-then-filter.
   const { data, error } = await supabase
     .from("problem_posts")
     .select(POST_SELECT)
+    .contains("tags", [NETWORK_TAG])
     .order("created_at", { ascending: false })
-    .limit(limit * 2); // network posts are a subset; fetch wider then filter
+    .limit(limit);
   if (error) return { posts: [], error: error.message };
 
   const rows = (data ?? []).filter(isNetworkPost).slice(0, limit) as Array<{
@@ -123,14 +125,29 @@ export async function insertNetworkPost(input: {
   title: string;
   body: string;
   kind: FeedKind;
+  mediaUrls?: string[];
 }): Promise<{ error: string | null }> {
   const { error } = await supabase.from("problem_posts").insert({
     profile_id: input.profileId,
     title: input.title.trim(),
     body: input.body.trim(),
     tags: [NETWORK_TAG, `kind:${input.kind}`],
+    ...(input.mediaUrls?.length ? { media_urls: input.mediaUrls } : {}),
   });
   return { error: error?.message ?? null };
+}
+
+/** Upload a composer image to the problem-media bucket and return its public URL. */
+export async function uploadFeedMedia(profileId: string, file: File): Promise<{ url: string | null; error: string | null }> {
+  const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : ".jpg";
+  const path = `${profileId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+  const { error } = await supabase.storage.from("problem-media").upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) return { url: null, error: error.message };
+  const { data } = supabase.storage.from("problem-media").getPublicUrl(path);
+  return { url: data.publicUrl, error: null };
 }
 
 export async function addFeedComment(input: { postId: string; profileId: string; body: string }): Promise<{ error: string | null }> {
@@ -144,9 +161,9 @@ export async function addFeedComment(input: { postId: string; profileId: string;
 
 export const KIND_META: Record<FeedKind, { label: string; icon: string; chip: string; prompt: string }> = {
   update: { label: "Update", icon: "newspaper", chip: "bg-primary/10 text-primary", prompt: "Share a field update, harvest news, or market observation…" },
-  question: { label: "Ask the network", icon: "help", chip: "bg-secondary/25 text-[#6B4E00]", prompt: "Ask a practical question — thousands of growers and experts can answer…" },
-  offer: { label: "Offer", icon: "sell", chip: "bg-emerald-100 text-emerald-800", prompt: "Offer produce, inputs, services, or a collaboration…" },
-  achievement: { label: "Milestone", icon: "emoji_events", chip: "bg-amber-100 text-amber-800", prompt: "Share a milestone — certification, export deal, trial result…" },
+  question: { label: "Ask the network", icon: "help", chip: "bg-secondary/15 text-on-secondary-container", prompt: "Ask a practical question — thousands of growers and experts can answer…" },
+  offer: { label: "Offer", icon: "sell", chip: "bg-success/10 text-success", prompt: "Offer produce, inputs, services, or a collaboration…" },
+  achievement: { label: "Milestone", icon: "emoji_events", chip: "bg-secondary-container text-on-secondary-container", prompt: "Share a milestone — certification, export deal, trial result…" },
 };
 
 export function timeAgo(iso: string): string {

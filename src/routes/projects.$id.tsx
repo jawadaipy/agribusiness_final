@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
@@ -307,7 +307,7 @@ const ProjectDetailPage = () => {
 
                   {/* Submission status for Consultant who already bid */}
                   {isConsultant && hasSubmitted && (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-xs text-emerald-900">
+                    <div className="rounded-2xl border border-success/25 bg-success/10 p-5 text-xs text-success">
                       <p className="font-bold">✓ Proposal Submitted</p>
                       <p className="mt-1">You have submitted a proposal for this project. The project owner has received your brief and can contact you.</p>
                     </div>
@@ -318,13 +318,20 @@ const ProjectDetailPage = () => {
                 <aside className="w-full space-y-5 lg:sticky lg:top-20 lg:col-span-4">
                   <div className="rounded-3xl border border-outline-variant/40 bg-white p-6 shadow-sm">
                     {isConsultant && !isOwner && !hasSubmitted && (
-                      <button
-                        onClick={() => setShowProposalModal(true)}
-                        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-xs font-bold uppercase tracking-wider text-on-primary shadow-md transition-all hover:bg-primary-container"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">send</span>
-                        Submit Proposal
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setShowProposalModal(true)}
+                          className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-xs font-bold uppercase tracking-wider text-on-primary shadow-md transition-all hover:bg-primary-container"
+                        >
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+                          Submit Proposal
+                        </button>
+                        <p className="mb-4 text-center text-xs font-medium text-on-surface-variant">
+                          {proposals.length > 0
+                            ? `${proposals.length} proposal${proposals.length === 1 ? "" : "s"} received so far`
+                            : "Be the first to propose on this requirement"}
+                        </p>
+                      </>
                     )}
 
                     {!currentMember && (
@@ -337,7 +344,7 @@ const ProjectDetailPage = () => {
                     )}
 
                     {proposalSuccess && (
-                      <p className="mb-4 rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">{proposalSuccess}</p>
+                      <p className="mb-4 rounded-xl bg-success/10 p-3 text-xs font-semibold text-success">{proposalSuccess}</p>
                     )}
 
                     <div className="border-t border-outline-variant/30 pt-4">
@@ -389,73 +396,95 @@ const ProjectDetailPage = () => {
         </div>
       </main>
 
-      {/* Consultant Proposal Modal */}
-      {showProposalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-3xl border border-outline-variant/40 bg-white p-6 shadow-2xl">
-            <div className="flex items-start justify-between border-b border-outline-variant/30 pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-secondary">Consultant Proposal</span>
-                <h2 className="font-display text-xl font-bold text-primary">Submit Technical Bid</h2>
-              </div>
-              <button onClick={() => setShowProposalModal(false)} className="rounded-xl p-2 text-on-surface-variant hover:bg-surface-container-low">
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-
-            {proposalError && (
-              <p className="mt-4 rounded-xl border border-error/25 bg-error/10 p-3 text-xs font-semibold text-error">{proposalError}</p>
-            )}
-
-            <form onSubmit={handleSubmitProposal} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                  Proposed Quote (PKR)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={quotedAmount}
-                  onChange={(e) => setQuotedAmount(e.target.value)}
-                  placeholder="e.g. 50000 (Optional)"
-                  className="mt-1 w-full rounded-xl border border-outline-variant/50 bg-surface-container-low px-3.5 py-2.5 text-xs text-primary outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                  Technical Fit & Methodology *
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  value={coverNote}
-                  onChange={(e) => setCoverNote(e.target.value)}
-                  placeholder="Explain your technical experience, proposed methodology, and deliverables (min 20 characters)..."
-                  className="mt-1 w-full rounded-xl border border-outline-variant/50 bg-surface-container-low px-3.5 py-2.5 text-xs text-primary outline-none focus:border-primary"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowProposalModal(false)}
-                  className="rounded-xl border border-outline-variant/60 px-4 py-2.5 text-xs font-bold text-primary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingProposal}
-                  className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-on-primary disabled:opacity-50"
-                >
-                  {isSubmittingProposal ? "Submitting..." : "Send Proposal"}
+      {/* Consultant Proposal Modal — animated in/out like the projects board modal */}
+      <AnimatePresence>
+        {showProposalModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Submit consultant proposal"
+            onClick={() => setShowProposalModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-lg rounded-3xl border border-outline-variant/40 bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between border-b border-outline-variant/30 pb-4">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-secondary">Consultant Proposal</span>
+                  <h2 className="font-display text-xl font-bold text-primary">Submit Technical Bid</h2>
+                </div>
+                <button onClick={() => setShowProposalModal(false)} aria-label="Close proposal form" className="rounded-xl p-2 text-on-surface-variant hover:bg-surface-container-low">
+                  <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              {proposalError && (
+                <p className="mt-4 rounded-xl border border-error/25 bg-error/10 p-3 text-xs font-semibold text-error">{proposalError}</p>
+              )}
+
+              <form onSubmit={handleSubmitProposal} className="mt-4 space-y-4">
+                <div>
+                  <label htmlFor="proposal-quote" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Proposed Quote (PKR)
+                  </label>
+                  <input
+                    id="proposal-quote"
+                    type="number"
+                    min="0"
+                    value={quotedAmount}
+                    onChange={(e) => setQuotedAmount(e.target.value)}
+                    placeholder="e.g. 50000 (Optional)"
+                    className="mt-1 w-full rounded-xl border border-outline-variant/50 bg-surface-container-low px-3.5 py-2.5 text-xs text-primary outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="proposal-note" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Technical Fit &amp; Methodology *
+                  </label>
+                  <textarea
+                    id="proposal-note"
+                    required
+                    rows={5}
+                    maxLength={2000}
+                    value={coverNote}
+                    onChange={(e) => setCoverNote(e.target.value)}
+                    placeholder="Explain your technical experience, proposed methodology, and deliverables (min 20 characters)…"
+                    className="mt-1 w-full rounded-xl border border-outline-variant/50 bg-surface-container-low px-3.5 py-2.5 text-xs text-primary outline-none focus:border-primary"
+                  />
+                  <p className="mt-1 text-right text-xs text-on-surface-variant/60">{coverNote.length}/2000</p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowProposalModal(false)}
+                    className="rounded-xl border border-outline-variant/60 px-4 py-2.5 text-xs font-bold text-primary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingProposal}
+                    className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-on-primary disabled:opacity-50"
+                  >
+                    {isSubmittingProposal ? "Submitting…" : "Send Proposal"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>

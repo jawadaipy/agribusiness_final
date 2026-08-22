@@ -4,8 +4,15 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { formatCooldown, getAuthFeedback } from "@/lib/auth-feedback";
+import { CITIES } from "@/lib/constants";
+import { validatePKPhone } from "@/lib/format";
+
+const ROLE_IDS = ["farmer", "buyer", "consultant", "company", "student"] as const;
 
 export const Route = createFileRoute("/onboarding")({
+  validateSearch: (search: Record<string, unknown>): { role?: string } => ({
+    role: typeof search.role === "string" ? search.role : undefined,
+  }),
   head: () => ({
     title: "Account Portal | AgriBusiness Pakistan",
     meta: [
@@ -54,9 +61,12 @@ export const OFFICIAL_DISCIPLINES = [
 
 function OnboardingPage() {
   const { t, isRTL } = useTranslation();
+  const { role: roleParam } = Route.useSearch();
   const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
   const [step, setStep] = useState(1);
-  const [userRole, setUserRole] = useState<string>("farmer");
+  const [userRole, setUserRole] = useState<string>(
+    roleParam && (ROLE_IDS as readonly string[]).includes(roleParam) ? roleParam : "farmer",
+  );
   const navigate = useNavigate();
 
   // Form State
@@ -130,12 +140,12 @@ function OnboardingPage() {
     const newErrors: Record<string, string> = {};
     if (!formData.fullName || formData.fullName.trim().length < 2)
       newErrors.fullName = "Please enter your full name.";
-    if (!formData.email || !formData.email.includes("@"))
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim()))
       newErrors.email = "Please enter a valid email address.";
     if (!formData.password || formData.password.length < 6)
       newErrors.password = "Password must be at least 6 characters.";
-    if (!formData.phone || formData.phone.length < 9)
-      newErrors.phone = "Please enter a valid Pakistani phone number.";
+    if (!formData.phone || !validatePKPhone(formData.phone))
+      newErrors.phone = "Enter a valid Pakistani number, e.g. 03001234567.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -229,7 +239,7 @@ function OnboardingPage() {
     try {
       const email = formData.email.trim();
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
+        email,
         password: formData.password,
       });
 
@@ -249,6 +259,25 @@ function OnboardingPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    setApiError("");
+    setSuccessMessage("");
+    const email = formData.email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setApiError("Enter your email address above first, then tap Forgot password.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      const feedback = getAuthFeedback(error.message);
+      setApiError(feedback.message);
+    } else {
+      setSuccessMessage(`Password reset link sent to ${email} — check your inbox (and spam folder).`);
+    }
+  };
+
   return (
     <div className={cn("min-h-screen bg-background flex flex-col md:flex-row", isRTL && "rtl")}>
       {/* Left Panel - Corporate Branding */}
@@ -260,7 +289,7 @@ function OnboardingPage() {
           >
             AgriBusiness <span className="text-secondary">PK</span>
           </Link>
-          <span className="inline-block px-3 py-1 bg-secondary text-primary font-bold text-[10px] uppercase tracking-wider rounded-md mb-4">
+          <span className="inline-block px-3 py-1 bg-secondary text-on-secondary font-bold text-[10px] uppercase tracking-wider rounded-md mb-4">
             Unified Agri-Ecosystem
           </span>
           <h1 className="font-display text-4xl font-bold leading-tight mb-4 tracking-tight">
@@ -290,7 +319,7 @@ function OnboardingPage() {
                   className={cn(
                     "w-9 h-9 rounded-xl border flex items-center justify-center font-black text-xs shrink-0 shadow transition-all",
                     step === s.n
-                      ? "border-secondary bg-secondary text-primary font-bold"
+                      ? "border-secondary bg-secondary text-on-secondary font-bold"
                       : "border-white/30 text-white",
                   )}
                 >
@@ -355,8 +384,8 @@ function OnboardingPage() {
           <div className="w-full max-w-xl">
             {/* Feedback Messages */}
             {successMessage && (
-              <div className="mb-6 p-4 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+              <div className="mb-6 p-4 rounded-xl bg-success/10 text-success border border-success/25 text-xs font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">check_circle</span>
                 <span>{successMessage}</span>
               </div>
             )}
@@ -384,10 +413,11 @@ function OnboardingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                  <label htmlFor="login-email" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                     Email Address
                   </label>
                   <input
+                    id="login-email"
                     type="email"
                     required
                     value={formData.email}
@@ -398,10 +428,11 @@ function OnboardingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                  <label htmlFor="login-password" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                     Password
                   </label>
                   <input
+                    id="login-password"
                     type="password"
                     required
                     value={formData.password}
@@ -409,6 +440,16 @@ function OnboardingPage() {
                     className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-xs font-medium text-primary focus:outline-none focus:border-primary transition-all"
                     placeholder="••••••••"
                   />
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => void handleForgotPassword()}
+                    className="text-xs font-bold text-primary hover:underline cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
 
                 <div className="pt-2">
@@ -606,20 +647,14 @@ function OnboardingPage() {
                       City / District
                     </label>
                     <select
+                      id="signup-city"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       className="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none"
                     >
-                      <option>Faisalabad</option>
-                      <option>Multan</option>
-                      <option>Lahore</option>
-                      <option>Sargodha</option>
-                      <option>Rahim Yar Khan</option>
-                      <option>Sahiwal</option>
-                      <option>Karachi</option>
-                      <option>Peshawar</option>
-                      <option>Quetta</option>
-                      <option>Islamabad</option>
+                      {CITIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -742,7 +777,7 @@ function OnboardingPage() {
                     type="button"
                     disabled={isLoading}
                     onClick={handleSignUpSubmit}
-                    className="px-8 py-3 bg-secondary text-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-white transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-white transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isLoading ? "Creating Account..." : "Complete Registration"}
                     {!isLoading && (

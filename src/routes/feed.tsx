@@ -12,9 +12,12 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { getAuthenticatedMember, type MemberProfile } from "@/lib/member";
 import { SmartMatches } from "@/components/dashboard/SmartMatches";
+import { MediaUploader } from "@/components/shared/MediaUploader";
+import { useMarketRates, normalizeUnit } from "@/hooks/useMarketRates";
 import {
   fetchNetworkPosts,
   insertNetworkPost,
+  uploadFeedMedia,
   addFeedComment,
   KIND_META,
   FEED_KINDS,
@@ -35,6 +38,8 @@ export const Route = createFileRoute("/feed")({
 
 type Filter = "all" | FeedKind;
 
+const FEED_PAGE_SIZE = 20;
+
 function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase() || "AB";
 }
@@ -48,7 +53,9 @@ function FeedPage() {
   const [member, setMember] = useState<MemberProfile | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [limit, setLimit] = useState(FEED_PAGE_SIZE);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -56,16 +63,28 @@ function FeedPage() {
   const [kind, setKind] = useState<FeedKind>("update");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [posting, setPosting] = useState(false);
   const [composerError, setComposerError] = useState("");
 
-  const loadFeed = useCallback(async () => {
-    setLoading(true);
-    setLoadError("");
-    const { posts: fetched, error } = await fetchNetworkPosts(60);
+  const loadFeed = useCallback(async (pageLimit: number, append: boolean) => {
+    if (append) setLoadingMore(true);
+    else {
+      setLoading(true);
+      setLoadError("");
+    }
+    const { posts: fetched, error } = await fetchNetworkPosts(pageLimit);
     if (error) setLoadError(error);
-    setPosts(fetched);
-    setLoading(false);
+    if (append) {
+      setPosts((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        return [...prev, ...fetched.filter((p) => !seen.has(p.id))];
+      });
+      setLoadingMore(false);
+    } else {
+      setPosts(fetched);
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -75,7 +94,7 @@ function FeedPage() {
       setAuthChecked(true);
     };
     void checkAuth();
-    void loadFeed();
+    void loadFeed(FEED_PAGE_SIZE, false);
   }, [loadFeed]);
 
   const publish = async () => {
@@ -90,7 +109,22 @@ function FeedPage() {
       return;
     }
     setPosting(true);
-    const { error } = await insertNetworkPost({ profileId: member.id, title: title.trim(), body: body.trim(), kind });
+
+    // Upload any attached photos first; a failed upload shouldn't kill the post.
+    const uploadedUrls: string[] = [];
+    for (const file of pendingFiles.slice(0, 4)) {
+      if (!file.type.startsWith("image/")) continue;
+      const { url } = await uploadFeedMedia(member.id, file);
+      if (url) uploadedUrls.push(url);
+    }
+
+    const { error } = await insertNetworkPost({
+      profileId: member.id,
+      title: title.trim(),
+      body: body.trim(),
+      kind,
+      mediaUrls: uploadedUrls,
+    });
     setPosting(false);
     if (error) {
       setComposerError(error);
@@ -98,7 +132,8 @@ function FeedPage() {
     }
     setTitle("");
     setBody("");
-    await loadFeed();
+    setPendingFiles([]);
+    await loadFeed(FEED_PAGE_SIZE, false);
   };
 
   const visiblePosts = filter === "all" ? posts : posts.filter((p) => p.kind === filter);
@@ -109,10 +144,7 @@ function FeedPage() {
       <main className="pb-14 pt-24">
         <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           <div className="mb-6 max-w-3xl">
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-primary">
-              <span className="material-symbols-outlined text-[14px]">dynamic_feed</span>
-              Network feed
-            </p>
+            <p className="eyebrow">Network feed</p>
             <h1 className="mt-3 font-display text-3xl tracking-tight text-primary md:text-4xl">What Pakistan's fields are saying today</h1>
             <p className="mt-2 text-sm leading-6 text-on-surface-variant">
               Harvest reports, mandi insight, questions to experts, and offers from every corner of the ecosystem — farmers, buyers,
@@ -122,8 +154,18 @@ function FeedPage() {
 
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div className="space-y-5">
-              {/* Composer */}
-              {authChecked && member ? (
+              {/* Composer — skeleton while auth resolves so the layout never jumps */}
+              {!authChecked ? (
+                <section className="rounded-2xl border border-outline-variant/60 bg-white p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="h-11 w-11 shrink-0 rounded-xl skeleton" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-6 w-2/3 rounded skeleton" />
+                      <div className="h-16 w-full rounded skeleton" />
+                    </div>
+                  </div>
+                </section>
+              ) : member ? (
                 <section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)]">
                   <div className="flex items-start gap-3">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-black text-on-primary">
@@ -136,56 +178,63 @@ function FeedPage() {
                             key={k}
                             type="button"
                             onClick={() => setKind(k)}
-                            className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[10px] font-bold transition ${
+                            className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition ${
                               kind === k ? "bg-primary text-on-primary" : "border border-outline-variant/60 text-on-surface-variant hover:bg-surface-container-low"
                             }`}
                           >
-                            <span className="material-symbols-outlined text-[13px]">{KIND_META[k].icon}</span>
+                            <span className="material-symbols-outlined text-[13px]" aria-hidden="true">{KIND_META[k].icon}</span>
                             {KIND_META[k].label}
                           </button>
                         ))}
                       </div>
+                      <label htmlFor="feed-title" className="sr-only">Post headline</label>
                       <input
+                        id="feed-title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         maxLength={110}
                         placeholder={kind === "question" ? "Your question in one line…" : "Your headline…"}
                         className="mt-3 w-full rounded-xl border border-outline bg-white px-3 py-2.5 text-sm font-semibold text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                       />
+                      <label htmlFor="feed-body" className="sr-only">Post details</label>
                       <textarea
+                        id="feed-body"
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
                         maxLength={600}
                         placeholder={KIND_META[kind].prompt}
                         className="mt-2 min-h-24 w-full resize-y rounded-xl border border-outline bg-white px-3 py-2.5 text-sm leading-6 text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                       />
+                      <div className="mt-3">
+                        <MediaUploader compact accept="image/*" maxFiles={4} onUpload={setPendingFiles} />
+                      </div>
                       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-[10px] text-on-surface-variant">{composerError ? <span className="font-bold text-error">{composerError}</span> : `${body.length}/600 · visible to the whole network`}</p>
+                        <p className="text-xs text-on-surface-variant">{composerError ? <span className="font-bold text-error">{composerError}</span> : `${body.length}/600 · visible to the whole network`}</p>
                         <button
                           type="button"
                           disabled={posting}
                           onClick={() => void publish()}
                           className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary shadow-[0_8px_20px_rgba(15,81,50,0.16)] transition hover:bg-primary-container disabled:opacity-60"
                         >
-                          <span className="material-symbols-outlined text-[15px]">send</span>
+                          <span className="material-symbols-outlined text-[15px]" aria-hidden="true">send</span>
                           {posting ? "Posting…" : "Post to network"}
                         </button>
                       </div>
                     </div>
                   </div>
                 </section>
-              ) : authChecked ? (
+              ) : (
                 <section className="rounded-2xl border border-outline-variant/60 bg-white p-6 text-center shadow-[0_10px_28px_rgba(15,81,50,0.06)]">
-                  <span className="material-symbols-outlined text-3xl text-primary">lock</span>
+                  <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">lock</span>
                   <h2 className="mt-3 font-display text-xl text-primary">Join the conversation</h2>
                   <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-on-surface-variant">
                     Create your free member account to post updates, ask the network, and respond to growers and experts.
                   </p>
-                  <button onClick={() => navigate({ to: "/onboarding" })} className="mt-4 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-on-primary">
+                  <button type="button" onClick={() => navigate({ to: "/onboarding" })} className="mt-4 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-on-primary">
                     Create your account
                   </button>
                 </section>
-              ) : null}
+              )}
 
               {/* Filters */}
               <div className="flex flex-wrap items-center gap-2">
@@ -194,29 +243,29 @@ function FeedPage() {
                     key={f}
                     type="button"
                     onClick={() => setFilter(f)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold transition ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${
                       filter === f ? "bg-primary text-on-primary" : "control-secondary"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[14px]">{f === "all" ? "forum" : KIND_META[f].icon}</span>
+                    <span className="material-symbols-outlined text-[14px]" aria-hidden="true">{f === "all" ? "forum" : KIND_META[f].icon}</span>
                     {f === "all" ? "All posts" : KIND_META[f].label}
                   </button>
                 ))}
-                <button type="button" onClick={() => void loadFeed()} className="ml-auto inline-flex items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-bold text-on-surface-variant transition hover:bg-surface-container-low">
-                  <span className="material-symbols-outlined text-[14px]">refresh</span>
+                <button type="button" onClick={() => void loadFeed(FEED_PAGE_SIZE, false)} aria-label="Refresh feed" className="ml-auto inline-flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold text-on-surface-variant transition hover:bg-surface-container-low">
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">refresh</span>
                 </button>
               </div>
 
               {/* Posts */}
               {loading && posts.length === 0 ? (
                 <div className="space-y-4">
-                  {[0, 1, 2].map((i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-[#E3E1D5]" />)}
+                  {[0, 1, 2].map((i) => <div key={i} className="h-44 skeleton rounded-2xl" />)}
                 </div>
               ) : loadError ? (
                 <p className="rounded-2xl border border-error/25 bg-error/10 p-4 text-xs leading-5 text-error">{loadError}</p>
               ) : visiblePosts.length === 0 ? (
                 <section className="rounded-2xl border border-dashed border-outline bg-surface-container-low/60 p-8 text-center">
-                  <span className="material-symbols-outlined text-3xl text-primary">grass</span>
+                  <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">grass</span>
                   <h2 className="mt-3 font-display text-xl text-primary">{filter === "all" ? "The feed is warming up" : `No ${KIND_META[filter as FeedKind].label.toLowerCase()} posts yet`}</h2>
                   <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-on-surface-variant">
                     {member ? "Be the first to share — a harvest note, a question, or an offer. The network grows one honest post at a time." : "Sign in and start the conversation."}
@@ -225,8 +274,24 @@ function FeedPage() {
               ) : (
                 <div className="space-y-4">
                   {visiblePosts.map((post) => (
-                    <FeedPostCard key={post.id} post={post} member={member} onCommented={loadFeed} />
+                    <FeedPostCard key={post.id} post={post} member={member} onCommented={() => loadFeed(limit, true)} />
                   ))}
+                  {posts.length >= limit && filter === "all" && (
+                    <div className="pt-2 text-center">
+                      <button
+                        type="button"
+                        disabled={loadingMore}
+                        onClick={() => {
+                          const next = limit + FEED_PAGE_SIZE;
+                          setLimit(next);
+                          void loadFeed(next, false);
+                        }}
+                        className="rounded-xl border border-primary/30 bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-primary transition hover:bg-primary/5 disabled:opacity-60"
+                      >
+                        {loadingMore ? "Loading…" : "Load more posts"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -237,10 +302,10 @@ function FeedPage() {
               <MandiSnapshot />
               <section className="rounded-2xl bg-primary p-5 text-on-primary">
                 <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">
-                  <span className="material-symbols-outlined text-[16px] text-secondary">spa</span>
+                  <span className="material-symbols-outlined text-[16px] text-secondary" aria-hidden="true">spa</span>
                   One professional standard
                 </h3>
-                <p className="mt-2 text-[11px] leading-5 text-white/80">
+                <p className="mt-2 text-xs leading-5 text-white/80">
                   Post real field information, no middleman spam. Contact details stay private until a connection is accepted.
                 </p>
               </section>
@@ -292,12 +357,12 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Link to="/profile/$id" params={{ id: post.profile_id }} className="text-sm font-bold text-primary hover:underline">{authorName}</Link>
             {post.author?.is_verified ? <span className="material-symbols-outlined text-[14px] text-secondary" title="Platform verified">verified</span> : null}
-            <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${meta2.chip}`}>
-              <span className="material-symbols-outlined mr-0.5 align-[-2px] text-[11px]">{meta2.icon}</span>
+            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${meta2.chip}`}>
+              <span className="material-symbols-outlined mr-0.5 align-[-2px] text-xs">{meta2.icon}</span>
               {meta2.label}
             </span>
           </div>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[10px] text-on-surface-variant">
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-on-surface-variant">
             <span className="flex items-center gap-1 font-semibold"><span className="material-symbols-outlined text-[12px]">{meta.icon}</span>{meta.label}</span>
             {post.author?.city ? <span>· {post.author.city}</span> : null}
             <span>· {timeAgo(post.created_at)}</span>
@@ -308,7 +373,7 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
       <h3 className="mt-3 text-[15px] font-bold leading-6 text-primary">{post.title}</h3>
       <p className={cn("mt-1.5 text-[13px] leading-6 text-on-surface-variant", !expanded && "line-clamp-4")}>{post.body}</p>
       {post.body.length > 220 ? (
-        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-[11px] font-bold text-primary hover:underline">
+        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-xs font-bold text-primary hover:underline">
           {expanded ? "Show less" : "Read more"}
         </button>
       ) : null}
@@ -321,7 +386,7 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center gap-4 border-t border-outline-variant/40 pt-3 text-[10px] font-bold text-on-surface-variant">
+      <div className="mt-3 flex items-center gap-4 border-t border-outline-variant/40 pt-3 text-xs font-bold text-on-surface-variant">
         <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">visibility</span>{post.view_count} views</span>
         <button type="button" onClick={() => setShowComments((v) => !v)} className="flex items-center gap-1 transition hover:text-primary">
           <span className="material-symbols-outlined text-[14px]">chat_bubble</span>
@@ -336,11 +401,11 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
             const cMeta = comment.author ? roleMeta(comment.author.user_type) : null;
             return (
               <div key={comment.id} className="flex items-start gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container text-[9px] font-black text-primary">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container text-xs font-black text-primary">
                   {initials(cName)}
                 </span>
                 <div className="min-w-0 flex-1 rounded-xl bg-surface-container-low px-3 py-2">
-                  <p className="flex flex-wrap items-center gap-x-2 text-[11px] font-bold text-primary">
+                  <p className="flex flex-wrap items-center gap-x-2 text-xs font-bold text-primary">
                     {cName}
                     {cMeta ? <span className="font-semibold text-on-surface-variant">· {cMeta.label}</span> : null}
                     <span className="font-medium text-on-surface-variant/60">· {timeAgo(comment.created_at)}</span>
@@ -353,7 +418,7 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
 
           {member ? (
             <div className="flex items-start gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-black text-on-primary">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-black text-on-primary">
                 {initials(member.display_name || member.full_name || member.email)}
               </span>
               <div className="min-w-0 flex-1">
@@ -364,12 +429,12 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
                   className="min-h-16 w-full resize-y rounded-xl border border-outline bg-white px-3 py-2 text-xs leading-5 text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                 />
                 <div className="mt-1 flex items-center justify-between">
-                  <p className="text-[10px] text-error">{commentError}</p>
+                  <p className="text-xs text-error">{commentError}</p>
                   <button
                     type="button"
                     disabled={commenting}
                     onClick={() => void submitComment()}
-                    className="rounded-xl bg-primary px-3.5 py-2 text-[10px] font-bold text-on-primary transition hover:bg-primary-container disabled:opacity-60"
+                    className="rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-on-primary transition hover:bg-primary-container disabled:opacity-60"
                   >
                     {commenting ? "Sending…" : "Reply"}
                   </button>
@@ -377,7 +442,7 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
               </div>
             </div>
           ) : (
-            <p className="rounded-xl bg-surface-container-low px-3 py-2 text-[11px] text-on-surface-variant">
+            <p className="rounded-xl bg-surface-container-low px-3 py-2 text-xs text-on-surface-variant">
               <Link to="/onboarding" className="font-bold text-primary hover:underline">Sign in</Link> to reply.
             </p>
           )}
@@ -388,36 +453,38 @@ function FeedPostCard({ post, member, onCommented }: { post: FeedPost; member: M
 }
 
 function MandiSnapshot() {
-  const [rates, setRates] = useState<Array<{ commodity: string; city: string; modal_price: number; unit: string; trend: string }>>([]);
-  const [unavailable, setUnavailable] = useState(false);
-
-  useEffect(() => {
-    supabase
-      .from("market_rates")
-      .select("commodity,city,modal_price,unit,trend")
-      .limit(6)
-      .then(({ data, error }) => {
-        if (error || !data?.length) setUnavailable(true);
-        else setRates(data);
-      });
-  }, []);
+  const { rates, loading, indicative } = useMarketRates(6);
 
   return (
     <section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)]">
-      <p className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-on-surface-variant/65">
-        <span className="material-symbols-outlined text-[14px] text-primary">store</span>
-        Mandi today
-      </p>
-      {unavailable ? (
-        <p className="mt-3 text-[11px] leading-5 text-on-surface-variant">Live rates are unavailable right now.</p>
+      <div className="flex items-center justify-between">
+        <p className="eyebrow">Mandi today</p>
+        <Link to="/rates" className="text-xs font-bold text-primary hover:underline">
+          Full board
+        </Link>
+      </div>
+      {loading ? (
+        <div className="mt-3 space-y-2">
+          {[0, 1, 2].map((i) => <div key={i} className="h-4 w-full rounded skeleton" />)}
+        </div>
+      ) : rates.length === 0 ? (
+        <p className="mt-3 text-xs leading-5 text-on-surface-variant">
+          {indicative ? "Live rates are unavailable right now." : "No rates published yet today."}
+        </p>
       ) : (
         <ul className="mt-3 space-y-2">
           {rates.map((rate) => (
-            <li key={`${rate.commodity}-${rate.city}`} className="flex items-center justify-between gap-2 text-[11px]">
-              <span className="truncate font-semibold text-primary">{rate.commodity} <span className="font-medium text-on-surface-variant">· {rate.city}</span></span>
+            <li key={`${rate.commodity}-${rate.city}`} className="flex items-center justify-between gap-2 text-xs">
+              <span className="truncate font-semibold text-primary">
+                {rate.commodity} <span className="font-medium text-on-surface-variant">· {rate.city}</span>
+              </span>
               <span className="flex shrink-0 items-center gap-1">
-                <span className="font-bold text-primary">₨ {new Intl.NumberFormat("en-PK").format(rate.modal_price)}</span>
-                <span className={`material-symbols-outlined text-[14px] ${rate.trend === "up" ? "text-emerald-600" : rate.trend === "down" ? "text-red-500" : "text-on-surface-variant/40"}`}>
+                <span className="stat-num font-bold text-primary">₨ {new Intl.NumberFormat("en-PK").format(rate.modalPrice)}</span>
+                {rate.unit && <span className="text-xs text-on-surface-variant/60">/{normalizeUnit(rate.unit)}</span>}
+                <span
+                  className={`material-symbols-outlined text-[14px] ${rate.trend === "up" ? "text-success" : rate.trend === "down" ? "text-error" : "text-on-surface-variant/40"}`}
+                  aria-label={rate.trend}
+                >
                   {rate.trend === "up" ? "trending_up" : rate.trend === "down" ? "trending_down" : "trending_flat"}
                 </span>
               </span>
@@ -425,7 +492,9 @@ function MandiSnapshot() {
           ))}
         </ul>
       )}
-      <p className="mt-3 text-[9px] leading-4 text-on-surface-variant/60">Indicative rates — verify at your local mandi before transacting.</p>
+      <p className="mt-3 text-xs leading-4 text-on-surface-variant/60">
+        {indicative ? "Indicative rates — verify at your local mandi." : "Verify at your local mandi before transacting."}
+      </p>
     </section>
   );
 }

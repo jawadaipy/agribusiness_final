@@ -55,6 +55,9 @@ function ProjectsPage() {
   });
   const [savedProjectIds, setSavedProjectIds] = useState<Set<string>>(new Set());
 
+  const PAGE_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   const loadProjects = async () => {
     setIsLoading(true);
     setLoadError("");
@@ -64,7 +67,8 @@ function ProjectsPage() {
         "id,profile_id,title,description,budget_min,budget_max,currency,location,city,required_skills,deadline,created_at"
       )
       .eq("status", "open")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(200);
 
     if (error) {
       setProjects([]);
@@ -292,7 +296,13 @@ function ProjectsPage() {
                   </button>
                 </div>
               ) : filteredProjects.length ? (
-                filteredProjects.map((project) => (
+                <>
+                {filteredProjects.slice(0, visibleCount).map((project) => {
+                  const deadlineSoon =
+                    project.deadline &&
+                    new Date(project.deadline).getTime() - Date.now() > 0 &&
+                    new Date(project.deadline).getTime() - Date.now() < 7 * 24 * 3600 * 1000;
+                  return (
                   <article
                     key={project.id}
                     className="rounded-3xl border border-outline-variant/40 bg-white p-6 card-shadow hover:card-shadow-hover hover:border-primary/40 transition-all duration-300 group"
@@ -300,8 +310,8 @@ function ProjectsPage() {
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary border border-primary/20">
-                            <span className="material-symbols-outlined text-[12px]">schedule</span>
+                          <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-primary border border-primary/20">
+                            <span className="material-symbols-outlined text-[12px]" aria-hidden="true">schedule</span>
                             {new Intl.DateTimeFormat("en-PK", {
                               day: "numeric",
                               month: "short",
@@ -309,8 +319,15 @@ function ProjectsPage() {
                             }).format(new Date(project.created_at))}
                           </span>
                           {project.deadline && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-secondary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-secondary border border-secondary/20">
-                              Deadline: {project.deadline}
+                            <span
+                              className={
+                                deadlineSoon
+                                  ? "inline-flex items-center gap-1 rounded-md bg-error/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-error border border-error/25"
+                                  : "inline-flex items-center gap-1 rounded-md bg-secondary/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-on-secondary-container border border-secondary/20"
+                              }
+                            >
+                              <span className="material-symbols-outlined text-[12px]" aria-hidden="true">{deadlineSoon ? "hourglass_top" : "event"}</span>
+                              {deadlineSoon ? "Closing soon: " : "Deadline: "}{project.deadline}
                             </span>
                           )}
                           <span className="ml-auto">
@@ -334,13 +351,13 @@ function ProjectsPage() {
 
                         <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-on-surface-variant">
                           <span className="inline-flex items-center gap-1 font-medium">
-                            <span className="material-symbols-outlined text-[16px] text-secondary">
+                            <span className="material-symbols-outlined text-[16px] text-secondary" aria-hidden="true">
                               location_on
                             </span>
                             {project.location || project.city || "Pakistan Wide"}
                           </span>
                           <span className="inline-flex items-center gap-1 font-black text-primary">
-                            <span className="material-symbols-outlined text-[16px] text-secondary">
+                            <span className="material-symbols-outlined text-[16px] text-secondary" aria-hidden="true">
                               payments
                             </span>
                             {project.budget_min !== null || project.budget_max !== null
@@ -354,7 +371,7 @@ function ProjectsPage() {
                             {project.required_skills.slice(0, 6).map((tag) => (
                               <span
                                 key={tag}
-                                className="tag-pill text-[10px] py-0.5 px-2.5"
+                                className="tag-pill py-0.5 px-2.5 text-xs"
                               >
                                 {tag}
                               </span>
@@ -369,7 +386,7 @@ function ProjectsPage() {
                           params={{ id: project.id }}
                           className="btn-primary inline-flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs"
                         >
-                          <span className="material-symbols-outlined text-[16px]">visibility</span>
+                          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">visibility</span>
                           View RFP
                         </Link>
                         <Link
@@ -377,13 +394,26 @@ function ProjectsPage() {
                           params={{ id: project.profile_id }}
                           className="btn-ghost inline-flex items-center justify-center gap-1.5 py-2 px-3 text-xs"
                         >
-                          <span className="material-symbols-outlined text-[16px]">person</span>
+                          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">person</span>
                           Publisher
                         </Link>
                       </div>
                     </div>
                   </article>
-                ))
+                  );
+                })}
+                {filteredProjects.length > visibleCount && (
+                  <div className="pt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                      className="rounded-xl border border-primary/30 bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-primary transition hover:bg-primary/5"
+                    >
+                      Load more requirements ({filteredProjects.length - visibleCount} remaining)
+                    </button>
+                  </div>
+                )}
+                </>
               ) : (
                 <div className="rounded-3xl border border-dashed border-outline-variant/70 bg-white p-12 text-center card-shadow">
                   <div className="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center mx-auto mb-3">
