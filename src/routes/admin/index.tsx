@@ -115,9 +115,13 @@ function SuperAdminPage() {
   useEffect(() => { void loadData(); }, [loadData]);
 
   const moderateMember = async (member: MemberRow, nextActive: boolean, nextVerified: boolean) => {
+    const label = member.display_name || member.full_name || "Member";
+    // Destructive actions deserve an explicit confirmation step.
+    if (!nextActive && !window.confirm(`Deactivate ${label}? They will lose platform access until reactivated.`)) return;
+    if (nextActive && member.is_active && nextVerified && !member.is_verified && !window.confirm(`Verify ${label}? A verified badge will appear on their public profile.`)) return;
     setActingId(member.id); setError(""); setNotice("");
     const { error: rpcError } = await supabase.rpc("super_admin_set_member_moderation", { p_profile_id: member.id, p_is_active: nextActive, p_is_verified: nextVerified });
-    if (rpcError) setError(rpcError.message); else { setNotice(`${member.display_name || member.full_name || "Member"} was updated and the action was added to the audit trail.`); await loadData(); }
+    if (rpcError) setError(rpcError.message); else { setNotice(`${label} was updated and the action was added to the audit trail.`); await loadData(); }
     setActingId("");
   };
 
@@ -137,11 +141,12 @@ function SuperAdminPage() {
 
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/", replace: true }); };
 
-  const visibleMembers = members
+  const visibleMembers = useMemo(() => members
     .filter((m) => m.user_type !== "admin")
     .filter((m) => roleFilter === "all" || m.user_type === roleFilter)
     .filter((m) => statusFilter === "all" || (statusFilter === "verified" && m.is_verified) || (statusFilter === "unverified" && !m.is_verified && m.is_active) || (statusFilter === "inactive" && !m.is_active))
-    .filter((m) => `${m.display_name || ""} ${m.full_name || ""} ${m.user_type} ${m.city || ""}`.toLowerCase().includes(memberQuery.trim().toLowerCase()));
+    .filter((m) => `${m.display_name || ""} ${m.full_name || ""} ${m.user_type} ${m.city || ""}`.toLowerCase().includes(memberQuery.trim().toLowerCase())),
+    [members, roleFilter, statusFilter, memberQuery]);
 
   const roleCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -182,36 +187,60 @@ function SuperAdminPage() {
           <div className="border-b border-white/10 p-7">
             <Link to="/" className="flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-primary"><span className="material-symbols-outlined text-[24px]">admin_panel_settings</span></span>
-              <div><p className="font-display text-lg">AgriBusiness</p><p className="mt-1 text-[9px] font-bold uppercase tracking-[0.16em] text-secondary-container">Super Admin</p></div>
+              <div><p className="font-display text-lg">AgriBusiness</p><p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-secondary-container">Super Admin</p></div>
             </Link>
           </div>
           <nav className="flex-1 space-y-1 p-5">
             {tabs.map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`press flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-xs font-bold transition ${activeTab === tab.id ? "bg-secondary text-primary" : "text-white/65 hover:bg-white/[0.08] hover:text-white"}`}>
                 <span className="material-symbols-outlined text-[19px]">{tab.icon}</span>{tab.label}
-                {tab.id === "ads" && ads.length > 0 ? <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[9px] font-black text-primary">{ads.length}</span> : null}
+                {tab.id === "ads" && ads.length > 0 ? <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-xs font-black text-primary">{ads.length}</span> : null}
               </button>
             ))}
           </nav>
           <div className="border-t border-white/10 p-5">
             <div className="mb-3 rounded-xl border border-white/15 bg-white/[0.06] p-3">
-              <p className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-secondary-container"><span className="relative flex h-1.5 w-1.5"><span className="absolute h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative h-1.5 w-1.5 rounded-full bg-emerald-400" /></span>Live database</p>
-              <p className="stat-num mt-1.5 text-lg font-bold">{counts.members.toLocaleString()} <span className="text-[10px] font-semibold text-white/60">members · {counts.listings} listings · {counts.projects} projects</span></p>
+              <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-secondary-container"><span className="relative flex h-1.5 w-1.5"><span className="absolute h-full w-full animate-ping rounded-full bg-success opacity-75" /><span className="relative h-1.5 w-1.5 rounded-full bg-success" /></span>Live database</p>
+              <p className="stat-num mt-1.5 text-lg font-bold">{counts.members.toLocaleString()} <span className="text-xs font-semibold text-white/60">members · {counts.listings} listings · {counts.projects} projects</span></p>
             </div>
             <Link to="/" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-bold text-white/65 transition hover:bg-white/[0.08] hover:text-white"><span className="material-symbols-outlined text-[18px]">home</span>Public site</Link>
             <button onClick={() => void signOut()} className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-bold text-white/65 transition hover:bg-white/[0.08] hover:text-white"><span className="material-symbols-outlined text-[18px]">logout</span>Sign out</button>
           </div>
         </aside>
         <main className="min-w-0 flex-1 lg:ml-72">
-          <header className="sticky top-0 z-20 flex h-[74px] items-center justify-between border-b border-outline-variant/60 bg-background/95 px-5 backdrop-blur-xl md:px-8">
-            <div>
-              <p className="eyebrow">Platform governance</p>
-              <h1 className="font-display text-xl text-primary">{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
+          <header className="sticky top-0 z-20 border-b border-outline-variant/60 bg-background/95 backdrop-blur-xl">
+            <div className="flex h-[74px] items-center justify-between px-5 md:px-8">
+              <div>
+                <p className="eyebrow">Platform governance</p>
+                <h1 className="font-display text-xl text-primary">{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => void loadData()} className="press inline-flex items-center gap-1.5 rounded-xl border border-outline-variant/65 bg-white px-3 py-2.5 text-xs font-bold text-primary hover-lift"><span className="material-symbols-outlined text-[16px]" aria-hidden="true">refresh</span><span className="hidden sm:inline">Refresh</span></button>
+                <span className="hidden rounded-xl bg-primary px-3 py-2.5 text-xs font-bold text-on-primary sm:inline-block">{admin.display_name || admin.full_name || "Super Admin"}</span>
+                <button onClick={() => void signOut()} aria-label="Sign out" className="inline-flex items-center justify-center rounded-xl border border-outline-variant/65 bg-white px-3 py-2.5 text-xs font-bold text-primary lg:hidden">
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">logout</span>
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => void loadData()} className="press inline-flex items-center gap-1.5 rounded-xl border border-outline-variant/65 bg-white px-3 py-2.5 text-xs font-bold text-primary hover-lift"><span className="material-symbols-outlined text-[16px]">refresh</span>Refresh</button>
-              <span className="hidden rounded-xl bg-primary px-3 py-2.5 text-xs font-bold text-on-primary sm:inline-block">{admin.display_name || admin.full_name || "Super Admin"}</span>
-            </div>
+            {/* Mobile/tablet tab strip — the only nav below lg */}
+            <nav className="flex gap-1.5 overflow-x-auto px-5 pb-3 no-scrollbar lg:hidden" aria-label="Admin sections">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-current={activeTab === tab.id ? "true" : undefined}
+                  className={`press flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${activeTab === tab.id ? "bg-primary text-on-primary" : "border border-outline-variant/60 bg-white text-on-surface-variant"}`}
+                >
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">{tab.icon}</span>
+                  {tab.label}
+                  {tab.id === "ads" && ads.length > 0 ? <span className={`rounded-full px-1.5 py-0.5 text-xs font-black ${activeTab === tab.id ? "bg-secondary text-on-secondary" : "bg-secondary/20 text-on-secondary-container"}`}>{ads.length}</span> : null}
+                </button>
+              ))}
+              <Link to="/" className="press flex shrink-0 items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-white px-3 py-2 text-xs font-bold text-on-surface-variant">
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">home</span>
+                Site
+              </Link>
+            </nav>
           </header>
           <section className="mx-auto max-w-7xl p-5 md:p-8">
             {error ? <Notice tone="error" message={error} /> : null}
@@ -256,11 +285,11 @@ function KpiCard({ icon, value, label, delta, tone = "primary" }: { icon: string
     <article className="hover-lift rounded-2xl border border-outline-variant/60 bg-white p-5">
       <div className="flex items-center justify-between">
         <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${toneClass}`}><span className="material-symbols-outlined">{icon}</span></span>
-        {delta ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{delta}</span> : null}
+        {delta ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">{delta}</span> : null}
       </div>
       <p className="stat-num mt-4 text-3xl font-bold text-primary">{typeof value === "number" ? value.toLocaleString() : value}</p>
       <div className="rule-ledger my-2.5" />
-      <p className="text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-[.1em] text-on-surface-variant">{label}</p>
     </article>
   );
 }
@@ -294,7 +323,7 @@ function Overview({ counts, newThisWeek, verifiedCount, inactiveCount, pendingAd
               <p className="eyebrow">Member growth</p>
               <h2 className="mt-1.5 font-display text-lg text-primary">New members · last 6 months</h2>
             </div>
-            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{newThisWeek} this week</span>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{newThisWeek} this week</span>
           </div>
           <div className="mt-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -330,7 +359,7 @@ function Overview({ counts, newThisWeek, verifiedCount, inactiveCount, pendingAd
           </div>
           <ul className="mt-2 space-y-1.5">
             {roleCounts.sort((a, b) => b.value - a.value).slice(0, 6).map((entry) => (
-              <li key={entry.name} className="flex items-center justify-between gap-2 text-[11px]">
+              <li key={entry.name} className="flex items-center justify-between gap-2 text-xs">
                 <span className="flex items-center gap-2 font-semibold text-on-surface-variant">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: ROLE_COLORS[entry.name] ?? "#83948B" }} />
                   {ROLE_LABELS[entry.name as AccountRole] ?? entry.name}
@@ -361,17 +390,17 @@ function Overview({ counts, newThisWeek, verifiedCount, inactiveCount, pendingAd
               <p className="eyebrow">Accountability</p>
               <h2 className="mt-1.5 font-display text-lg text-primary">Latest governance actions</h2>
             </div>
-            <button onClick={() => onGoTo("audit")} className="text-[11px] font-bold text-primary hover:underline">View all</button>
+            <button onClick={() => onGoTo("audit")} className="text-xs font-bold text-primary hover:underline">View all</button>
           </div>
           <ul className="mt-4 space-y-3">
             {recentAudit.length === 0 ? (
-              <li className="rounded-xl border border-dashed border-outline bg-surface-container-low/60 p-4 text-[11px] leading-5 text-on-surface-variant">No governance actions recorded yet. Moderation and ad decisions will appear here instantly.</li>
+              <li className="rounded-xl border border-dashed border-outline bg-surface-container-low/60 p-4 text-xs leading-5 text-on-surface-variant">No governance actions recorded yet. Moderation and ad decisions will appear here instantly.</li>
             ) : recentAudit.map((row) => (
               <li key={row.id} className="flex items-start gap-3">
                 <span className="material-symbols-outlined mt-0.5 rounded-lg bg-primary/10 p-1.5 text-[16px] text-primary">gavel</span>
                 <div className="min-w-0">
                   <p className="text-xs font-bold capitalize text-primary">{row.action.replaceAll("_", " ")}</p>
-                  <p className="mt-0.5 text-[10px] text-on-surface-variant">{row.target_table} · {fmtDateTime(row.created_at)}</p>
+                  <p className="mt-0.5 text-xs text-on-surface-variant">{row.target_table} · {fmtDateTime(row.created_at)}</p>
                 </div>
               </li>
             ))}
@@ -397,7 +426,7 @@ function QueueRow({ icon, label, value, cta, onClick, tone }: { icon: string; la
       </div>
       <div className="flex shrink-0 items-center gap-3">
         <span className="stat-num text-lg font-bold text-primary">{value.toLocaleString()}</span>
-        <button onClick={onClick} className="press rounded-xl border border-outline-variant/60 px-3 py-1.5 text-[10px] font-bold text-primary hover:bg-surface-container">{cta}</button>
+        <button onClick={onClick} className="press rounded-xl border border-outline-variant/60 px-3 py-1.5 text-xs font-bold text-primary hover:bg-surface-container">{cta}</button>
       </div>
     </div>
   );
@@ -406,8 +435,8 @@ function QueueRow({ icon, label, value, cta, onClick, tone }: { icon: string; la
 function RoleBadge({ role }: { role: string }) {
   const color = ROLE_COLORS[role] ?? "#83948B";
   return (
-    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white" style={{ background: color }}>
-      <span className="material-symbols-outlined text-[11px]">{ROLE_ICONS[role as AccountRole] ?? "person"}</span>
+    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white" style={{ background: color }}>
+      <span className="material-symbols-outlined text-xs">{ROLE_ICONS[role as AccountRole] ?? "person"}</span>
       {ROLE_LABELS[role as AccountRole] ?? role}
     </span>
   );
@@ -431,7 +460,7 @@ function MembersPanel({ members, total, query, setQuery, roleFilter, setRoleFilt
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="flex flex-wrap gap-1.5">
             {roleChips.map((chip) => (
-              <button key={chip} onClick={() => setRoleFilter(chip)} className={`press rounded-xl px-2.5 py-2 text-[10px] font-bold capitalize transition ${roleFilter === chip ? "bg-primary text-on-primary" : "border border-outline-variant/60 bg-white text-on-surface-variant hover:bg-surface-container-low"}`}>
+              <button key={chip} onClick={() => setRoleFilter(chip)} className={`press rounded-xl px-2.5 py-2 text-xs font-bold capitalize transition ${roleFilter === chip ? "bg-primary text-on-primary" : "border border-outline-variant/60 bg-white text-on-surface-variant hover:bg-surface-container-low"}`}>
                 {chip === "all" ? "All roles" : ROLE_LABELS[chip as AccountRole] ?? chip}
               </button>
             ))}
@@ -447,7 +476,7 @@ function MembersPanel({ members, total, query, setQuery, roleFilter, setRoleFilt
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full max-w-sm rounded-xl border border-outline-variant/65 bg-white px-3.5 py-2.5 text-xs text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/15" placeholder="Search name, role, or city…" />
-        <p className="text-[11px] font-bold text-on-surface-variant"><span className="stat-num text-primary">{members.length}</span> shown · <span className="stat-num">{total.toLocaleString()}</span> total</p>
+        <p className="text-xs font-bold text-on-surface-variant"><span className="stat-num text-primary">{members.length}</span> shown · <span className="stat-num">{total.toLocaleString()}</span> total</p>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-outline-variant/60 bg-white">
@@ -457,15 +486,15 @@ function MembersPanel({ members, total, query, setQuery, roleFilter, setRoleFilt
               <article key={member.id} className="focus-row flex flex-col justify-between gap-4 p-5 outline-none transition hover:bg-surface-container-low/40 lg:flex-row lg:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-[10px] font-black text-on-primary">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-xs font-black text-on-primary">
                       {(member.display_name || member.full_name || "M").split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()}
                     </span>
                     <p className="font-bold text-primary">{member.display_name || member.full_name || "Unnamed member"}</p>
                     <RoleBadge role={member.user_type} />
-                    {member.is_verified ? <span className="rounded-full bg-secondary-container px-2 py-0.5 text-[9px] font-bold text-on-secondary-container">Verified</span> : null}
-                    {!member.is_active ? <span className="rounded-full bg-error/10 px-2 py-0.5 text-[9px] font-bold text-error">Inactive</span> : null}
+                    {member.is_verified ? <span className="rounded-full bg-secondary-container px-2 py-0.5 text-xs font-bold text-on-secondary-container">Verified</span> : null}
+                    {!member.is_active ? <span className="rounded-full bg-error/10 px-2 py-0.5 text-xs font-bold text-error">Inactive</span> : null}
                   </div>
-                  <p className="mt-1.5 text-[11px] text-on-surface-variant">{member.city || "No city set"} · Joined {fmtDate(member.created_at)}</p>
+                  <p className="mt-1.5 text-xs text-on-surface-variant">{member.city || "No city set"} · Joined {fmtDate(member.created_at)}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button disabled={actingId === member.id} onClick={() => void onModerate(member, !member.is_active, member.is_verified)} className="press rounded-xl border border-outline-variant/65 bg-white px-3 py-2 text-xs font-bold text-primary hover-lift disabled:opacity-50">{member.is_active ? "Deactivate" : "Activate"}</button>
@@ -496,10 +525,10 @@ function AdsPanel({ ads, actingId, rejectionTarget, rejectionReason, setRejectio
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-bold text-primary">{ad.title}</h3>
-                  <span className="rounded-full bg-secondary-container px-2 py-0.5 text-[9px] font-bold uppercase text-on-secondary-container">{ad.status}</span>
+                  <span className="rounded-full bg-secondary-container px-2 py-0.5 text-xs font-bold uppercase text-on-secondary-container">{ad.status}</span>
                 </div>
                 <p className="mt-2 max-w-2xl text-xs leading-5 text-on-surface-variant">{ad.body || "No campaign description supplied."}</p>
-                <p className="mt-3 flex flex-wrap gap-3 text-[11px] text-on-surface-variant">
+                <p className="mt-3 flex flex-wrap gap-3 text-xs text-on-surface-variant">
                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[13px] text-secondary">location_on</span>{ad.target_location || "No geographic target"}</span>
                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[13px] text-secondary">schedule</span>Submitted {fmtDate(ad.created_at)}</span>
                 </p>
@@ -543,16 +572,16 @@ function ContentPanel({ listings, projects, counts }: { listings: ListingRow[]; 
         <section className="overflow-hidden rounded-2xl border border-outline-variant/60 bg-white">
           <header className="flex items-center justify-between border-b border-outline-variant/50 bg-surface-container-low/50 px-5 py-3.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Latest listings</h3>
-            <Link to="/marketplace" className="text-[10px] font-bold text-primary hover:underline">Public view</Link>
+            <Link to="/marketplace" className="text-xs font-bold text-primary hover:underline">Public view</Link>
           </header>
           <div className="divide-y divide-outline-variant/45">
             {listings.length === 0 ? <EmptyState icon="inventory_2" title="No listings yet" text="Published produce and service listings will appear here." /> : listings.map((listing) => (
               <article key={listing.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <div className="min-w-0">
                   <p className="truncate text-xs font-bold text-primary">{listing.title}</p>
-                  <p className="mt-0.5 text-[10px] text-on-surface-variant">{listing.city || "No city"} · {fmtDate(listing.created_at)}</p>
+                  <p className="mt-0.5 text-xs text-on-surface-variant">{listing.city || "No city"} · {fmtDate(listing.created_at)}</p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${listing.status === "active" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700"}`}>{listing.status}</span>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold uppercase ${listing.status === "active" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700"}`}>{listing.status}</span>
               </article>
             ))}
           </div>
@@ -561,19 +590,19 @@ function ContentPanel({ listings, projects, counts }: { listings: ListingRow[]; 
         <section className="overflow-hidden rounded-2xl border border-outline-variant/60 bg-white">
           <header className="flex items-center justify-between border-b border-outline-variant/50 bg-surface-container-low/50 px-5 py-3.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Latest opportunities</h3>
-            <Link to="/projects" className="text-[10px] font-bold text-primary hover:underline">Public view</Link>
+            <Link to="/projects" className="text-xs font-bold text-primary hover:underline">Public view</Link>
           </header>
           <div className="divide-y divide-outline-variant/45">
             {projects.length === 0 ? <EmptyState icon="work" title="No projects yet" text="Published farm needs and briefs will appear here." /> : projects.map((project) => (
               <article key={project.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <div className="min-w-0">
                   <p className="truncate text-xs font-bold text-primary">{project.title}</p>
-                  <p className="mt-0.5 text-[10px] text-on-surface-variant">
+                  <p className="mt-0.5 text-xs text-on-surface-variant">
                     {project.city || "No city"}
                     {project.budget_min !== null || project.budget_max !== null ? ` · ${pkr(project.budget_min)}–${pkr(project.budget_max)}` : " · Budget on request"}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${project.status === "open" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700"}`}>{project.status}</span>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold uppercase ${project.status === "open" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700"}`}>{project.status}</span>
               </article>
             ))}
           </div>
@@ -595,10 +624,10 @@ function CategoriesPanel({ categories, actingId, onToggle }: { categories: Categ
             {categories.map((category) => (
               <article key={category.id} className="flex items-center justify-between gap-4 p-4 transition hover:bg-surface-container-low/40">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="stat-num flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container text-[11px] font-black text-primary">{category.sort_order}</span>
+                  <span className="stat-num flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container text-xs font-black text-primary">{category.sort_order}</span>
                   <div className="min-w-0">
                     <p className="truncate font-bold text-primary">{category.name}</p>
-                    <p className="text-[11px] text-on-surface-variant">/{category.slug}</p>
+                    <p className="text-xs text-on-surface-variant">/{category.slug}</p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
@@ -629,10 +658,10 @@ function AuditPanel({ rows }: { rows: AuditRow[] }) {
                   <span className="material-symbols-outlined mt-0.5 rounded-lg bg-primary/10 p-1.5 text-[16px] text-primary">gavel</span>
                   <div>
                     <p className="font-bold capitalize text-primary">{row.action.replaceAll("_", " ")}</p>
-                    <p className="mt-0.5 text-[11px] text-on-surface-variant">{row.target_table}{row.target_id ? ` · ${row.target_id.slice(0, 8)}…` : ""}</p>
+                    <p className="mt-0.5 text-xs text-on-surface-variant">{row.target_table}{row.target_id ? ` · ${row.target_id.slice(0, 8)}…` : ""}</p>
                   </div>
                 </div>
-                <time className="stat-num text-[11px] font-semibold text-on-surface-variant">{fmtDateTime(row.created_at)}</time>
+                <time className="stat-num text-xs font-semibold text-on-surface-variant">{fmtDateTime(row.created_at)}</time>
               </article>
             ))}
           </div>

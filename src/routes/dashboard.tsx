@@ -44,14 +44,14 @@ function DashboardPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#F4F2E9] p-8">
+      <div className="min-h-screen bg-background p-8 pt-24">
         <div className="mx-auto max-w-5xl animate-pulse space-y-6">
-          <div className="h-14 w-72 rounded-xl bg-[#E3E1D5]" />
-          <div className="h-48 rounded-2xl bg-[#E3E1D5]" />
+          <div className="h-14 w-72 rounded-xl bg-surface-container" />
+          <div className="h-48 rounded-2xl bg-surface-container" />
           <div className="grid gap-5 md:grid-cols-3">
-            <div className="h-36 rounded-2xl bg-[#E3E1D5]" />
-            <div className="h-36 rounded-2xl bg-[#E3E1D5]" />
-            <div className="h-36 rounded-2xl bg-[#E3E1D5]" />
+            <div className="h-36 rounded-2xl bg-surface-container" />
+            <div className="h-36 rounded-2xl bg-surface-container" />
+            <div className="h-36 rounded-2xl bg-surface-container" />
           </div>
         </div>
       </div>
@@ -60,36 +60,38 @@ function DashboardPage() {
   if (profile) return <RoleWorkspace profile={profile} onSignOut={signOut} />;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F4F2E9] p-5">
-      <div className="w-full max-w-lg rounded-2xl border border-[#DCD7C7] bg-[#FFFEF9] p-7 text-center shadow-[0_12px_35px_rgba(31,67,55,0.08)]">
-        <span className="material-symbols-outlined text-4xl text-[#8A6713]">sync</span>
-        <h1 className="mt-4 font-display text-3xl text-[#17352E]">Setting up your workspace</h1>
-        <p className="mt-3 text-sm leading-6 text-[#6D7A71]">
+    <div className="flex min-h-screen items-center justify-center bg-background p-5">
+      <div className="w-full max-w-lg rounded-2xl border border-outline-variant bg-white p-7 text-center shadow-lg">
+        <span className="material-symbols-outlined text-4xl text-secondary" aria-hidden="true">sync</span>
+        <h1 className="mt-4 font-display text-3xl text-primary">Setting up your workspace</h1>
+        <p className="mt-3 text-sm leading-6 text-on-surface-variant">
           Your account is authenticated, but the secure profile record is not available yet. This is
           normally created automatically after signup. Please retry in a moment.
         </p>
         {error && (
-          <p className="mt-4 rounded-xl bg-[#FBE8E2] p-3 text-xs font-semibold text-[#8A3D29]">
+          <p className="mt-4 rounded-xl bg-error/10 p-3 text-xs font-semibold text-error">
             {error}
           </p>
         )}
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <button
+            type="button"
             onClick={() => void loadMember()}
-            className="rounded-xl bg-[#153E35] px-4 py-3 text-xs font-bold text-white"
+            className="rounded-xl bg-primary px-4 py-3 text-xs font-bold text-on-primary"
           >
             Retry profile setup
           </button>
           <button
+            type="button"
             onClick={() => void signOut()}
-            className="rounded-xl border border-[#D8D2BF] px-4 py-3 text-xs font-bold text-[#31564A]"
+            className="rounded-xl border border-outline-variant px-4 py-3 text-xs font-bold text-primary"
           >
             Sign out
           </button>
         </div>
         {profilePending && (
-          <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#839086]">
-            No local demo session is used
+          <p className="mt-5 text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant/60">
+            Secure session · profiles are created server-side
           </p>
         )}
       </div>

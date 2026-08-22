@@ -65,7 +65,7 @@ function AppsIndexPage() {
       color: "from-emerald-700 to-teal-900",
       accent: "bg-emerald-400 text-emerald-950",
       link: "/apps/plant-clinic",
-      image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&q=80&auto=format&fit=crop",
+      image: "https://images.unsplash.com/photo-1437252611977-07f74518abd7?w=800&q=80&auto=format&fit=crop",
       overview: "This App provides dedicated help regarding plants, fruits, flowers, seeds, vegetables, and field crops. Farmers can easily describe their problem and get fast responses from qualified agronomists and peer growers.",
       features: [
         "Covers plants, fruits, flowers, seeds, field crops, and soil nutrition.",
@@ -86,7 +86,7 @@ function AppsIndexPage() {
           
           {/* Header Banner */}
           <div className="text-center max-w-3xl mx-auto mb-14 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <span className="inline-block px-3.5 py-1 mb-3 text-[11px] font-bold tracking-[0.15em] uppercase rounded-full bg-secondary/20 text-primary border border-secondary/30">
+            <span className="inline-block px-3.5 py-1 mb-3 text-xs font-bold tracking-[0.15em] uppercase rounded-full bg-secondary/20 text-primary border border-secondary/30">
               AgriBusiness Digital Ecosystem
             </span>
             <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-3">
@@ -106,7 +106,7 @@ function AppsIndexPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-3xl border border-outline-variant/40 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 grid grid-cols-1 lg:grid-cols-12"
+                className="group bg-white rounded-3xl border border-outline-variant/40 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 grid grid-cols-1 lg:grid-cols-12"
               >
                 {/* Media Column */}
                 <div className="lg:col-span-5 relative aspect-[16/10] lg:aspect-auto overflow-hidden bg-surface-container-low">
@@ -117,7 +117,7 @@ function AppsIndexPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent lg:hidden" />
                   <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-white/95 text-primary backdrop-blur-md shadow-sm border border-primary/10">
+                    <span className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-white/95 text-primary backdrop-blur-md shadow-sm border border-primary/10">
                       {app.badge}
                     </span>
                   </div>
@@ -133,7 +133,7 @@ function AppsIndexPage() {
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-secondary">
+                        <span className="text-xs font-bold uppercase tracking-wider text-secondary">
                           {app.tagline}
                         </span>
                         <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight">
@@ -147,7 +147,7 @@ function AppsIndexPage() {
                     </p>
 
                     <div className="space-y-2.5">
-                      <h4 className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-wider">
                         Key Capabilities & Workflow:
                       </h4>
                       <ul className="space-y-2">
@@ -169,7 +169,7 @@ function AppsIndexPage() {
                       className="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md flex items-center gap-2 cursor-pointer"
                     >
                       <span>{app.cta}</span>
-                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
                     </Link>
 
                     <Link

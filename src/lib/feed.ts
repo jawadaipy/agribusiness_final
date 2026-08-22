@@ -4,6 +4,7 @@
  * clinical apps (which show untagged case posts) stay clean.
  */
 import { supabase } from "@/lib/supabase";
+import { uploadMedia } from "@/lib/storage";
 import type { AccountRole } from "@/lib/member";
 
 export const NETWORK_TAG = "network";
@@ -139,15 +140,7 @@ export async function insertNetworkPost(input: {
 
 /** Upload a composer image to the problem-media bucket and return its public URL. */
 export async function uploadFeedMedia(profileId: string, file: File): Promise<{ url: string | null; error: string | null }> {
-  const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : ".jpg";
-  const path = `${profileId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-  const { error } = await supabase.storage.from("problem-media").upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-  });
-  if (error) return { url: null, error: error.message };
-  const { data } = supabase.storage.from("problem-media").getPublicUrl(path);
-  return { url: data.publicUrl, error: null };
+  return uploadMedia("problem-media", profileId, file);
 }
 
 export async function addFeedComment(input: { postId: string; profileId: string; body: string }): Promise<{ error: string | null }> {
