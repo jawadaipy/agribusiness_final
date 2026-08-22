@@ -204,7 +204,7 @@ function ProjectsPage() {
                 Live Agricultural RFP & Opportunity Board
               </span>
               <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-primary md:text-4xl">
-                Projects and <span className="gradient-text-gold">Requirements</span>
+                Projects and <span className="text-secondary">Requirements</span>
               </h1>
               <p className="mt-2 text-xs sm:text-sm leading-relaxed text-on-surface-variant font-medium">
                 Verified procurement requests, farm engineering RFPs, and consultancy contracts across Pakistan.

@@ -15,6 +15,7 @@ import { LanguageProvider, useTranslation } from "@/lib/i18n";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { PageFade } from "@/components/motion/Reveal";
+import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
 function NotFoundComponent() {
@@ -122,6 +123,12 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Apply saved language/direction before first paint to avoid an LTR flash for Urdu users */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var l=localStorage.getItem("agri_lang");if(l==="ur"){document.documentElement.lang="ur";document.documentElement.dir="rtl";}}catch(e){}`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -144,6 +151,7 @@ function RootComponent() {
       <PageFade routeKey={pathname}>
         <Outlet />
       </PageFade>
+      <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
 }

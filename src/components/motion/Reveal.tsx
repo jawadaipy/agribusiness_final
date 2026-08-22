@@ -6,6 +6,9 @@
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
 
+/** The platform reveal ease — import this instead of re-declaring the array. */
+export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
+
 export function Reveal({
   children,
   delay = 0,

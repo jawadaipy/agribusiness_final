@@ -2,27 +2,23 @@
  * THE EXCHANGE BOARD HERO.
  * The page opens like a commodity exchange, not a marketing template:
  * a deep green-black board of live mandi rates from the database — the
- * platform's real differentiator, front and centre. Rates fall back to
- * indicative defaults only if the table is unreachable.
+ * platform's real differentiator, front and centre. Rates are polled
+ * (useMarketRates) so the live cue is honest; fallback rows are labelled
+ * "indicative" when the table is unreachable.
  */
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
-import { supabase } from "@/lib/supabase";
+import { normalizeUnit, useMarketRates } from "@/hooks/useMarketRates";
+import { EASE_OUT_EXPO } from "@/components/motion/Reveal";
 
-type BoardRate = { commodity: string; city: string; modal_price: number; unit: string | null; trend: string };
-
-const FALLBACK_RATES: BoardRate[] = [
-  { commodity: "Wheat", city: "Multan", modal_price: 4200, unit: "40kg", trend: "up" },
-  { commodity: "Super Basmati", city: "Faisalabad", modal_price: 9800, unit: "40kg", trend: "up" },
-  { commodity: "Cotton Phutti", city: "R.Y. Khan", modal_price: 8650, unit: "40kg", trend: "down" },
-  { commodity: "Maize", city: "Sahiwal", modal_price: 3150, unit: "40kg", trend: "up" },
-  { commodity: "Sugarcane", city: "Sargodha", modal_price: 450, unit: "40kg", trend: "stable" },
-  { commodity: "Urea", city: "Lahore", modal_price: 4850, unit: "bag", trend: "stable" },
+/** Facts as data, not copy to be re-parsed. */
+const FACTS: { n: number; labelKey: "hero_fact_roles" | "hero_fact_cities" | "hero_fact_disciplines" }[] = [
+  { n: 5, labelKey: "hero_fact_roles" },
+  { n: 34, labelKey: "hero_fact_cities" },
+  { n: 24, labelKey: "hero_fact_disciplines" },
 ];
-
-const FACTS = ["5 member roles", "34 cities", "24 disciplines"];
 
 const enterStagger: Variants = {
   hidden: {},
@@ -30,7 +26,7 @@ const enterStagger: Variants = {
 };
 const enterItem: Variants = {
   hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_OUT_EXPO } },
 };
 
 /** Counts up when in view; static under reduced motion. `fast` ticks like a rate board. */
@@ -54,41 +50,24 @@ function Counter({ to, fast = false }: { to: number; fast?: boolean }) {
     return () => cancelAnimationFrame(raf);
   }, [inView, reduced, to, fast]);
 
-  return <span ref={ref}>{value}</span>;
+  return <span ref={ref}>{value.toLocaleString()}</span>;
+}
+
+function trendClasses(trend: string) {
+  if (trend === "up") return { glyph: "▲", color: "text-emerald-400", label: "up" };
+  if (trend === "down") return { glyph: "▼", color: "text-red-400", label: "down" };
+  return { glyph: "—", color: "text-white/35", label: "stable" };
 }
 
 function ExchangeBoard() {
-  const [rates, setRates] = useState<BoardRate[]>([]);
-  const [indicative, setIndicative] = useState(false);
-  const [updated, setUpdated] = useState<string>("");
-  const [loaded, setLoaded] = useState(false);
+  const { t } = useTranslation();
+  const { rates, loading, indicative, lastUpdated } = useMarketRates(8);
   // the "board is alive" cue: one row at a time receives an attention pulse
   const [flashRow, setFlashRow] = useState(-1);
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      const { data, error } = await supabase.from("market_rates").select("commodity,city,modal_price,unit,trend").limit(8);
-      if (!mounted) return;
-      if (!error && data && data.length > 0) {
-        setRates(data as BoardRate[]);
-        setIndicative(false);
-      } else {
-        setRates(FALLBACK_RATES);
-        setIndicative(true);
-      }
-      setUpdated(new Date().toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" }));
-      setLoaded(true);
-    };
-    void load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!loaded || reduced || rates.length === 0) return;
+    if (loading || reduced || rates.length === 0) return;
     let timer: ReturnType<typeof setTimeout>;
     const cycle = (index: number) => {
       setFlashRow(index);
@@ -99,65 +78,87 @@ function ExchangeBoard() {
     };
     timer = setTimeout(() => cycle(0), 1800);
     return () => clearTimeout(timer);
-  }, [loaded, reduced, rates.length]);
+  }, [loading, reduced, rates.length]);
+
+  const updatedLabel = lastUpdated
+    ? lastUpdated.toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })
+    : "";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/12 bg-[#0D2A1D] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+    <div className="overflow-hidden rounded-2xl border border-white/12 bg-exchange-raised shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
       {/* Board header */}
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
-        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/50">
-          <span className="relative flex h-2 w-2">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
+          <span className="relative flex h-2 w-2" aria-hidden="true">
             <span className="absolute h-full w-full animate-ping rounded-full bg-secondary opacity-70" />
             <span className="relative h-2 w-2 rounded-full bg-secondary" />
           </span>
-          Mandi exchange · live board
+          {t("board_title")}
         </p>
-        <p className="stat-num text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
-          {updated ? `PKT ${updated}` : "…"}
+        <p className="stat-num text-xs font-semibold uppercase tracking-[0.12em] text-white/40">
+          {updatedLabel ? `${t("board_updated")} ${updatedLabel} PKT` : "…"}
         </p>
       </div>
 
       {/* Column headers */}
-      <div className="hidden grid-cols-[1.4fr_1fr_0.9fr_0.5fr] gap-3 border-b border-white/[0.07] px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35 sm:grid">
-        <span>Commodity</span>
-        <span>Mandi</span>
-        <span className="text-right">Rate</span>
-        <span className="text-right">Δ</span>
+      <div
+        role="row"
+        className="hidden grid-cols-[1.4fr_1fr_0.9fr_0.5fr] gap-3 border-b border-white/[0.07] px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/35 sm:grid"
+      >
+        <span role="columnheader">{t("board_col_commodity")}</span>
+        <span role="columnheader">{t("board_col_mandi")}</span>
+        <span role="columnheader" className="text-right">{t("board_col_rate")}</span>
+        <span role="columnheader" className="text-right">Δ</span>
       </div>
 
       {/* Rows */}
-      <motion.div variants={enterStagger} initial="hidden" animate="show" className="divide-y divide-white/[0.06]">
-        {loaded ? rates.map((rate, index) => (
-          <motion.div
-            key={`${rate.commodity}-${rate.city}`}
-            variants={enterItem}
-            className={`grid grid-cols-[1.4fr_1fr_0.9fr_0.5fr] items-center gap-3 px-5 py-3 transition-colors hover:bg-white/[0.04] ${index === flashRow ? "row-flash" : ""}`}
-          >
-            <span className="truncate text-[13px] font-semibold text-white/90">{rate.commodity}</span>
-            <span className="truncate text-[12px] text-white/55">{rate.city}</span>
-            <span className="stat-num text-right text-[13px] font-semibold text-white">
-              ₨ <Counter to={rate.modal_price} fast />
-              {rate.unit ? <span className="ml-1 text-[10px] font-normal text-white/40">/{rate.unit.replace("40 kg (Maund)", "40kg")}</span> : null}
-            </span>
-            <span className={`stat-num text-right text-[12px] font-bold ${rate.trend === "up" ? "text-emerald-400" : rate.trend === "down" ? "text-red-400" : "text-white/35"} ${index === flashRow ? "delta-pulse" : ""}`}>
-              {rate.trend === "up" ? "▲" : rate.trend === "down" ? "▼" : "—"}
-            </span>
-          </motion.div>
-        )) : (
+      <motion.div variants={enterStagger} initial="hidden" animate="show" role="rowgroup" className="divide-y divide-white/[0.06]">
+        {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="px-5 py-3">
+            <div key={i} className="px-5 py-3" aria-hidden="true">
               <div className="h-4 w-3/4 animate-pulse rounded bg-white/[0.07]" />
             </div>
           ))
+        ) : (
+          rates.map((rate, index) => {
+            const trend = trendClasses(rate.trend);
+            return (
+              <motion.div
+                key={`${rate.commodity}-${rate.city}`}
+                variants={enterItem}
+                role="row"
+                className={`grid grid-cols-[1fr_auto] items-center gap-x-4 px-5 py-3 sm:grid-cols-[1.4fr_1fr_0.9fr_0.5fr] sm:gap-3 ${index === flashRow ? "row-flash" : ""}`}
+              >
+                <span role="cell" className="min-w-0">
+                  <span className="block truncate text-[13px] font-semibold text-white/90">{rate.commodity}</span>
+                  <span className="block truncate text-xs text-white/55 sm:hidden">{rate.city}</span>
+                </span>
+                <span role="cell" className="hidden truncate text-xs text-white/55 sm:block">{rate.city}</span>
+                <span role="cell" className="stat-num text-right text-[13px] font-semibold text-white">
+                  ₨ <Counter to={rate.modalPrice} fast />
+                  {rate.unit ? <span className="ml-1 text-xs font-normal text-white/40">/{normalizeUnit(rate.unit)}</span> : null}
+                </span>
+                <span
+                  role="cell"
+                  className={`stat-num text-right text-xs font-bold ${trend.color} ${index === flashRow ? "delta-pulse" : ""}`}
+                >
+                  <span aria-hidden="true">{trend.glyph}</span>
+                  <span className="sr-only">{trend.label}</span>
+                </span>
+              </motion.div>
+            );
+          })
         )}
       </motion.div>
 
       {/* Board footer */}
       <div className="flex items-center justify-between border-t border-white/10 bg-black/20 px-5 py-3">
-        <p className="text-[10px] text-white/40">{indicative ? "Indicative rates — verify at your mandi" : "Live database rates — verify locally before transacting"}</p>
-        <Link to="/apps/agri-biz" className="flex items-center gap-1 text-[11px] font-semibold text-secondary hover:underline">
-          Full market
-          <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+        <p className="text-xs text-white/40">
+          {indicative ? t("board_footer_indicative") : t("board_footer_live")}
+        </p>
+        <Link to="/rates" className="flex items-center gap-1 text-xs font-semibold text-secondary hover:underline">
+          {t("board_full_market")}
+          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">arrow_forward</span>
         </Link>
       </div>
     </div>
@@ -175,7 +176,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#08160F]">
+    <section className="relative overflow-hidden bg-exchange">
       {/* Ruled board texture — faint horizontal rules like a rate register */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.35]"
@@ -186,26 +187,25 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-full overflow-hidden" aria-hidden="true">
         <div className="scanline h-px w-full bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
       </div>
-      {/* Breathing gold glow behind the board position */}
+      {/* Ambient gold depth behind the board position */}
       <div className="pointer-events-none absolute right-[8%] top-[30%] h-[380px] w-[380px] rounded-full bg-secondary/10 blur-[110px] glow-breathe" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
         <div className="grid items-center gap-12 pb-16 pt-12 md:pt-16 lg:grid-cols-12 lg:gap-14 lg:pb-20 lg:pt-20">
           {/* Left: thesis + actions */}
           <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-5">
-            <motion.p variants={enterItem} className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary">
+            <motion.p variants={enterItem} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
               <span className="h-px w-5 bg-secondary" aria-hidden="true" />
-              Pakistan's agri professional network
+              {t("hero_badge")}
             </motion.p>
 
             <motion.h1 variants={enterItem} className="display-hero mt-5 text-[40px] text-white sm:text-[48px] lg:text-[54px]">
-              {t("hero_headline_1")}
-              <br />
-              <em className="text-shimmer">{t("hero_headline_2")}</em>
+              {t("hero_headline_1")}{" "}
+              <em className="text-secondary-light">{t("hero_headline_2")}</em>
             </motion.h1>
 
-            <motion.p variants={enterItem} className="mt-4 max-w-sm text-[14px] leading-6 text-white/60">
-              Verified growers, buyers, consultants, enterprises, and researchers — doing real business.
+            <motion.p variants={enterItem} className="mt-4 max-w-sm text-sm leading-6 text-white/60">
+              {t("hero_sub_short")}
             </motion.p>
 
             <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-7 flex max-w-md items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] p-1.5 backdrop-blur transition focus-within:border-secondary/50 focus-within:ring-4 focus-within:ring-secondary/10">
@@ -214,39 +214,36 @@ export function Hero() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search people, produce, or expertise…"
-                aria-label="Search the network"
+                placeholder={t("hero_search_placeholder")}
+                aria-label={t("hero_search_placeholder")}
                 className="min-w-0 flex-1 bg-transparent py-2 text-sm font-medium text-white outline-none placeholder:text-white/40"
               />
-              <button type="submit" className="press btn-shine shrink-0 rounded-lg bg-secondary px-4 py-2 text-[13px] font-semibold text-[#3D2A05] hover:bg-secondary-light">
-                Search
+              <button type="submit" className="press shrink-0 rounded-lg bg-secondary px-4 py-2 text-[13px] font-semibold text-on-secondary hover:bg-secondary-light">
+                {t("hero_search_cta")}
               </button>
             </motion.form>
 
             <motion.div variants={enterItem} className="mt-6 flex flex-wrap items-center gap-5">
-              <Link to="/onboarding" className="press btn-shine inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-[14px] font-semibold text-[#08160F] hover:bg-white/90">
-                Join free
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-exchange hover:bg-white/90">
+                {t("hero_join_free")}
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
               </Link>
-              <Link to="/apps/agri-biz" className="group inline-flex items-center gap-1 text-[14px] font-semibold text-white/75 hover:text-white">
-                Browse the marketplace
-                <span className="material-symbols-outlined text-[16px] text-white/40 transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+              <Link to="/apps/agri-biz" className="group inline-flex items-center gap-1 text-sm font-semibold text-white/75 hover:text-white">
+                {t("hero_cta_primary")}
+                <span className="material-symbols-outlined text-[16px] text-white/40 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
               </Link>
             </motion.div>
 
             {/* Facts — one line, counting up */}
-            <motion.p variants={enterItem} className="mt-10 flex items-center gap-3 overflow-x-auto whitespace-nowrap border-t border-white/12 pt-5 text-[11px] font-semibold uppercase tracking-[0.13em] text-white/45 no-scrollbar">
-              {FACTS.map((fact, index) => {
-                const match = fact.match(/^(\d+)\s+(.*)$/);
-                return (
-                  <span key={fact} className="flex items-center gap-3">
-                    {index > 0 ? <span className="h-0.5 w-0.5 rounded-full bg-white/30" aria-hidden="true" /> : null}
-                    <span className="stat-num">
-                      {match ? (<><Counter to={Number(match[1])} /> {match[2]}</>) : fact}
-                    </span>
+            <motion.p variants={enterItem} className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/12 pt-5 text-xs font-semibold uppercase tracking-[0.13em] text-white/45">
+              {FACTS.map((fact, index) => (
+                <span key={fact.labelKey} className="flex items-center gap-4">
+                  {index > 0 ? <span className="h-0.5 w-0.5 rounded-full bg-white/30" aria-hidden="true" /> : null}
+                  <span className="stat-num">
+                    <Counter to={fact.n} /> {t(fact.labelKey)}
                   </span>
-                );
-              })}
+                </span>
+              ))}
             </motion.p>
           </motion.div>
 
@@ -254,7 +251,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65, delay: 0.25, ease: EASE_OUT_EXPO }}
             className="lg:col-span-7"
           >
             <ExchangeBoard />

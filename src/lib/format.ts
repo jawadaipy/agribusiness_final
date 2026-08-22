@@ -68,3 +68,22 @@ export function formatCompact(num: number): string {
   if (num >= 1_000) return `${(num / 1_000).toFixed(0)}k`;
   return String(num);
 }
+
+/**
+ * Relative time — the one implementation used by feed, notifications,
+ * messages, and profiles.
+ * timeAgo(new Date(Date.now() - 45_000)) → "45s ago"
+ * timeAgo("2024-01-01T00:00:00Z")       → "Jan 1, 2024" (beyond 7 days)
+ */
+export function timeAgo(input: string | Date): string {
+  const date = typeof input === "string" ? new Date(input) : input;
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days <= 7) return `${days}d ago`;
+  return date.toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" });
+}
