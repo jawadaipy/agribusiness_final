@@ -1,16 +1,13 @@
 /**
- * Homepage hero — a field photograph carries the page; the text stays minimal.
- * One headline, one line of support, one search, one CTA, one facts strip.
- * Network pulse on the right is live database data.
+ * Homepage hero — international minimal, made for Pakistan.
+ * White canvas, hairline discipline, Space Grotesk display type.
+ * The live Network Pulse card on the right is the product visual.
  */
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
-
-const HERO_IMAGE = "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80&auto=format&fit=crop";
-const HERO_FALLBACK = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=80&auto=format&fit=crop";
 
 type PulseRate = { commodity: string; city: string; modal_price: number; trend: string };
 type PulsePost = { title: string; kind: string };
@@ -20,11 +17,11 @@ const FACTS = ["5 member roles", "34 cities", "24 disciplines", "Live mandi rate
 
 const enterStagger: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.09, delayChildren: 0.1 } },
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
 };
 const enterItem: Variants = {
-  hidden: { opacity: 0, y: 22 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  hidden: { opacity: 0, y: 18 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
 };
 
 /** Counts up when scrolled into view; static under reduced motion. */
@@ -78,77 +75,74 @@ function NetworkPulse() {
     };
   }, []);
 
-  const kindLabel = post?.kind === "question" ? "Question" : post?.kind === "offer" ? "Offer" : post?.kind === "achievement" ? "Milestone" : "Field update";
+  const kindLabel = post?.kind === "question" ? "question" : post?.kind === "offer" ? "offer" : post?.kind === "achievement" ? "milestone" : "field update";
 
   return (
-    <aside className="relative lg:col-span-5" aria-label="Live network activity">
-      <div className="overflow-hidden rounded-3xl border border-outline-variant/50 bg-white shadow-[0_2px_6px_rgba(10,61,38,0.05),0_18px_44px_rgba(10,61,38,0.09)]">
-        <header className="flex items-center justify-between border-b border-outline-variant/40 px-6 py-4">
-          <p className="eyebrow">Network pulse</p>
-          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-            <span className="relative flex h-2 w-2">
+    <aside aria-label="Live network activity">
+      <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
+        <header className="flex items-center justify-between border-b border-black/[0.07] px-5 py-3.5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/50">Network pulse</p>
+          <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+            <span className="relative flex h-1.5 w-1.5">
               <span className="absolute h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-500" />
             </span>
             Live
           </span>
         </header>
 
-        <div className="divide-y divide-outline-variant/40">
-          {/* Mandi rate */}
-          <div className="flex items-center justify-between gap-4 px-6 py-4">
+        <div className="divide-y divide-black/[0.06]">
+          <div className="flex items-center justify-between gap-4 px-5 py-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface-variant">Mandi today</p>
-              <p className="mt-1 truncate text-sm font-bold text-primary">{loaded && rate ? `${rate.commodity} · ${rate.city}` : "Market rates"}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/40">Mandi today</p>
+              <p className="mt-1 truncate text-[13px] font-semibold text-black">{loaded && rate ? `${rate.commodity} · ${rate.city}` : "Market rates"}</p>
             </div>
             {loaded && rate ? (
-              <p className="stat-num shrink-0 text-right text-sm font-bold text-primary">
+              <p className="stat-num shrink-0 text-right text-[13px] font-semibold text-black">
                 ₨ {new Intl.NumberFormat("en-PK").format(rate.modal_price)}
-                <span className={`ml-1.5 text-[11px] ${rate.trend === "up" ? "text-emerald-600" : rate.trend === "down" ? "text-red-500" : "text-on-surface-variant"}`}>
+                <span className={`ml-1 text-[11px] ${rate.trend === "up" ? "text-emerald-600" : rate.trend === "down" ? "text-red-500" : "text-black/40"}`}>
                   {rate.trend === "up" ? "↑" : rate.trend === "down" ? "↓" : "→"}
                 </span>
               </p>
             ) : (
-              <div className="h-5 w-20 animate-pulse rounded bg-surface-container" />
+              <div className="h-4 w-16 animate-pulse rounded bg-black/[0.06]" />
             )}
           </div>
 
-          {/* Latest network post */}
-          <div className="px-6 py-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface-variant">From the feed · {loaded && post ? kindLabel.toLowerCase() : "field update"}</p>
+          <div className="px-5 py-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/40">From the feed · {loaded && post ? kindLabel : "field update"}</p>
             {loaded && post ? (
-              <Link to="/feed" className="mt-1.5 line-clamp-2 text-sm font-medium leading-6 text-on-surface-variant hover:text-primary hover:underline">
+              <Link to="/feed" className="mt-1.5 line-clamp-2 text-[13px] font-medium leading-5 text-black/70 hover:text-primary hover:underline">
                 {post.title}
               </Link>
             ) : (
-              <div className="mt-2 h-4 w-4/5 animate-pulse rounded bg-surface-container" />
+              <div className="mt-2 h-4 w-4/5 animate-pulse rounded bg-black/[0.06]" />
             )}
           </div>
 
-          {/* Newest member */}
-          <div className="flex items-center gap-3 px-6 py-4">
+          <div className="flex items-center gap-3 px-5 py-4">
             {loaded && member ? (
               <>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-[11px] font-black text-on-primary">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white">
                   {(member.display_name || "Member").split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()}
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-primary">{member.display_name || "New member"}</p>
-                  <p className="mt-0.5 text-[11px] capitalize text-on-surface-variant">{member.user_type}{member.city ? ` · ${member.city}` : ""}</p>
+                  <p className="truncate text-[13px] font-semibold text-black">{member.display_name || "New member"}</p>
+                  <p className="mt-px text-[11px] capitalize text-black/50">{member.user_type}{member.city ? ` · ${member.city}` : ""}</p>
                 </div>
-                <span className="ml-auto shrink-0 text-[10px] font-bold uppercase tracking-wider text-secondary">Joined</span>
+                <span className="ml-auto shrink-0 text-[10px] font-semibold uppercase tracking-wider text-primary">Joined</span>
               </>
             ) : (
               <>
-                <div className="h-10 w-10 animate-pulse rounded-xl bg-surface-container" />
-                <div className="h-4 w-32 animate-pulse rounded bg-surface-container" />
+                <div className="h-8 w-8 animate-pulse rounded-lg bg-black/[0.06]" />
+                <div className="h-3.5 w-28 animate-pulse rounded bg-black/[0.06]" />
               </>
             )}
           </div>
         </div>
 
-        <footer className="bg-surface-container-low/60 px-6 py-3.5">
-          <Link to="/feed" className="flex items-center justify-between text-[11px] font-bold text-primary transition hover:underline">
+        <footer className="border-t border-black/[0.07] bg-black/[0.015] px-5 py-3">
+          <Link to="/feed" className="flex items-center justify-between text-[12px] font-semibold text-primary hover:underline">
             Open the network feed
             <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
           </Link>
@@ -169,70 +163,56 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Field photograph — full-bleed from the top edge, under the glass navbar */}
-      <div className="absolute inset-0" aria-hidden="true">
-        <img
-          src={HERO_IMAGE}
-          alt=""
-          className="h-full w-full object-cover"
-          loading="eager"
-          onError={(e) => { (e.target as HTMLImageElement).src = HERO_FALLBACK; }}
-        />
-        {/* Reading gradients: top shade for the navbar, left depth for the copy */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B3D27]/94 via-[#0F5132]/62 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B3D27]/45 via-transparent to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
-      </div>
-
-      <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-        <div className="grid items-center gap-12 pb-20 pt-28 md:pt-32 lg:grid-cols-12 lg:gap-12 lg:pb-28 lg:pt-40">
-          {/* Copy — minimal, staged entrance */}
+    <section className="border-b border-black/[0.06] bg-white">
+      <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
+        <div className="grid items-center gap-14 pb-16 pt-14 md:pt-20 lg:grid-cols-12 lg:gap-16 lg:pb-24 lg:pt-24">
+          {/* Copy — international minimal */}
           <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-7">
-            <motion.p variants={enterItem} className="eyebrow text-secondary">Pakistan's agri professional network</motion.p>
+            <motion.p variants={enterItem} className="section-eyebrow">Pakistan's agri professional network</motion.p>
 
-            <motion.h1 variants={enterItem} className="display-hero mt-6 text-[44px] text-white sm:text-[56px] lg:text-[68px]">
+            <motion.h1 variants={enterItem} className="display-hero mt-6 text-[44px] text-black sm:text-[56px] lg:text-[64px]">
               {t("hero_headline_1")}
               <br />
-              <em className="text-secondary">{t("hero_headline_2")}</em>
+              <em className="text-primary">{t("hero_headline_2")}</em>
             </motion.h1>
 
-            <motion.p variants={enterItem} className="mt-5 max-w-lg text-[15px] leading-7 text-white/85">
+            <motion.p variants={enterItem} className="mt-5 max-w-md text-[15px] leading-7 text-black/60">
               Verified growers, buyers, consultants, enterprises, and researchers — doing real business.
             </motion.p>
 
-            {/* Search */}
-            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-8 flex max-w-xl items-center gap-2 rounded-2xl bg-white/96 p-2 shadow-[0_10px_36px_rgba(0,0,0,0.30)] backdrop-blur">
-              <span className="material-symbols-outlined pl-2.5 text-[20px] text-on-surface-variant/60" aria-hidden="true">search</span>
+            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-8 flex max-w-lg items-center gap-2 rounded-xl border border-black/15 bg-white p-1.5 transition focus-within:border-primary/60 focus-within:ring-4 focus-within:ring-primary/10">
+              <span className="material-symbols-outlined pl-2 text-[20px] text-black/40" aria-hidden="true">search</span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search people, produce, or expertise…"
                 aria-label="Search the network"
-                className="min-w-0 flex-1 bg-transparent py-2.5 text-sm font-medium text-primary outline-none placeholder:text-on-surface-variant/50"
+                className="min-w-0 flex-1 bg-transparent py-2 text-sm font-medium text-black outline-none placeholder:text-black/40"
               />
-              <button type="submit" className="press shrink-0 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-on-primary transition hover:bg-primary-container">
+              <button type="submit" className="press shrink-0 rounded-lg bg-primary px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#0B3D27]">
                 Search
               </button>
             </motion.form>
 
-            {/* CTA */}
-            <motion.div variants={enterItem} className="mt-7">
-              <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-primary shadow-[0_12px_30px_rgba(0,0,0,0.30)] transition hover:bg-secondary-light">
-                Join the network — free
-                <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+            <motion.div variants={enterItem} className="mt-6 flex flex-wrap items-center gap-5">
+              <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-[#0B3D27]">
+                Join free
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Link>
+              <Link to="/apps/agri-biz" className="group inline-flex items-center gap-1 text-[14px] font-semibold text-black/70 hover:text-black">
+                Browse the marketplace
+                <span className="material-symbols-outlined text-[16px] text-black/40 transition-transform group-hover:translate-x-0.5">arrow_forward</span>
               </Link>
             </motion.div>
 
             {/* Facts — one line, counting up */}
-            <motion.p variants={enterItem} className="mt-10 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-white/25 pt-5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/75 no-scrollbar">
+            <motion.p variants={enterItem} className="mt-12 flex items-center gap-3 overflow-x-auto whitespace-nowrap border-t border-black/[0.08] pt-6 text-[11px] font-semibold uppercase tracking-[0.13em] text-black/50 no-scrollbar">
               {FACTS.map((fact, index) => {
                 const match = fact.match(/^(\d+)\s+(.*)$/);
                 return (
-                  <span key={fact} className="flex items-center gap-2.5">
-                    {index > 0 ? <span className="h-1 w-1 rounded-full bg-secondary" aria-hidden="true" /> : null}
+                  <span key={fact} className="flex items-center gap-3">
+                    {index > 0 ? <span className="h-0.5 w-0.5 rounded-full bg-black/30" aria-hidden="true" /> : null}
                     <span className="stat-num">
                       {match ? (
                         <>
@@ -249,9 +229,9 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="lg:col-span-5"
           >
             <NetworkPulse />

@@ -57,16 +57,16 @@ export function RateTicker() {
   }, []);
 
   return (
-    <div className="bg-primary-container text-white py-2 border-y border-white/10 overflow-hidden relative shadow-inner">
+    <div className="border-b border-black/[0.06] bg-black/[0.015] py-2.5 overflow-hidden relative">
       <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto flex items-center justify-between gap-3">
-        
+
         {/* Left Live Indicator Badge */}
-        <div className="flex items-center gap-1.5 text-secondary-container font-bold text-xs shrink-0 pl-1">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+        <div className="flex items-center gap-1.5 shrink-0 pl-1">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
-          <span className="text-[10px] font-black uppercase tracking-wider text-white">Mandi Rates</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-black/60">Mandi Rates</span>
         </div>
         
         {/* Seamless scrolling marquee for ALL screens */}
@@ -74,13 +74,13 @@ export function RateTicker() {
           <div className="flex items-center gap-8 animate-ticker whitespace-nowrap">
             {[...rates, ...rates].map((rate, i) => (
               <div key={i} className="inline-flex items-center gap-1.5 text-xs">
-                <span className="text-white/70 font-medium text-[11px]">{rate.label}:</span>
-                <span className="font-bold text-white text-[11px]">{rate.price}</span>
+                <span className="text-black/50 font-medium text-[11px]">{rate.label}:</span>
+                <span className="stat-num font-semibold text-black text-[11px]">{rate.price}</span>
                 <span className={cn(
-                  "text-[10px] font-bold px-1 rounded",
-                  rate.trend === "up" ? "text-emerald-400" : 
-                  rate.trend === "down" ? "text-red-400" : 
-                  "text-white/60"
+                  "text-[10px] font-bold",
+                  rate.trend === "up" ? "text-emerald-600" :
+                  rate.trend === "down" ? "text-red-500" :
+                  "text-black/40"
                 )}>
                   {rate.change}
                 </span>
@@ -90,7 +90,7 @@ export function RateTicker() {
         </div>
 
         {/* Right Timestamp */}
-        <div className="hidden sm:flex items-center gap-1 text-white/60 text-[10px] font-bold shrink-0 uppercase tracking-wider">
+        <div className="hidden sm:flex items-center gap-1 text-black/40 text-[10px] font-semibold shrink-0 uppercase tracking-[0.12em]">
           <span className="material-symbols-outlined text-[13px]">schedule</span>
           <span>{time ? `PKT ${time}` : "LIVE"}</span>
         </div>

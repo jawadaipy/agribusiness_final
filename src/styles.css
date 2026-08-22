@@ -1,9 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", Georgia, ui-serif, serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-urdu: "Noto Nastaliq Urdu", "Noto Naskh Arabic", serif;
 
   /* Motion system — micro feedback fast, reveals measured, always reduced-motion safe */
@@ -177,9 +177,8 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-optical-sizing: auto;
-    letter-spacing: -0.015em;
-    line-height: 1.12;
+    letter-spacing: -0.022em;
+    line-height: 1.08;
   }
 
   /* Urdu/RTL mode: Nastaliq for body text, now actually loaded */
@@ -406,22 +405,21 @@
     background: linear-gradient(to top, rgba(15, 81, 50, 0.7) 0%, transparent 60%);
   }
 
-  /* ─── Section label (Field Ledger treatment) ─── */
+  /* ─── Section label (ledger eyebrow, minimal edition) ─── */
   .section-eyebrow {
-    @apply inline-flex items-center gap-2 text-[11px] font-bold text-secondary uppercase;
-    letter-spacing: 0.18em;
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold text-primary/70 uppercase;
+    letter-spacing: 0.14em;
   }
   .section-eyebrow::before {
     content: "";
     display: inline-block;
-    width: 22px;
-    height: 2px;
-    border-radius: 1px;
-    background: var(--color-secondary);
+    width: 20px;
+    height: 1.5px;
+    background: var(--color-primary);
   }
   .section-heading {
-    @apply font-display text-3xl md:text-4xl font-semibold text-primary tracking-tight;
-    font-optical-sizing: auto;
+    @apply font-display text-3xl md:text-[40px] font-semibold text-primary;
+    letter-spacing: -0.025em;
   }
   .section-sub {
     @apply text-sm text-on-surface-variant font-medium leading-relaxed;
@@ -511,17 +509,16 @@
     border-radius: 0.75rem;
   }
 
-  /* Fraunces display tuning for large hero text */
+  /* Display tuning for large hero text — Space Grotesk, tight and technical */
   .display-hero {
     font-family: var(--font-display);
     font-weight: 600;
-    font-variation-settings: "opsz" 144;
-    letter-spacing: -0.02em;
-    line-height: 1.04;
+    letter-spacing: -0.032em;
+    line-height: 1.02;
   }
   .display-hero em, .font-display em {
-    font-style: italic;
+    font-style: normal;
     font-weight: 600;
-    color: var(--color-secondary);
+    color: var(--color-primary-light, #2d7a56);
   }
 }

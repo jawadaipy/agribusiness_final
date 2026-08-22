@@ -1,7 +1,6 @@
 /**
- * Image-rich homepage sections: role cards, steps + field photo, app cards,
- * and a photographic CTA band. Every image was HTTP-verified and relates to
- * its section's subject.
+ * Minimal homepage sections — international flat discipline.
+ * Hairline dividers, quiet cards, no decoration that isn't information.
  */
 import { Link } from "@tanstack/react-router";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
@@ -9,11 +8,11 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 const img = (id: string, w = 800) => `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
 
 const ROLES = [
-  { icon: "agriculture", name: "Farmer / Producer", line: "Sell harvests, post farm needs, reach verified buyers.", image: img("1589923188900-85dae523342b") },
-  { icon: "shopping_cart", name: "Buyer / Miller", line: "Source graded commodities from verified producers.", image: img("1542838132-92c53300491e") },
-  { icon: "workspace_premium", name: "Consultant / Vet", line: "Turn field expertise into paid engagements.", image: img("1574323347407-f5e1ad6d020b") },
-  { icon: "domain", name: "Enterprise", line: "Post tenders, list inputs, find partners and talent.", image: img("1464226184884-fa280b87c399") },
-  { icon: "school", name: "Researcher", line: "Find trials, supervisors, and field data partners.", image: img("1523240795612-9a054b0db644") },
+  { icon: "agriculture", name: "Farmer / Producer", line: "Sell harvests, post farm needs, reach verified buyers." },
+  { icon: "shopping_cart", name: "Buyer / Miller", line: "Source graded commodities from verified producers." },
+  { icon: "workspace_premium", name: "Consultant / Vet", line: "Turn field expertise into paid engagements." },
+  { icon: "domain", name: "Enterprise", line: "Post tenders, list inputs, find partners and talent." },
+  { icon: "school", name: "Researcher", line: "Find trials, supervisors, and field data partners." },
 ];
 
 const STEPS = [
@@ -31,89 +30,57 @@ const APPS = [
 
 export function RoleStrip() {
   return (
-    <section className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div className="max-w-xl">
-          <p className="section-eyebrow">One network</p>
-          <h2 className="section-heading mt-3">Built for every link in the agricultural chain</h2>
+    <section className="border-b border-black/[0.06] bg-white">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div className="max-w-xl">
+            <p className="section-eyebrow">One network</p>
+            <h2 className="section-heading mt-3">Built for every link in the agricultural chain</h2>
+          </div>
+          <Link to="/search" search={{ q: "" }} className="group inline-flex items-center gap-1 text-[13px] font-semibold text-primary">
+            Browse the directory
+            <span className="material-symbols-outlined text-[15px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+          </Link>
         </div>
-        <Link to="/search" search={{ q: "" }} className="group inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-          Browse the directory
-          <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
-        </Link>
-      </div>
 
-      <RevealGroup className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {ROLES.map((role) => (
-          <RevealItem key={role.name}>
-            <Link
-              to="/onboarding"
-              className="hover-lift group block h-full overflow-hidden rounded-2xl border border-outline-variant/50 bg-white outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              <span className="relative block h-28 overflow-hidden bg-surface-container-low">
-                <img
-                  src={role.image}
-                  alt=""
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
-                <span className="absolute bottom-3 left-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/95 shadow-sm">
-                  <span className="material-symbols-outlined text-[19px] text-primary">{role.icon}</span>
+        <RevealGroup className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 sm:grid-cols-2 lg:grid-cols-5">
+          {ROLES.map((role) => (
+            <RevealItem key={role.name} className="bg-white">
+              <Link to="/onboarding" className="group flex h-full flex-col p-6 outline-none transition-colors hover:bg-black/[0.02] focus-visible:ring-2 focus-visible:ring-primary/40">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/8 transition-colors group-hover:bg-primary">
+                  <span className="material-symbols-outlined text-[19px] text-primary transition-colors group-hover:text-white">{role.icon}</span>
                 </span>
-              </span>
-              <span className="block p-4">
-                <span className="block text-sm font-bold text-primary">{role.name}</span>
-                <span className="mt-1 block text-[11px] leading-5 text-on-surface-variant">{role.line}</span>
-              </span>
-            </Link>
-          </RevealItem>
-        ))}
-      </RevealGroup>
+                <span className="mt-5 text-[14px] font-semibold text-black">{role.name}</span>
+                <span className="mt-1.5 text-[12px] leading-5 text-black/55">{role.line}</span>
+              </Link>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </div>
     </section>
   );
 }
 
 export function HowItWorksMinimal() {
   return (
-    <section className="border-y border-outline-variant/40 bg-surface-container-low/40">
+    <section className="border-b border-black/[0.06] bg-black/[0.015]">
       <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-          <ol className="space-y-9">
-            <li className="max-w-xl">
-              <p className="section-eyebrow">How it works</p>
-              <h2 className="section-heading mt-3">From profile to partnership in three steps</h2>
-            </li>
-            {STEPS.map((step) => (
-              <li key={step.n} className="relative">
-                <div className="rule-ledger mb-4" />
-                <p className="stat-num font-display text-[36px] font-semibold leading-none text-secondary/90">{step.n}</p>
-                <h3 className="mt-3 font-display text-lg font-semibold text-primary">{step.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-6 text-on-surface-variant">{step.line}</p>
-              </li>
-            ))}
-          </ol>
-
-          <Reveal delay={0.15}>
-          <figure className="relative overflow-hidden rounded-3xl border border-outline-variant/50 shadow-[0_4px_12px_rgba(10,61,38,0.08),0_20px_44px_rgba(10,61,38,0.12)]">
-            <img
-              src={img("1500530855697-b586d89ba3ee", 1200)}
-              alt="Green crop rows stretching to the horizon in Pakistan"
-              loading="lazy"
-              className="h-full min-h-[380px] w-full object-cover"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0B3D27]/85 to-transparent p-5 pt-14">
-              <p className="eyebrow text-secondary">Why it matters</p>
-              <p className="mt-1.5 text-sm font-medium leading-6 text-white">
-                Most Pakistani growers still trade on trust built in person. This network keeps that trust —
-                and removes the distance.
-              </p>
-            </figcaption>
-          </figure>
-          </Reveal>
+        <div className="max-w-xl">
+          <p className="section-eyebrow">How it works</p>
+          <h2 className="section-heading mt-3">From profile to partnership in three steps</h2>
         </div>
+
+        <RevealGroup className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+          {STEPS.map((step) => (
+            <RevealItem key={step.n}>
+              <div className="border-t-2 border-primary/80 pt-5">
+                <p className="stat-num font-display text-[34px] font-semibold leading-none text-black/85">{step.n}</p>
+                <h3 className="mt-4 text-[16px] font-semibold text-black">{step.title}</h3>
+                <p className="mt-2 text-[13px] leading-6 text-black/55">{step.line}</p>
+              </div>
+            </RevealItem>
+          ))}
+        </RevealGroup>
       </div>
     </section>
   );
@@ -121,77 +88,66 @@ export function HowItWorksMinimal() {
 
 export function AppsStrip() {
   return (
-    <section className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div className="max-w-xl">
-          <p className="section-eyebrow">The toolkit</p>
-          <h2 className="section-heading mt-3">Where the work actually happens</h2>
-        </div>
-        <Link to="/apps" className="group inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-          Explore the suite
-          <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
-        </Link>
-      </div>
-
-      <RevealGroup className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {APPS.map((app) => (
-          <RevealItem key={app.name}>
-          <Link to={app.to} className="hover-lift group block h-full overflow-hidden rounded-2xl border border-outline-variant/50 bg-white outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-            <span className="relative block h-36 overflow-hidden bg-surface-container-low">
-              <img
-                src={app.image}
-                alt=""
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              <span className="absolute inset-0 bg-gradient-to-t from-[#0B3D27]/55 via-transparent to-transparent" />
-              <span className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl bg-white/95 shadow-sm">
-                <span className="material-symbols-outlined text-[19px] text-primary">{app.icon}</span>
-              </span>
-            </span>
-            <span className="block p-5">
-              <span className="block text-sm font-bold text-primary">{app.name}</span>
-              <span className="mt-1 block text-[11px] leading-5 text-on-surface-variant">{app.line}</span>
-              <span className="mt-3 block text-[10px] font-bold uppercase tracking-wider text-secondary opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                Open →
-              </span>
-            </span>
+    <section className="border-b border-black/[0.06] bg-white">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div className="max-w-xl">
+            <p className="section-eyebrow">The toolkit</p>
+            <h2 className="section-heading mt-3">Where the work actually happens</h2>
+          </div>
+          <Link to="/apps" className="group inline-flex items-center gap-1 text-[13px] font-semibold text-primary">
+            Explore the suite
+            <span className="material-symbols-outlined text-[15px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
           </Link>
-          </RevealItem>
-        ))}
-      </RevealGroup>
+        </div>
+
+        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {APPS.map((app) => (
+            <RevealItem key={app.name}>
+              <Link to={app.to} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white outline-none transition-all hover:border-black/25 hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] focus-visible:ring-2 focus-visible:ring-primary/40">
+                <span className="relative block h-32 overflow-hidden bg-black/[0.04]">
+                  <img
+                    src={app.image}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                  <span className="absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm">
+                    <span className="material-symbols-outlined text-[17px] text-primary">{app.icon}</span>
+                  </span>
+                </span>
+                <span className="block p-5">
+                  <span className="block text-[14px] font-semibold text-black">{app.name}</span>
+                  <span className="mt-1 block text-[12px] leading-5 text-black/55">{app.line}</span>
+                </span>
+              </Link>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </div>
     </section>
   );
 }
 
 export function CtaBand() {
   return (
-    <section className="relative overflow-hidden">
-      <img
-        src={img("1464226184884-fa280b87c399", 1920)}
-        alt=""
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover"
-        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-      />
-      <div className="absolute inset-0 bg-[#0B3D27]/88" />
-      <div className="pointer-events-none absolute inset-0 bg-field-grid opacity-15" />
-      <div className="relative mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-16 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-20">
-        <div className="max-w-xl">
-          <h2 className="display-hero text-3xl text-on-primary md:text-4xl">
+    <section className="bg-primary">
+      <div className="mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-14 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-16">
+        <Reveal>
+          <h2 className="display-hero text-[28px] text-white md:text-[34px]">
             Your next partner is <em className="text-secondary">already here.</em>
           </h2>
-          <p className="mt-3 text-sm leading-6 text-white/75">
+          <p className="mt-2.5 text-[13px] leading-6 text-white/70">
             Free 7-day trial on every plan. No card required — just an honest profile.
           </p>
-        </div>
+        </Reveal>
         <div className="flex shrink-0 flex-wrap gap-3">
-          <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-primary transition hover:bg-secondary-light">
+          <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-[14px] font-semibold text-primary hover:bg-white/90">
             Create your free profile
-            <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
-          <Link to="/search" search={{ q: "" }} className="press inline-flex items-center rounded-2xl border border-white/25 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10">
+          <Link to="/search" search={{ q: "" }} className="press inline-flex items-center rounded-lg border border-white/30 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">
             Explore members
           </Link>
         </div>

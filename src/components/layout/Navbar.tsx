@@ -132,42 +132,30 @@ export function Navbar() {
   ];
 
   const isActive = (to: string) => location.pathname === to || location.pathname.startsWith(to + "/");
-  // On the homepage, the navbar floats over the hero photograph until scrolled.
-  const onDarkHero = location.pathname === "/" && !isScrolled;
 
   return (
     <nav
       ref={menuRef}
       className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-300",
-        onDarkHero
-          ? "bg-transparent border-b border-white/0 h-18"
-          : isScrolled
-          ? "bg-white/95 backdrop-blur-xl border-b border-outline-variant/40 shadow-md h-16"
-          : "bg-white/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm h-18",
+        "fixed top-0 w-full z-50 transition-all duration-300 bg-white/92 backdrop-blur-md border-b h-16",
+        isScrolled ? "border-black/10 shadow-[0_1px_2px_rgba(0,0,0,0.04)]" : "border-black/[0.06]",
       )}
       aria-label="Main navigation"
     >
-      {/* Top accent line — hidden while floating over the hero photograph */}
-      <div className={cn("absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-secondary to-primary transition-opacity duration-300", onDarkHero && "opacity-0")} />
-
       <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-full max-w-container-max mx-auto gap-4">
 
         {/* Brand */}
         <Link
           to="/"
-          className={cn("flex items-center gap-2.5 font-display text-xl font-bold tracking-tight shrink-0 group transition-colors", onDarkHero ? "text-white" : "text-primary")}
+          className="flex items-center gap-2 shrink-0 group"
           aria-label="AgriBusiness — go to homepage"
         >
-          <div className="w-9 h-9 rounded-xl gradient-agri flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-200 relative overflow-hidden">
-            {/* Shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0" />
-            <span className="material-symbols-outlined text-[20px] text-secondary relative z-10">
-              spa
-            </span>
+          <div className="w-8 h-8 rounded-[10px] bg-primary flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+            <span className="material-symbols-outlined text-[18px] text-secondary">spa</span>
           </div>
-          <span className="tracking-tight">
-            Agri<span className={onDarkHero ? "text-white" : "text-primary"}>Business</span><span className="text-secondary">.</span>
+          <span className="font-display text-[17px] font-semibold tracking-[-0.02em] text-primary">
+            AgriBusiness
+            <span className="text-secondary">.pk</span>
           </span>
         </Link>
 
@@ -193,10 +181,8 @@ export function Navbar() {
               }
             }}
             className={cn(
-              "w-full rounded-full py-2 pl-10 pr-4 text-xs focus:outline-none transition-all font-medium",
-              onDarkHero
-                ? "bg-white/12 border border-white/25 text-white placeholder:text-white/60 focus:border-white/50 focus:ring-2 focus:ring-white/20"
-                : "bg-surface-container-low/70 border border-outline-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10 placeholder:text-on-surface-variant/50",
+              "w-full rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none transition-all font-medium",
+              "bg-black/[0.03] border border-black/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-on-surface-variant/50",
             )}
             placeholder={lang === "ur" ? "تلاش کریں..." : "Search people, produce… press Enter"}
             aria-label="Search the network"
@@ -210,21 +196,17 @@ export function Navbar() {
               key={link.to}
               to={link.to}
               className={cn(
-                "press relative flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 font-bold text-[11px] uppercase tracking-wider transition-all duration-200",
+                "press relative flex h-9 items-center rounded-lg px-2.5 text-[13px] font-medium transition-colors duration-150",
                 isActive(link.to)
-                  ? onDarkHero
-                    ? "bg-white/15 text-white"
-                    : "bg-primary/8 text-primary"
-                  : onDarkHero
-                    ? "text-white/80 hover:text-white hover:bg-white/10"
-                    : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+                  ? "text-primary"
+                  : "text-black/60 hover:text-black hover:bg-black/[0.04]"
               )}
               aria-current={isActive(link.to) ? "page" : undefined}
             >
               {link.label}
               <span
                 className={cn(
-                  "absolute inset-x-3 bottom-1 h-0.5 rounded-full bg-secondary transition-all duration-200",
+                  "absolute inset-x-2.5 bottom-0.5 h-[2px] rounded-full bg-primary transition-all duration-200",
                   isActive(link.to) ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
                 )}
                 aria-hidden="true"
@@ -238,12 +220,7 @@ export function Navbar() {
           {/* Language toggle */}
           <button
             onClick={() => setLang(lang === "en" ? "ur" : "en")}
-            className={cn(
-              "hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider cursor-pointer",
-              onDarkHero
-                ? "border-white/25 text-white/85 hover:border-white/50 hover:text-white hover:bg-white/10"
-                : "border-outline-variant/50 text-on-surface-variant hover:border-primary hover:text-primary hover:bg-primary/5",
-            )}
+            className="hidden sm:flex h-9 items-center gap-1.5 px-2.5 rounded-lg text-[12px] font-semibold text-black/60 hover:text-primary hover:bg-black/[0.04] transition-colors cursor-pointer"
             aria-label={`Switch to ${lang === "en" ? "Urdu" : "English"}`}
           >
             <span className="material-symbols-outlined text-[14px]">language</span>
@@ -265,21 +242,16 @@ export function Navbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className={cn(
-                  "flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer shadow-sm hover:shadow-md group",
-                  onDarkHero
-                    ? "border-white/25 bg-white/10 hover:bg-white/20"
-                    : "border-outline-variant/50 hover:border-primary/40 bg-surface-container-low hover:bg-white",
-                )}
+                className="press flex items-center gap-2 h-9 px-1.5 rounded-lg border border-black/10 bg-white hover:bg-black/[0.03] transition-colors cursor-pointer group"
               >
-                <div className="w-7 h-7 rounded-lg gradient-agri text-white flex items-center justify-center font-bold text-[11px] shadow-sm group-hover:scale-105 transition-transform">
+                <div className="w-6 h-6 rounded-md bg-primary text-white flex items-center justify-center font-bold text-[10px]">
                   {currentUser.initials}
                 </div>
                 <div className="hidden sm:flex flex-col text-left pr-0.5">
-                  <span className={cn("text-xs font-bold leading-tight line-clamp-1", onDarkHero ? "text-white" : "text-primary")}>
+                  <span className="text-[12px] font-semibold leading-tight line-clamp-1 text-black">
                     {currentUser.name}
                   </span>
-                  <span className="text-[9px] font-semibold text-secondary uppercase tracking-wider">
+                  <span className="text-[9px] font-medium text-black/50 capitalize">
                     {currentUser.userType}
                   </span>
                 </div>
@@ -353,19 +325,16 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 to="/onboarding"
-                className={cn(
-                  "hidden md:block font-bold text-[11px] uppercase tracking-wider transition-colors px-2 py-1.5 rounded-lg cursor-pointer",
-                  onDarkHero ? "text-white/85 hover:text-white hover:bg-white/10" : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low",
-                )}
+                className="hidden md:flex h-9 items-center px-3 rounded-lg text-[13px] font-semibold text-black/70 hover:text-black transition-colors cursor-pointer"
               >
-                Sign In
+                Sign in
               </Link>
               <Link
                 to="/onboarding"
-                className="press bg-secondary text-primary px-4 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-wider hover:bg-secondary-light transition-all shadow-md hover:shadow-lg flex items-center gap-1.5"
+                className="press flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-semibold text-white hover:bg-[#0B3D27] transition-colors"
               >
                 <span className="material-symbols-outlined text-[16px]">person_add</span>
-                <span>Join Free</span>
+                Join free
               </Link>
             </div>
           )}
@@ -373,10 +342,7 @@ export function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={cn(
-              "lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer border",
-              onDarkHero ? "text-white border-white/30 hover:bg-white/10" : "text-on-surface-variant border-outline-variant/40 hover:bg-surface-container-high hover:text-primary",
-            )}
+            className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-black/70 hover:bg-black/[0.05] hover:text-black transition-colors cursor-pointer"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
