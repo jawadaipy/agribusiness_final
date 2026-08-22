@@ -169,8 +169,8 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden pt-16 md:pt-20">
-      {/* Field photograph — tinted just enough for text contrast, bright enough to enjoy */}
+    <section className="relative overflow-hidden">
+      {/* Field photograph — full-bleed from the top edge, under the glass navbar */}
       <div className="absolute inset-0" aria-hidden="true">
         <img
           src={HERO_IMAGE}
@@ -179,27 +179,31 @@ export function Hero() {
           loading="eager"
           onError={(e) => { (e.target as HTMLImageElement).src = HERO_FALLBACK; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B3D27]/92 via-[#0F5132]/60 to-transparent" />
+        {/* Reading gradients: top shade for the navbar, left depth for the copy */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B3D27]/94 via-[#0F5132]/62 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B3D27]/45 via-transparent to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
       </div>
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-        <div className="grid items-center gap-12 pb-20 pt-10 lg:grid-cols-12 lg:gap-10 lg:pb-24 lg:pt-14">
+        <div className="grid items-center gap-12 pb-20 pt-28 md:pt-32 lg:grid-cols-12 lg:gap-12 lg:pb-28 lg:pt-40">
           {/* Copy — minimal, staged entrance */}
           <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-7">
             <motion.p variants={enterItem} className="eyebrow text-secondary">Pakistan's agri professional network</motion.p>
 
-            <motion.h1 variants={enterItem} className="display-hero mt-5 text-[42px] text-white sm:text-[52px] lg:text-[64px]">
-              {t("hero_headline_1")} <em className="text-secondary">{t("hero_headline_2")}</em>
+            <motion.h1 variants={enterItem} className="display-hero mt-6 text-[44px] text-white sm:text-[56px] lg:text-[68px]">
+              {t("hero_headline_1")}
+              <br />
+              <em className="text-secondary">{t("hero_headline_2")}</em>
             </motion.h1>
 
-            <motion.p variants={enterItem} className="mt-4 max-w-lg text-sm leading-6 text-white/80">
+            <motion.p variants={enterItem} className="mt-5 max-w-lg text-[15px] leading-7 text-white/85">
               Verified growers, buyers, consultants, enterprises, and researchers — doing real business.
             </motion.p>
 
             {/* Search */}
-            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-7 flex max-w-xl items-center gap-2 rounded-2xl bg-white p-2 shadow-[0_8px_28px_rgba(0,0,0,0.25)]">
+            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-8 flex max-w-xl items-center gap-2 rounded-2xl bg-white/96 p-2 shadow-[0_10px_36px_rgba(0,0,0,0.30)] backdrop-blur">
               <span className="material-symbols-outlined pl-2.5 text-[20px] text-on-surface-variant/60" aria-hidden="true">search</span>
               <input
                 type="text"
@@ -216,14 +220,14 @@ export function Hero() {
 
             {/* CTA */}
             <motion.div variants={enterItem} className="mt-7">
-              <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-primary shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-secondary-light">
+              <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-primary shadow-[0_12px_30px_rgba(0,0,0,0.30)] transition hover:bg-secondary-light">
                 Join the network — free
                 <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
               </Link>
             </motion.div>
 
             {/* Facts — one line, counting up */}
-            <motion.p variants={enterItem} className="mt-9 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-white/20 pt-5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 no-scrollbar">
+            <motion.p variants={enterItem} className="mt-10 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-white/25 pt-5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/75 no-scrollbar">
               {FACTS.map((fact, index) => {
                 const match = fact.match(/^(\d+)\s+(.*)$/);
                 return (
