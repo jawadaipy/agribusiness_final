@@ -1,19 +1,18 @@
 /**
- * Homepage hero — minimal editorial composition.
- * One thesis, one gold accent, live network pulse on the right.
- * All telemetry is real: role/city/discipline counts from platform constants,
- * mandi rates, latest network post, and newest member from the live database.
+ * Homepage hero — a field photograph carries the page; the text stays minimal.
+ * One headline, one line of support, one search, one CTA, one facts strip.
+ * Network pulse on the right is live database data.
  */
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
+const HERO_IMAGE = "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80&auto=format&fit=crop";
+
 type PulseRate = { commodity: string; city: string; modal_price: number; trend: string };
 type PulsePost = { title: string; kind: string };
 type PulseMember = { display_name: string | null; user_type: string; city: string | null };
-
-const quickTags = ["Wheat", "Basmati", "Cotton", "Drip irrigation", "Soil testing", "Dairy"];
 
 const FACTS = ["5 member roles", "34 cities", "24 disciplines", "Live mandi rates"];
 
@@ -135,27 +134,30 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-background pt-24 md:pt-28">
-      {/* Signature field grid, fading out before the fold */}
-      <div className="pointer-events-none absolute inset-0 bg-field-grid opacity-60" style={{ maskImage: "linear-gradient(to bottom, black, transparent 82%)" }} />
+    <section className="relative overflow-hidden pt-16 md:pt-20">
+      {/* Field photograph — the page's one image, tinted evergreen for text contrast */}
+      <div className="absolute inset-0" aria-hidden="true">
+        <img src={HERO_IMAGE} alt="" className="h-full w-full object-cover" loading="eager" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B3D27]/95 via-[#0F5132]/80 to-primary/45" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
+      </div>
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-        <div className="grid items-center gap-12 pb-14 pt-8 lg:grid-cols-12 lg:gap-10 lg:pb-20 lg:pt-12">
-          {/* Copy */}
+        <div className="grid items-center gap-12 pb-20 pt-10 lg:grid-cols-12 lg:gap-10 lg:pb-24 lg:pt-14">
+          {/* Copy — minimal */}
           <div className="lg:col-span-7">
-            <p className="eyebrow">Pakistan's agri professional network</p>
+            <p className="eyebrow text-secondary">Pakistan's agri professional network</p>
 
-            <h1 className="display-hero mt-5 text-[42px] text-primary sm:text-[52px] lg:text-[64px]">
-              {t("hero_headline_1")} <em className="gradient-text-gold">{t("hero_headline_2")}</em>
+            <h1 className="display-hero mt-5 text-[42px] text-white sm:text-[52px] lg:text-[64px]">
+              {t("hero_headline_1")} <em className="text-secondary">{t("hero_headline_2")}</em>
             </h1>
 
-            <p className="mt-5 max-w-xl text-[15px] leading-7 text-on-surface-variant">
-              Verified growers, buyers, consultants, enterprises, and researchers —
-              posting real opportunities and doing real business, with consent at the centre.
+            <p className="mt-4 max-w-lg text-sm leading-6 text-white/80">
+              Verified growers, buyers, consultants, enterprises, and researchers — doing real business.
             </p>
 
             {/* Search */}
-            <form onSubmit={handleSearch} className="mt-8 flex max-w-xl items-center gap-2 rounded-2xl border border-outline-variant/60 bg-white p-2 shadow-[0_2px_6px_rgba(10,61,38,0.05)] transition focus-within:border-primary/50 focus-within:shadow-[0_6px_20px_rgba(10,61,38,0.10)]">
+            <form onSubmit={handleSearch} className="mt-7 flex max-w-xl items-center gap-2 rounded-2xl bg-white p-2 shadow-[0_8px_28px_rgba(0,0,0,0.25)]">
               <span className="material-symbols-outlined pl-2.5 text-[20px] text-on-surface-variant/60" aria-hidden="true">search</span>
               <input
                 type="text"
@@ -170,35 +172,16 @@ export function Hero() {
               </button>
             </form>
 
-            {/* Quick tags */}
-            <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface-variant/60">Try</span>
-              {quickTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => navigate({ to: "/search", search: { q: tag } })}
-                  className="rounded-full border border-outline-variant/60 bg-white px-3 py-1.5 text-[11px] font-semibold text-on-surface-variant transition hover:border-primary/40 hover:text-primary"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-
-            {/* CTAs */}
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-bold text-on-primary shadow-[0_10px_26px_rgba(15,81,50,0.22)] transition hover:bg-primary-container">
+            {/* CTA */}
+            <div className="mt-7">
+              <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-primary shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-secondary-light">
                 Join the network — free
                 <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
-              </Link>
-              <Link to="/apps/agri-biz" className="group inline-flex items-center gap-1.5 text-sm font-bold text-primary">
-                Browse the marketplace
-                <span className="material-symbols-outlined text-[17px] transition-transform group-hover:translate-x-1">arrow_forward</span>
               </Link>
             </div>
 
             {/* Facts — always one line */}
-            <p className="mt-10 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-outline-variant/50 pt-5 text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant no-scrollbar">
+            <p className="mt-9 flex items-center gap-2.5 overflow-x-auto whitespace-nowrap border-t border-white/20 pt-5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 no-scrollbar">
               {FACTS.map((fact, index) => (
                 <span key={fact} className="flex items-center gap-2.5">
                   {index > 0 ? <span className="h-1 w-1 rounded-full bg-secondary" aria-hidden="true" /> : null}
