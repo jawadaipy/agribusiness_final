@@ -406,12 +406,22 @@
     background: linear-gradient(to top, rgba(15, 81, 50, 0.7) 0%, transparent 60%);
   }
 
-  /* ─── Section label ─── */
+  /* ─── Section label (Field Ledger treatment) ─── */
   .section-eyebrow {
-    @apply text-[11px] font-bold text-secondary tracking-[0.18em] uppercase;
+    @apply inline-flex items-center gap-2 text-[11px] font-bold text-secondary uppercase;
+    letter-spacing: 0.18em;
+  }
+  .section-eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 22px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--color-secondary);
   }
   .section-heading {
-    @apply font-display text-3xl md:text-4xl font-bold text-primary tracking-tight;
+    @apply font-display text-3xl md:text-4xl font-semibold text-primary tracking-tight;
+    font-optical-sizing: auto;
   }
   .section-sub {
     @apply text-sm text-on-surface-variant font-medium leading-relaxed;

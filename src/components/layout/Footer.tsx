@@ -148,7 +148,7 @@ export function Footer() {
           <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-6">
             {/* Platform links */}
             <div className="space-y-3 text-left">
-              <h4 className="text-[11px] font-black text-secondary uppercase tracking-[0.2em]">
+              <h4 className="flex items-center gap-2 text-[11px] font-black text-secondary uppercase tracking-[0.2em] after:h-px after:flex-1 after:bg-white/15">
                 {lang === "ur" ? "پلیٹ فارم" : "Platform"}
               </h4>
               <ul className="space-y-2" role="list">
@@ -167,7 +167,7 @@ export function Footer() {
 
             {/* Support links */}
             <div className="space-y-3 text-left">
-              <h4 className="text-[11px] font-black text-secondary uppercase tracking-[0.2em]">
+              <h4 className="flex items-center gap-2 text-[11px] font-black text-secondary uppercase tracking-[0.2em] after:h-px after:flex-1 after:bg-white/15">
                 {lang === "ur" ? "مدد" : "Support"}
               </h4>
               <ul className="space-y-2" role="list">
@@ -188,7 +188,7 @@ export function Footer() {
 
             {/* Legal links */}
             <div className="space-y-3 text-left">
-              <h4 className="text-[11px] font-black text-secondary uppercase tracking-[0.2em]">
+              <h4 className="flex items-center gap-2 text-[11px] font-black text-secondary uppercase tracking-[0.2em] after:h-px after:flex-1 after:bg-white/15">
                 {lang === "ur" ? "قانونی" : "Legal & Trust"}
               </h4>
               <ul className="space-y-2" role="list">

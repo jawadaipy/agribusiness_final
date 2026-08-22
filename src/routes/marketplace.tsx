@@ -195,9 +195,11 @@ function MarketplacePage() {
       <Navbar />
       <main className="min-h-screen pt-20 pb-16">
         {/* Hero banner */}
-        <div className="bg-gradient-to-br from-primary to-primary-container px-4 py-12 text-center text-white">
-          <h1 className="font-display text-4xl font-bold tracking-tight">Agri Marketplace</h1>
-          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed opacity-90">
+        <div className="relative bg-gradient-to-br from-primary to-primary-container px-4 py-12 text-center text-white">
+          <div className="pointer-events-none absolute inset-0 bg-field-grid opacity-30" style={{ maskImage: "linear-gradient(to bottom, black, transparent 90%)" }} />
+          <p className="eyebrow relative justify-center text-secondary-container">Live from Pakistani farms</p>
+          <h1 className="relative mt-3 font-display text-4xl font-semibold tracking-tight">Agri Marketplace</h1>
+          <p className="relative mx-auto mt-3 max-w-lg text-sm leading-relaxed opacity-90">
             Browse produce, services, and products from verified Pakistani farmers, consultants, and agri-businesses.
           </p>
           {/* Search */}

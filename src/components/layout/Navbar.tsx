@@ -192,7 +192,7 @@ export function Navbar() {
               key={link.to}
               to={link.to}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all duration-200",
+                "press relative flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 font-bold text-[11px] uppercase tracking-wider transition-all duration-200",
                 isActive(link.to)
                   ? "bg-primary/8 text-primary"
                   : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
@@ -200,6 +200,13 @@ export function Navbar() {
               aria-current={isActive(link.to) ? "page" : undefined}
             >
               {link.label}
+              <span
+                className={cn(
+                  "absolute inset-x-3 bottom-1 h-0.5 rounded-full bg-secondary transition-all duration-200",
+                  isActive(link.to) ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
+                )}
+                aria-hidden="true"
+              />
             </Link>
           ))}
         </div>
