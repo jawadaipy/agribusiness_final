@@ -394,6 +394,18 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     setSubmitting(false);
   };
 
+  // Live databases may predate the optional `services` tag column; retry once
+  // without it so publishing still works there.
+  const withServicesFallback = (
+    run: (includeServices: boolean) => Promise<{ error: { message: string } | null }>,
+  ) => async (): Promise<{ error: { message: string } | null }> => {
+    const first = await run(true);
+    if (first.error && first.error.message.includes("services")) {
+      return run(false);
+    }
+    return first;
+  };
+
   const saveRoleProfile = async (event: React.FormEvent) => {
     event.preventDefault();
     if (isFarmer) {
@@ -527,27 +539,29 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
       setError("Use a clear product or service title of at least three characters.");
       return;
     }
-    const payload = {
-      profile_id: profile.id,
-      title: listingForm.title.trim(),
-      description: listingForm.description.trim() || null,
-      price: toNullableNumber(listingForm.price),
-      unit: listingForm.unit.trim() || null,
-      quantity: toNullableNumber(listingForm.quantity),
-      location: listingForm.location.trim() || null,
-      city: listingForm.city || null,
-      services: listingForm.services.length ? listingForm.services : null,
-      status,
+    const buildPayload = (includeServices: boolean) => {
+      const base = {
+        profile_id: profile.id,
+        title: listingForm.title.trim(),
+        description: listingForm.description.trim() || null,
+        price: toNullableNumber(listingForm.price),
+        unit: listingForm.unit.trim() || null,
+        quantity: toNullableNumber(listingForm.quantity),
+        location: listingForm.location.trim() || null,
+        city: listingForm.city || null,
+        status,
+      };
+      return includeServices ? { ...base, services: listingForm.services.length ? listingForm.services : null } : base;
     };
     if (editingListing) {
       await submit(
-        () => supabase.from("listings").update(payload).eq("id", editingListing.id),
+        withServicesFallback((includeServices) => supabase.from("listings").update(buildPayload(includeServices)).eq("id", editingListing.id)),
         status === "draft" ? "Draft saved." : "Listing updated and published.",
       );
       setEditingListing(null);
     } else {
       await submit(
-        () => supabase.from("listings").insert(payload),
+        withServicesFallback((includeServices) => supabase.from("listings").insert(buildPayload(includeServices))),
         status === "draft" ? "Saved as draft." : isFarmer ? "Your producer listing is now live." : "Your service listing is now live.",
       );
     }
@@ -589,29 +603,31 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
       setError("Maximum budget cannot be lower than minimum budget.");
       return;
     }
-    const payload = {
-      profile_id: profile.id,
-      title: projectForm.title.trim(),
-      description: projectForm.description.trim(),
-      budget_min: budgetMin,
-      budget_max: budgetMax,
-      deadline: projectForm.deadline || null,
-      required_skills: splitValues(projectForm.skills),
-      location: projectForm.location.trim() || null,
-      city: projectForm.city || null,
-      services: projectForm.services.length ? projectForm.services : null,
-      is_remote: projectForm.isRemote,
-      status,
+    const buildPayload = (includeServices: boolean) => {
+      const base = {
+        profile_id: profile.id,
+        title: projectForm.title.trim(),
+        description: projectForm.description.trim(),
+        budget_min: budgetMin,
+        budget_max: budgetMax,
+        deadline: projectForm.deadline || null,
+        required_skills: splitValues(projectForm.skills),
+        location: projectForm.location.trim() || null,
+        city: projectForm.city || null,
+        is_remote: projectForm.isRemote,
+        status,
+      };
+      return includeServices ? { ...base, services: projectForm.services.length ? projectForm.services : null } : base;
     };
     if (editingProject) {
       await submit(
-        () => supabase.from("projects").update(payload).eq("id", editingProject.id),
+        withServicesFallback((includeServices) => supabase.from("projects").update(buildPayload(includeServices)).eq("id", editingProject.id)),
         status === "draft" ? "Draft saved." : "Opportunity updated and published.",
       );
       setEditingProject(null);
     } else {
       await submit(
-        () => supabase.from("projects").insert(payload),
+        withServicesFallback((includeServices) => supabase.from("projects").insert(buildPayload(includeServices))),
         status === "draft" ? "Saved as draft." : isCompany ? "Opportunity published." : isBuyer ? "Buying requirement published." : "Farm need published.",
       );
     }

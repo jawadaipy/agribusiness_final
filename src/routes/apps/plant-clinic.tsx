@@ -75,7 +75,7 @@ const PlantClinicPage = () => {
       return;
     }
 
-    const posts = (postsResult.data ?? []) as ProblemPost[];
+    const posts = ((postsResult.data ?? []) as ProblemPost[]).filter((p) => !(p.tags ?? []).includes("network"));
 
     if (posts.length > 0) {
       const postIds = posts.map((p) => p.id);

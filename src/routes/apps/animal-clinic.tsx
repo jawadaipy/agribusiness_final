@@ -75,7 +75,7 @@ const AnimalClinicPage = () => {
       return;
     }
 
-    const posts = (postsResult.data ?? []) as AnimalCase[];
+    const posts = ((postsResult.data ?? []) as AnimalCase[]).filter((p) => !(p.tags ?? []).includes("network"));
 
     if (posts.length > 0) {
       const postIds = posts.map((p) => p.id);

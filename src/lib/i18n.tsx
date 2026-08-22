@@ -16,6 +16,7 @@ const strings = {
   en: {
     // Navigation
     nav_marketplace: "Marketplace",
+    nav_feed: "Feed",
     nav_projects: "Projects",
     nav_network: "Network",
     nav_education: "Education",
@@ -122,6 +123,7 @@ const strings = {
   ur: {
     // Navigation
     nav_marketplace: "بازار",
+    nav_feed: "فیڈ",
     nav_projects: "منصوبے",
     nav_network: "نیٹ ورک",
     nav_education: "تعلیم",

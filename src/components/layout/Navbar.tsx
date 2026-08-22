@@ -120,6 +120,7 @@ export function Navbar() {
   };
 
   const navLinks = [
+    { label: t("nav_feed"), to: "/feed" as const, icon: "dynamic_feed" },
     { label: t("nav_marketplace"), to: "/apps/agri-biz" as const, icon: "storefront" },
     { label: "Browse Listings", to: "/marketplace" as const, icon: "inventory_2" },
     { label: t("nav_projects"), to: "/projects" as const, icon: "engineering" },

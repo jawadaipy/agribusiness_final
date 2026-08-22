@@ -14,6 +14,7 @@
 
 | Portal / Companion App | Route | Target Audience & Purpose |
 |---|---|---|
+| 📰 **Network Feed** | `/feed` | LinkedIn-style professional feed: field updates, questions, offers, and milestones from every role, with replies, smart-match suggestions, and the mandi snapshot rail. |
 | 🏪 **Agri-Biz Trading Floor** | `/apps/agri-biz` | Free B2B classifieds and marketplace for crops, livestock, machinery, inputs, and fertilizers across Pakistani mandis. |
 | 🌿 **Plant Clinic** | `/apps/plant-clinic` | Clinical crop health diagnosis, pest identification, symptom analysis, and agronomist consultations. |
 | 🐄 **Animal Clinic** | `/apps/animal-clinic` | Telehealth for livestock and dairy farmers with direct prescriptions from veterinary specialists and university researchers. |
@@ -22,6 +23,64 @@
 | 🔍 **Universal Search & Network** | `/search` | Directory of verified agricultural professionals, businesses, commodities, and service providers. |
 | 💼 **Member Workbench** | `/dashboard` | Role-specific operating dashboard tailored to each account type. |
 | 🛡️ **Super Admin Portal** | `/admin-login` & `/admin` | Platform moderation, member verification badges, ad review, and audit trail. |
+
+---
+
+## 🆕 Network Layer & Role Intelligence (Latest Release)
+
+### 📰 Network Feed (`/feed`)
+A professional, LinkedIn-style activity layer for the whole ecosystem:
+- **Four post kinds** — Update, Ask the network, Offer, Milestone — each with role-aware composer prompts.
+- **Replies** from any signed-in member; view counts per post; verified badges on authors.
+- **Clinic isolation by design** — feed posts are `problem_posts` rows tagged `network`, and the Plant/Animal Clinics exclude tagged rows, so clinical cases and network conversation never mix.
+- **Right rail** — Suggested-for-you matching plus a live "Mandi today" snapshot from the `market_rates` table.
+
+### 🤝 Smart Matching Engine (`src/lib/matching.ts`)
+A role-synergy matrix explains **why** two members should connect, then scores real directory profiles:
+- `farmer ↔ buyer` (buys what you grow), `farmer ↔ consultant` (advises your crops), `company ↔ student` (internships), `consultant ↔ student` (research supervision), and every other pairing.
+- Boosts for same city / same province and keyword overlap between role profiles (crops, commodities, services, research interests).
+- Powers the dashboard's **Suggested for you** rail with one-click consented connection requests.
+
+### 📊 Role Intelligence Panels (per-role dashboard upgrades)
+| Role | Live intelligence on `/dashboard` |
+|---|---|
+| 🚜 **Farmer** | **Farm Intelligence**: local weather via open-meteo (no API key), Pakistan crop calendar with Urdu crop names and this-month sowing/harvest windows (your own crops highlighted), mandi indications, and derived weekly advisories (rain → hold sprays, heat → livestock care, dry → irrigation planning). |
+| 🏢 **Buyer** | **Sourcing Desk**: live producer listings matched against the commodities and collection regions on the procurement profile, with "Your commodity / Your region" chips. |
+| 🔬 **Consultant** | **Lead Radar**: open farm needs and enterprise briefs matched to the services/technologies on the professional profile. |
+| 🎓 **Student** | **Opportunity Radar**: open projects and placements matched to research interests. |
+| 🏭 **Company** | Engagement stats (opportunities posted, proposals received) feed the stat-card row; the Proposal Inbox remains in the workbench. |
+
+Plus **live stat cards** for every role (connections, pending requests, and role-specific counters) and a **Network feed** link in the workspace navigation.
+
+### 🌾 Pakistan Agri Intelligence (`src/lib/agri-intel.ts`)
+- 12-crop **Pakistan crop calendar** (wheat, basmati, cotton, sugarcane, maize, potato, tomato, onion, kinnow, mango, chickpea, canola) with Urdu names, regional belts, and field tips.
+- Coordinates for all 34 platform cities → free **open-meteo** weather + 4-day forecast.
+- Season + weather → **advisory generator** (never a prescription; always defers to verified consultants).
+
+### 🛠 Resilience Fix
+Publishing forms now fall back gracefully when a database predates the optional `listings.services` / `projects.services` tag columns — inserts retry once without the column, so publishing works on both old and migrated databases.
+
+### 🔑 Demo Accounts (password for all: `DemoAgri2026!`)
+| Role | Email | City |
+|---|---|---|
+| 🚜 Farmer | `ali.hassan.farmer@agribiz.demo` | Multan (Vehari farm record) |
+| 🏢 Buyer | `tariq.foods.buyer@agribiz.demo` | Lahore (wheat/maize/cotton procurement) |
+| 🔬 Consultant | `dr.ayesha.agro@agribiz.demo` | Faisalabad (agronomy, soil, irrigation) |
+| 🏭 Company | `admin.greentech@agribiz.demo` | Karachi (drip irrigation & seed supplier) |
+| 🎓 Student | `zara.student@agribiz.demo` | Faisalabad (UAF agronomy researcher) |
+
+---
+
+## 🗺️ Suggested Roadmap (next iterations)
+
+1. **Reactions & bookmarks** — a `network_post_likes` table plus the existing (unused) `saved_items` table wired to "Save post / Save listing" buttons.
+2. **Profile analytics** — `profile_views` table + "Who viewed your profile" card; weekly digest email.
+3. **Skills & endorsements** — `skill_endorsements` table; endorse buttons on profiles, endorsed skills surfaced in matching.
+4. **Urdu feed localization** — composer prompts and advisory text already exist in English; extend the i18n dictionary into `/feed` and the farmer intelligence panel.
+5. **WhatsApp/SMS digests** — feed highlights and mandi alerts via the existing WhatsApp support channel for low-bandwidth growers.
+6. **Government schemes directory** — Kisan Card, subsidy windows, and agri-loan programs as a curated, city-filtered resource.
+7. **Events & webinars module** — company-hosted field days and university webinars with RSVPs feeding the notification system.
+8. **Escrow-backed trade** — connect the existing Stripe/JazzCash edge functions to feed offers for protected first transactions.
 
 ---
 

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FeedRouteImport } from './routes/feed'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -47,6 +48,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketplaceRoute = MarketplaceRouteImport.update({
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/admin-login': typeof AdminLoginRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/feed': typeof FeedRoute
   '/marketplace': typeof MarketplaceRoute
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/feed': typeof FeedRoute
   '/marketplace': typeof MarketplaceRoute
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/admin-login': typeof AdminLoginRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/feed': typeof FeedRoute
   '/marketplace': typeof MarketplaceRoute
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/categories'
     | '/dashboard'
+    | '/feed'
     | '/marketplace'
     | '/messages'
     | '/notifications'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/categories'
     | '/dashboard'
+    | '/feed'
     | '/marketplace'
     | '/messages'
     | '/notifications'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/categories'
     | '/dashboard'
+    | '/feed'
     | '/marketplace'
     | '/messages'
     | '/notifications'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   CategoriesRoute: typeof CategoriesRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  FeedRoute: typeof FeedRoute
   MarketplaceRoute: typeof MarketplaceRoute
   MessagesRoute: typeof MessagesRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/marketplace': {
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   CategoriesRoute: CategoriesRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  FeedRoute: FeedRoute,
   MarketplaceRoute: MarketplaceRoute,
   MessagesRoute: MessagesRoute,
   NotificationsRoute: NotificationsRoute,
