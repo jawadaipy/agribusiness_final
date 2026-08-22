@@ -25,7 +25,6 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppsIndexRouteImport } from './routes/apps/index'
 import { Route as AppsAgriBizRouteImport } from './routes/apps/agri-biz'
 import { Route as AppsAnimalClinicRouteImport } from './routes/apps/animal-clinic'
-import { Route as AppsEducationRouteImport } from './routes/apps/education'
 import { Route as AppsPlantClinicRouteImport } from './routes/apps/plant-clinic'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
 import { Route as ProfileIdRouteImport } from './routes/profile.$id'
@@ -111,11 +110,6 @@ const AppsAnimalClinicRoute = AppsAnimalClinicRouteImport.update({
   path: '/apps/animal-clinic',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppsEducationRoute = AppsEducationRouteImport.update({
-  id: '/apps/education',
-  path: '/apps/education',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppsPlantClinicRoute = AppsPlantClinicRouteImport.update({
   id: '/apps/plant-clinic',
   path: '/apps/plant-clinic',
@@ -152,7 +146,6 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
-  '/apps/education': typeof AppsEducationRoute
   '/apps/plant-clinic': typeof AppsPlantClinicRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/profile/$id': typeof ProfileIdRoute
@@ -175,7 +168,6 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
-  '/apps/education': typeof AppsEducationRoute
   '/apps/plant-clinic': typeof AppsPlantClinicRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/profile/$id': typeof ProfileIdRoute
@@ -199,7 +191,6 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
-  '/apps/education': typeof AppsEducationRoute
   '/apps/plant-clinic': typeof AppsPlantClinicRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/profile/$id': typeof ProfileIdRoute
@@ -224,7 +215,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
-    | '/apps/education'
     | '/apps/plant-clinic'
     | '/categories/$slug'
     | '/profile/$id'
@@ -247,7 +237,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
-    | '/apps/education'
     | '/apps/plant-clinic'
     | '/categories/$slug'
     | '/profile/$id'
@@ -270,7 +259,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
-    | '/apps/education'
     | '/apps/plant-clinic'
     | '/categories/$slug'
     | '/profile/$id'
@@ -294,7 +282,6 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   AppsAgriBizRoute: typeof AppsAgriBizRoute
   AppsAnimalClinicRoute: typeof AppsAnimalClinicRoute
-  AppsEducationRoute: typeof AppsEducationRoute
   AppsPlantClinicRoute: typeof AppsPlantClinicRoute
   ProfileIdRoute: typeof ProfileIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -415,13 +402,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppsAnimalClinicRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/apps/education': {
-      id: '/apps/education'
-      path: '/apps/education'
-      fullPath: '/apps/education'
-      preLoaderRoute: typeof AppsEducationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/apps/plant-clinic': {
       id: '/apps/plant-clinic'
       path: '/apps/plant-clinic'
@@ -492,7 +472,6 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   AppsAgriBizRoute: AppsAgriBizRoute,
   AppsAnimalClinicRoute: AppsAnimalClinicRoute,
-  AppsEducationRoute: AppsEducationRoute,
   AppsPlantClinicRoute: AppsPlantClinicRoute,
   ProfileIdRoute: ProfileIdRoute,
   AdminIndexRoute: AdminIndexRoute,

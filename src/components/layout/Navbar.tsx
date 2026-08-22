@@ -126,7 +126,6 @@ export function Navbar() {
     { label: t("nav_projects"), to: "/projects" as const, icon: "engineering" },
     { label: t("nav_schemes"), to: "/resources" as const, icon: "account_balance" },
     { label: t("nav_network"), to: "/search" as const, icon: "groups" },
-    { label: t("nav_education"), to: "/apps/education" as const, icon: "school" },
     { label: "Our Apps", to: "/apps" as const, icon: "apps" },
   ];
 

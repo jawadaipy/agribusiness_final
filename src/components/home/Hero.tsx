@@ -7,9 +7,9 @@ const HERO_IMAGE =
   "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=900&q=80&auto=format&fit=crop";
 
 const stats = [
-  { value: "50k+", label: "Active Members", icon: "groups" },
-  { value: "2,400+", label: "Expert Consultants", icon: "school" },
-  { value: "₨5.2B", label: "Trade Volume", icon: "trending_up" },
+  { value: "5", label: "Member roles", note: "Farmer → Researcher", icon: "diversity_3" },
+  { value: "34", label: "Cities covered", note: "All four provinces", icon: "location_on" },
+  { value: "24", label: "Agri disciplines", note: "Verified sectors", icon: "category" },
 ];
 
 const quickTags = ["Wheat", "Basmati Rice", "Cotton", "Solar Tubewells", "Fertilizers", "Soil Expert"];
@@ -36,8 +36,8 @@ export function Hero() {
 
   return (
     <section className="relative pt-20 md:pt-24 pb-12 md:pb-20 overflow-hidden gradient-mesh">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 section-dots opacity-40 pointer-events-none" />
+      {/* Field survey grid — the platform's signature backdrop */}
+      <div className="absolute inset-0 bg-field-grid opacity-70 pointer-events-none" style={{ maskImage: "linear-gradient(to bottom, black, transparent 78%)" }} />
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-secondary/60 to-transparent" />
       
       {/* Ambient glow orbs */}
@@ -65,22 +65,18 @@ export function Hero() {
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
                 </span>
                 <span className="text-xs font-bold text-primary uppercase tracking-wider">
-                  Pakistan's #1 Agri Platform
+                  {t("hero_badge")}
                 </span>
                 <span className="text-outline-variant/50 text-xs">·</span>
-                <span className="text-xs font-semibold text-secondary">50,000+ Members</span>
+                <span className="text-xs font-semibold text-secondary">Live mandi intelligence</span>
               </div>
             </motion.div>
 
             {/* Main Headline */}
             <motion.div custom={1} initial="hidden" animate="show" variants={fadeUp}>
-              <h1 className="font-display text-4xl sm:text-5xl md:text-5xl lg:text-[60px] font-black text-primary tracking-tight leading-[1.05]">
+              <h1 className="display-hero text-4xl sm:text-5xl md:text-5xl lg:text-[64px] text-primary">
                 {t("hero_headline_1")}{" "}
-                <span className="relative inline-block">
-                  <span className="gradient-text-gold">{t("hero_headline_2")}</span>
-                  {/* Underline accent */}
-                  <span className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-secondary/60 to-transparent rounded-full" />
-                </span>
+                <em className="gradient-text-gold not-italic md:italic">{t("hero_headline_2")}</em>
               </h1>
             </motion.div>
 
@@ -151,15 +147,13 @@ export function Hero() {
               className="pt-2 border-t border-outline-variant/40"
             >
               <div className="grid grid-cols-3 gap-3 max-w-xl">
-                {stats.map((stat, i) => (
-                  <div key={i} className="group p-4 bg-white rounded-2xl border border-outline-variant/30 card-shadow transition-all hover:card-shadow-hover hover:-translate-y-0.5 text-left">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[16px] text-primary">{stat.icon}</span>
-                      </div>
-                    </div>
-                    <div className="font-display text-2xl font-black text-primary leading-none">{stat.value}</div>
-                    <div className="text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-wider mt-1">{stat.label}</div>
+                {stats.map((stat) => (
+                  <div key={stat.label} className="group p-4 bg-white rounded-2xl border border-outline-variant/30 card-shadow hover-lift text-left">
+                    <span className="material-symbols-outlined text-[18px] text-secondary">{stat.icon}</span>
+                    <div className="stat-num mt-2 text-[34px] font-bold text-primary leading-none">{stat.value}</div>
+                    <div className="rule-ledger my-2" />
+                    <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">{stat.label}</div>
+                    <div className="text-[10px] text-on-surface-variant/70 mt-0.5">{stat.note}</div>
                   </div>
                 ))}
               </div>
@@ -227,13 +221,13 @@ export function Hero() {
 
               {/* Bottom quick link strip */}
               <div className="p-3 bg-white grid grid-cols-2 gap-2.5 text-left border-t border-outline-variant/20">
-                <Link to="/apps/agri-biz" className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-primary/5 transition-colors border border-outline-variant/30 group/card">
+                    <Link to="/apps/agri-biz" className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-primary/5 transition-colors border border-outline-variant/30 group/card">
                   <div className="w-9 h-9 rounded-xl gradient-agri text-white flex items-center justify-center shrink-0 shadow-sm group-hover/card:scale-105 transition-transform">
                     <span className="material-symbols-outlined text-[18px]">storefront</span>
                   </div>
                   <div className="overflow-hidden">
                     <div className="text-xs font-bold text-primary truncate">B2B Exchange</div>
-                    <div className="text-[10px] text-on-surface-variant/70">1,240+ Active Lots</div>
+                    <div className="text-[10px] text-on-surface-variant/70">Real producer lots</div>
                   </div>
                 </Link>
 
@@ -282,8 +276,8 @@ export function Hero() {
                 ))}
               </div>
               <div>
-                <div className="text-[9px] font-bold text-on-surface-variant/60 uppercase tracking-wider">Active Now</div>
-                <div className="text-xs font-black text-primary status-live">1,240 Online</div>
+                <div className="text-[9px] font-bold text-on-surface-variant/60 uppercase tracking-wider">The network</div>
+                <div className="text-xs font-black text-primary status-live">Live across Pakistan</div>
               </div>
             </motion.div>
           </motion.div>

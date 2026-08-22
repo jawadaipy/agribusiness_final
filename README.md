@@ -19,7 +19,6 @@
 | 🏪 **Agri-Biz Trading Floor** | `/apps/agri-biz` | Free B2B classifieds and marketplace for crops, livestock, machinery, inputs, and fertilizers across Pakistani mandis. |
 | 🌿 **Plant Clinic** | `/apps/plant-clinic` | Clinical crop health diagnosis, pest identification, symptom analysis, and agronomist consultations. |
 | 🐄 **Animal Clinic** | `/apps/animal-clinic` | Telehealth for livestock and dairy farmers with direct prescriptions from veterinary specialists and university researchers. |
-| 🎓 **Agri-Education & Research** | `/apps/education` | Agricultural academy with university courses, scientific research papers, modern farming webinars, and thesis guidance. |
 | 📋 **Projects & RFP Marketplace** | `/projects` | Live agricultural tenders, farm needs, corporate contracts, and consultant proposal bidding. |
 | 🔍 **Universal Search & Network** | `/search` | Directory of verified agricultural professionals, businesses, commodities, and service providers. |
 | 💼 **Member Workbench** | `/dashboard` | Role-specific operating dashboard tailored to each account type. |
@@ -28,6 +27,21 @@
 ---
 
 ## 🆕 Network Layer & Role Intelligence (Latest Release)
+
+### 🎨 Design Language — "Field Ledger"
+The platform's visual identity system, built to be mistaken for no one else's:
+- **Typography:** Fraunces (optical-size serif display — the harvest-almanac voice) + Inter (UI body) + Noto Nastaliq Urdu (properly loaded Urdu typography, fixed from a broken fallback).
+- **Signature layer:** mandi-ledger eyebrows, tabular numerals (`.stat-num`), hairline rules, and the field-survey grid backdrop.
+- **Motion system:** compositor-only micro-interactions (`.press`, `.hover-lift` at 150–250ms), measured viewport reveals (500ms, ease-out-expo), soft route fades — all collapsed automatically under `prefers-reduced-motion`.
+- **Honest telemetry:** fabricated marketing numbers ("50k members", "₨5.2B volume") were replaced with true platform facts (5 roles, 34 cities, 24 disciplines) across the hero.
+- **Removed:** the Education portal has been fully retired (route, navigation, cards, and links).
+
+### 🛡️ Super Admin Console (overhauled)
+- **Live telemetry overview** — KPI cards with deltas ("+N this week"), member growth area chart (6 months), role-distribution donut, verification/deactivation stats — all computed from real profile records.
+- **Action queue** — every pending decision (ads, unverified members, deactivations) in one place with jump-to-tab actions.
+- **Members** — searchable, role-filterable, status-filterable moderation table with role badges.
+- **Content oversight (new)** — read-only pulse on latest listings, opportunities, and feed activity.
+- **Audit trail & ad review** — restyled with timeline treatment and inline rejection reasons.
 
 ### 📰 Network Feed (`/feed`)
 A professional, LinkedIn-style activity layer for the whole ecosystem:

@@ -27,9 +27,9 @@ const strings = {
 
     // Hero
     hero_badge: "Pakistan's Trusted Agri-Network",
-    hero_headline_1: "The Digital Frontier for",
-    hero_headline_2: "Agriculture",
-    hero_sub: "Connecting farmers, companies, and consultants through Pakistan's largest professional agri-marketplace.",
+    hero_headline_1: "Pakistan's fields,",
+    hero_headline_2: "professionally connected.",
+    hero_sub: "The professional network where Pakistan's farmers, buyers, consultants, enterprises, and researchers do real business — verified profiles, live mandi intelligence, and consented connections.",
     hero_cta_primary: "Browse the Marketplace",
     hero_cta_secondary: "Start My Free 7 Days",
     hero_stat_farmers: "Verified Farmers",
@@ -135,9 +135,9 @@ const strings = {
 
     // Hero
     hero_badge: "پاکستان کا قابل اعتماد زرعی نیٹ ورک",
-    hero_headline_1: "زراعت کا ڈیجیٹل",
-    hero_headline_2: "مستقبل",
-    hero_sub: "کسانوں، کمپنیوں اور ماہرین کو پاکستان کے سب سے بڑے زرعی پلیٹ فارم سے جوڑیں۔",
+    hero_headline_1: "پاکستان کے کھیت،",
+    hero_headline_2: "پیشہ ورانہ نیٹ ورک۔",
+    hero_sub: "وہ پیشہ ورانہ نیٹ ورک جہاں پاکستان کے کسان، خریدار، ماہر، کمپنیاں اور محقق حقیقی کاروبار کرتے ہیں — تصدیق شدہ پروفائلز، لائیو منڈی معلومات، اور رضامندی سے رابطے۔",
     hero_cta_primary: "بازار دیکھیں",
     hero_cta_secondary: "مفت آزمائیں — 7 دن",
     hero_stat_farmers: "تصدیق شدہ کسان",

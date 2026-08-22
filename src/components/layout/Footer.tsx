@@ -11,7 +11,7 @@ export function Footer() {
     { label: "Animal & Vet Clinic", to: "/apps/animal-clinic" as const },
     { label: t("nav_projects"), to: "/projects" as const },
     { label: t("nav_network"), to: "/search" as const },
-    { label: t("nav_education"), to: "/apps/education" as const },
+    { label: "Gov Schemes", to: "/resources" as const },
     { label: "App Suite", to: "/apps" as const },
   ];
 

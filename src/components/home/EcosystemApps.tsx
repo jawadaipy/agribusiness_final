@@ -42,19 +42,6 @@ const ecosystemApps = [
     statsIcon: "trending_up"
   },
   {
-    id: "academy",
-    title: "Agri-Tech Academy",
-    badge: "Certification",
-    icon: "school",
-    gradient: "from-purple-500 to-violet-700",
-    bgGlow: "rgba(139, 92, 246, 0.15)",
-    description: "High-yield farm management, precision irrigation, and greenhouse masterclasses taught by Agri University faculty.",
-    stats: "4,200+ Learners",
-    link: "/apps/education",
-    action: "Explore Courses",
-    statsIcon: "workspace_premium"
-  },
-  {
     id: "projects",
     title: "Projects & RFP Board",
     badge: "Verified Bidding",
