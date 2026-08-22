@@ -33,8 +33,8 @@ const enterItem: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
 };
 
-/** Counts up when in view; static under reduced motion. */
-function Counter({ to }: { to: number }) {
+/** Counts up when in view; static under reduced motion. `fast` ticks like a rate board. */
+function Counter({ to, fast = false }: { to: number; fast?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
   const reduced = useReducedMotion();
@@ -44,14 +44,15 @@ function Counter({ to }: { to: number }) {
     if (!inView || reduced) return;
     let raf = 0;
     const start = performance.now();
+    const duration = fast ? 700 : 900;
     const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / 900);
+      const p = Math.min(1, (now - start) / duration);
       setValue(Math.round((1 - Math.pow(1 - p, 3)) * to));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [inView, reduced, to]);
+  }, [inView, reduced, to, fast]);
 
   return <span ref={ref}>{value}</span>;
 }
@@ -61,6 +62,9 @@ function ExchangeBoard() {
   const [indicative, setIndicative] = useState(false);
   const [updated, setUpdated] = useState<string>("");
   const [loaded, setLoaded] = useState(false);
+  // the "board is alive" cue: one row at a time receives an attention pulse
+  const [flashRow, setFlashRow] = useState(-1);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     let mounted = true;
@@ -82,6 +86,20 @@ function ExchangeBoard() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!loaded || reduced || rates.length === 0) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const cycle = (index: number) => {
+      setFlashRow(index);
+      timer = setTimeout(() => {
+        setFlashRow(-1);
+        timer = setTimeout(() => cycle((index + 1) % rates.length), 2400);
+      }, 1700);
+    };
+    timer = setTimeout(() => cycle(0), 1800);
+    return () => clearTimeout(timer);
+  }, [loaded, reduced, rates.length]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/12 bg-[#0D2A1D] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
@@ -109,19 +127,19 @@ function ExchangeBoard() {
 
       {/* Rows */}
       <motion.div variants={enterStagger} initial="hidden" animate="show" className="divide-y divide-white/[0.06]">
-        {loaded ? rates.map((rate) => (
+        {loaded ? rates.map((rate, index) => (
           <motion.div
             key={`${rate.commodity}-${rate.city}`}
             variants={enterItem}
-            className="grid grid-cols-[1.4fr_1fr_0.9fr_0.5fr] items-center gap-3 px-5 py-3 transition-colors hover:bg-white/[0.04]"
+            className={`grid grid-cols-[1.4fr_1fr_0.9fr_0.5fr] items-center gap-3 px-5 py-3 transition-colors hover:bg-white/[0.04] ${index === flashRow ? "row-flash" : ""}`}
           >
             <span className="truncate text-[13px] font-semibold text-white/90">{rate.commodity}</span>
             <span className="truncate text-[12px] text-white/55">{rate.city}</span>
             <span className="stat-num text-right text-[13px] font-semibold text-white">
-              ₨ {new Intl.NumberFormat("en-PK").format(rate.modal_price)}
+              ₨ <Counter to={rate.modal_price} fast />
               {rate.unit ? <span className="ml-1 text-[10px] font-normal text-white/40">/{rate.unit.replace("40 kg (Maund)", "40kg")}</span> : null}
             </span>
-            <span className={`stat-num text-right text-[12px] font-bold ${rate.trend === "up" ? "text-emerald-400" : rate.trend === "down" ? "text-red-400" : "text-white/35"}`}>
+            <span className={`stat-num text-right text-[12px] font-bold ${rate.trend === "up" ? "text-emerald-400" : rate.trend === "down" ? "text-red-400" : "text-white/35"} ${index === flashRow ? "delta-pulse" : ""}`}>
               {rate.trend === "up" ? "▲" : rate.trend === "down" ? "▼" : "—"}
             </span>
           </motion.div>
@@ -164,6 +182,12 @@ export function Hero() {
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "100% 44px" }}
         aria-hidden="true"
       />
+      {/* Terminal scan line drifting down the board */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-full overflow-hidden" aria-hidden="true">
+        <div className="scanline h-px w-full bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
+      </div>
+      {/* Breathing gold glow behind the board position */}
+      <div className="pointer-events-none absolute right-[8%] top-[30%] h-[380px] w-[380px] rounded-full bg-secondary/10 blur-[110px] glow-breathe" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
         <div className="grid items-center gap-12 pb-16 pt-12 md:pt-16 lg:grid-cols-12 lg:gap-14 lg:pb-20 lg:pt-20">
@@ -177,7 +201,7 @@ export function Hero() {
             <motion.h1 variants={enterItem} className="display-hero mt-5 text-[40px] text-white sm:text-[48px] lg:text-[54px]">
               {t("hero_headline_1")}
               <br />
-              <em className="text-secondary">{t("hero_headline_2")}</em>
+              <em className="text-shimmer">{t("hero_headline_2")}</em>
             </motion.h1>
 
             <motion.p variants={enterItem} className="mt-4 max-w-sm text-[14px] leading-6 text-white/60">
@@ -194,13 +218,13 @@ export function Hero() {
                 aria-label="Search the network"
                 className="min-w-0 flex-1 bg-transparent py-2 text-sm font-medium text-white outline-none placeholder:text-white/40"
               />
-              <button type="submit" className="press shrink-0 rounded-lg bg-secondary px-4 py-2 text-[13px] font-semibold text-[#3D2A05] hover:bg-secondary-light">
+              <button type="submit" className="press btn-shine shrink-0 rounded-lg bg-secondary px-4 py-2 text-[13px] font-semibold text-[#3D2A05] hover:bg-secondary-light">
                 Search
               </button>
             </motion.form>
 
             <motion.div variants={enterItem} className="mt-6 flex flex-wrap items-center gap-5">
-              <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-[14px] font-semibold text-[#08160F] hover:bg-white/90">
+              <Link to="/onboarding" className="press btn-shine inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-[14px] font-semibold text-[#08160F] hover:bg-white/90">
                 Join free
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </Link>

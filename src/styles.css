@@ -522,3 +522,64 @@
     color: var(--color-primary-light, #2d7a56);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   EXCHANGE-BOARD ANIMATION LAYER
+   Terminal-grade effects for the mandi board hero.
+   ═══════════════════════════════════════════════════════════ */
+@layer utilities {
+  /* Gold shimmer drifting through the accent headline line */
+  .text-shimmer {
+    background: linear-gradient(100deg, #d98b1d 20%, #f5d78e 40%, #d98b1d 60%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer-drift 5s ease-in-out infinite;
+  }
+  @keyframes shimmer-drift {
+    0%, 100% { background-position: 0% 0; }
+    50% { background-position: 100% 0; }
+  }
+
+  /* Light sweep across solid buttons on hover */
+  .btn-shine { position: relative; overflow: hidden; }
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.6s var(--ease-out-expo);
+    pointer-events: none;
+  }
+  .btn-shine:hover::after { transform: translateX(120%); }
+
+  /* Slow breathing gold glow behind the board */
+  .glow-breathe { animation: glow-breathe 6s ease-in-out infinite; }
+  @keyframes glow-breathe {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.06); }
+  }
+
+  /* Descending scan line across the dark hero, terminal-style */
+  .scanline { animation: scan-descend 9s linear infinite; }
+  @keyframes scan-descend {
+    0% { transform: translateY(-10%); opacity: 0; }
+    8% { opacity: 0.5; }
+    92% { opacity: 0.5; }
+    100% { transform: translateY(1100%); opacity: 0; }
+  }
+
+  /* Live attention pulse for a board row */
+  .row-flash { animation: row-flash 1.6s var(--ease-out-expo); }
+  @keyframes row-flash {
+    0% { background-color: rgba(217, 139, 29, 0.16); }
+    100% { background-color: transparent; }
+  }
+  .delta-pulse { animation: delta-pulse 1.6s var(--ease-out-expo); }
+  @keyframes delta-pulse {
+    0%, 40% { transform: translateY(0); }
+    20% { transform: translateY(-2px); }
+  }
+}
