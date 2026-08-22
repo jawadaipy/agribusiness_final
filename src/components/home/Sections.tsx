@@ -132,22 +132,27 @@ export function AppsStrip() {
 
 export function CtaBand() {
   return (
-    <section className="bg-primary">
-      <div className="mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-14 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-16">
+    <section className="relative overflow-hidden bg-[#08160F]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "100% 44px" }}
+        aria-hidden="true"
+      />
+      <div className="relative mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-14 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-16">
         <Reveal>
           <h2 className="display-hero text-[28px] text-white md:text-[34px]">
             Your next partner is <em className="text-secondary">already here.</em>
           </h2>
-          <p className="mt-2.5 text-[13px] leading-6 text-white/70">
+          <p className="mt-2.5 text-[13px] leading-6 text-white/60">
             Free 7-day trial on every plan. No card required — just an honest profile.
           </p>
         </Reveal>
         <div className="flex shrink-0 flex-wrap gap-3">
-          <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-[14px] font-semibold text-primary hover:bg-white/90">
+          <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-secondary px-5 py-2.5 text-[14px] font-semibold text-[#3D2A05] hover:bg-secondary-light">
             Create your free profile
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
-          <Link to="/search" search={{ q: "" }} className="press inline-flex items-center rounded-lg border border-white/30 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">
+          <Link to="/search" search={{ q: "" }} className="press inline-flex items-center rounded-lg border border-white/25 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">
             Explore members
           </Link>
         </div>
