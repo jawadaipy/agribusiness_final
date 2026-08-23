@@ -146,7 +146,7 @@ export function Navbar() {
       )}
       aria-label="Main navigation"
     >
-      <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-full max-w-container-max mx-auto gap-4">
+      <div className="flex h-full max-w-container-max items-center justify-between gap-2 px-margin-mobile md:gap-4 md:px-margin-desktop mx-auto">
 
         {/* Brand */}
         <Link
@@ -217,15 +217,15 @@ export function Navbar() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 ml-2">
-          {/* Language toggle — available on every screen size */}
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-1 sm:ml-2">
+          {/* Language toggle — available on every screen size (icon-only on phones) */}
           <button
             onClick={() => setLang(lang === "en" ? "ur" : "en")}
-            className="flex h-9 items-center gap-1.5 px-2.5 rounded-lg text-xs font-semibold text-black/60 hover:text-primary hover:bg-black/[0.04] transition-colors cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold text-black/60 hover:text-primary hover:bg-black/[0.04] transition-colors cursor-pointer sm:w-auto sm:gap-1.5 sm:px-2.5"
             aria-label={`Switch to ${lang === "en" ? "Urdu" : "English"}`}
           >
             <span className="material-symbols-outlined text-[14px]" aria-hidden="true">language</span>
-            {t("nav_lang_toggle")}
+            <span className="hidden sm:inline">{t("nav_lang_toggle")}</span>
           </button>
 
           {/* Notification bell — only shown when logged in */}
@@ -342,10 +342,10 @@ export function Navbar() {
               </Link>
               <Link
                 to="/onboarding"
-                className="press flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-semibold text-white hover:bg-primary-container transition-colors"
+                className="press flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 sm:px-4 text-[13px] font-semibold text-white hover:bg-primary-container transition-colors"
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">person_add</span>
-                Join free
+                <span className="hidden sm:inline">Join free</span>
               </Link>
             </div>
           )}
