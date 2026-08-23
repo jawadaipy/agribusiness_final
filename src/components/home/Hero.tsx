@@ -191,7 +191,7 @@ export function Hero() {
       <div className="pointer-events-none absolute right-[8%] top-[30%] h-[380px] w-[380px] rounded-full bg-secondary/10 blur-[110px] glow-breathe" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-        <div className="grid items-center gap-12 pb-16 pt-12 md:pt-16 lg:grid-cols-12 lg:gap-14 lg:pb-20 lg:pt-20">
+        <div className="grid items-center gap-10 pb-12 pt-10 md:pt-14 lg:grid-cols-12 lg:gap-12 lg:pb-14 lg:pt-16">
           {/* Left: thesis + actions */}
           <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-5">
             <motion.p variants={enterItem} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
@@ -199,7 +199,7 @@ export function Hero() {
               {t("hero_badge")}
             </motion.p>
 
-            <motion.h1 variants={enterItem} className="display-hero mt-5 text-[40px] text-white sm:text-[48px] lg:text-[54px]">
+            <motion.h1 variants={enterItem} className="display-hero mt-5 text-[38px] text-white sm:text-[44px] lg:text-[48px]">
               {t("hero_headline_1")}{" "}
               <em className="text-secondary-light">{t("hero_headline_2")}</em>
             </motion.h1>
@@ -235,7 +235,7 @@ export function Hero() {
             </motion.div>
 
             {/* Facts — one line, counting up */}
-            <motion.p variants={enterItem} className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/12 pt-5 text-xs font-semibold uppercase tracking-[0.13em] text-white/45">
+            <motion.p variants={enterItem} className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/12 pt-5 text-xs font-semibold uppercase tracking-[0.13em] text-white/45">
               {FACTS.map((fact, index) => (
                 <span key={fact.labelKey} className="flex items-center gap-4">
                   {index > 0 ? <span className="h-0.5 w-0.5 rounded-full bg-white/30" aria-hidden="true" /> : null}

@@ -58,10 +58,10 @@ export function TrustBand() {
 
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-10 md:px-margin-desktop">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 lg:grid-cols-4">
           {items.map((item) => (
-            <div key={item.label} className="flex items-center gap-4 bg-white px-5 py-5">
+            <div key={item.label} className="flex items-center gap-4 bg-white px-5 py-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8">
                 <span className="material-symbols-outlined text-[20px] text-primary" aria-hidden="true">{item.icon}</span>
               </span>
@@ -93,7 +93,7 @@ export function RolesExplorer() {
 
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16">
         <div className="max-w-xl">
           <p className="eyebrow">One network, five roles</p>
           <h2 className="section-heading mt-3">Every member has a role — and every role has real powers</h2>
@@ -103,7 +103,7 @@ export function RolesExplorer() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           {/* Role tabs — vertical on desktop, scroll strip on mobile */}
           <div role="tablist" aria-label="Member roles" className="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0">
             {ROLE_DEFINITIONS.map((r) => {
@@ -134,7 +134,7 @@ export function RolesExplorer() {
           </div>
 
           {/* Active role panel */}
-          <div key={role.id} className="rounded-3xl border border-outline-variant/50 bg-surface-container-low/50 p-6 animate-in fade-in slide-in-from-bottom-2 duration-300 md:p-8">
+          <div key={role.id} className="rounded-3xl border border-outline-variant/50 bg-surface-container-low/50 p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 md:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-lg">
                 <h3 className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">{role.name}</h3>
@@ -150,7 +150,7 @@ export function RolesExplorer() {
               </Link>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {role.capabilities.map((cap, i) => (
                 <Reveal key={cap.key} delay={i * 0.05}>
                   <Link
@@ -182,17 +182,17 @@ export function RolesExplorer() {
 export function HowItWorksMinimal() {
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16">
         <div className="max-w-xl">
           <p className="eyebrow">How it works</p>
           <h2 className="section-heading mt-3">From profile to partnership in three steps</h2>
         </div>
 
-        <RevealGroup className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+        <RevealGroup className="mt-8 grid gap-8 md:grid-cols-3 md:gap-6">
           {STEPS.map((step) => (
             <RevealItem key={step.n}>
               <div className="border-t-2 border-primary/80 pt-5">
-                <p className="stat-num font-display text-[34px] font-semibold leading-none text-black/85">{step.n}</p>
+                <p className="stat-num font-display text-[28px] font-semibold leading-none text-black/85">{step.n}</p>
                 <h3 className="mt-4 text-[16px] font-semibold text-black">{step.title}</h3>
                 <p className="mt-2 text-[13px] leading-6 text-black/55">{step.line}</p>
               </div>
@@ -207,7 +207,7 @@ export function HowItWorksMinimal() {
 export function AppsStrip() {
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-xl">
             <p className="eyebrow">The toolkit</p>
@@ -219,11 +219,11 @@ export function AppsStrip() {
           </Link>
         </div>
 
-        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <RevealGroup className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {APPS.map((app) => (
             <RevealItem key={app.name}>
               <Link to={app.to} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white outline-none transition-all hover:border-black/25 hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] focus-visible:ring-2 focus-visible:ring-primary/50">
-                <span className="relative block h-32 overflow-hidden bg-surface-container">
+                <span className="relative block h-28 overflow-hidden bg-surface-container">
                   <img
                     src={app.image}
                     alt=""
@@ -256,7 +256,7 @@ export function CtaBand() {
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "100% 44px" }}
         aria-hidden="true"
       />
-      <div className="relative mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-14 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-16">
+      <div className="relative mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-10 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-12">
         <Reveal>
           <h2 className="display-hero text-[28px] text-white md:text-[34px]">
             Your next partner is <em className="text-secondary-light">already here.</em>

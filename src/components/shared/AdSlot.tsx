@@ -88,7 +88,7 @@ export function AdSlot({ variant = "banner", className = "" }: { variant?: Varia
   const isExternal = ad.target_url?.startsWith("http");
   const cls =
     variant === "banner"
-      ? `group relative block overflow-hidden rounded-2xl border border-outline-variant/40 bg-white card-shadow transition-all hover:card-shadow-hover ${className}`
+      ? `group relative my-10 block overflow-hidden rounded-2xl border border-outline-variant/40 bg-white card-shadow transition-all hover:card-shadow-hover md:my-12 ${className}`
       : `group relative flex flex-col overflow-hidden rounded-2xl border border-outline-variant/40 bg-white card-shadow transition-all hover:card-shadow-hover ${className}`;
 
   return isExternal ? (

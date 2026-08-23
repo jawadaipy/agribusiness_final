@@ -39,7 +39,7 @@ function Index() {
         <FeaturedProjects />
 
         {/* Platform-sponsored placement (renders only when a flight is live) */}
-        <div className="mx-auto max-w-container-max px-margin-mobile pb-16 md:px-margin-desktop md:pb-20">
+        <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           <AdSlot variant="banner" />
         </div>
 

@@ -126,7 +126,7 @@ export function FeaturedProjects() {
 
   return (
     <section
-      className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-20"
+      className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16"
       aria-labelledby="featured-projects-heading"
     >
       {/* Header */}
@@ -135,7 +135,7 @@ export function FeaturedProjects() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.55 }}
-        className="mb-10 flex flex-col items-start justify-between gap-4 text-left md:flex-row md:items-end"
+        className="mb-8 flex flex-col items-start justify-between gap-4 text-left md:flex-row md:items-end"
       >
         <div>
           <span className="eyebrow mb-2 block">Open board</span>

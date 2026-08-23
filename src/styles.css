@@ -242,7 +242,7 @@
 
   /* Section typography */
   .section-heading {
-    @apply font-display text-3xl md:text-[40px] font-semibold text-primary;
+    @apply font-display text-3xl md:text-[36px] font-semibold text-primary;
     letter-spacing: -0.025em;
   }
   .section-sub {
