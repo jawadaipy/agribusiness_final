@@ -19,6 +19,8 @@ import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as RatesRouteImport } from './routes/rates'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -78,6 +80,16 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RatesRoute = RatesRouteImport.update({
+  id: '/rates',
+  path: '/rates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResourcesRoute = ResourcesRouteImport.update({
@@ -142,6 +154,8 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/rates': typeof RatesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
@@ -164,6 +178,8 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/rates': typeof RatesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
@@ -187,6 +203,8 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/rates': typeof RatesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
@@ -211,6 +229,8 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/projects'
+    | '/rates'
+    | '/reset-password'
     | '/resources'
     | '/search'
     | '/apps/agri-biz'
@@ -233,6 +253,8 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/projects'
+    | '/rates'
+    | '/reset-password'
     | '/resources'
     | '/search'
     | '/apps/agri-biz'
@@ -255,6 +277,8 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/projects'
+    | '/rates'
+    | '/reset-password'
     | '/resources'
     | '/search'
     | '/apps/agri-biz'
@@ -278,6 +302,8 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
+  RatesRoute: typeof RatesRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
   AppsAgriBizRoute: typeof AppsAgriBizRoute
@@ -358,6 +384,20 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rates': {
+      id: '/rates'
+      path: '/rates'
+      fullPath: '/rates'
+      preLoaderRoute: typeof RatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resources': {
@@ -468,6 +508,8 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
+  RatesRoute: RatesRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
   AppsAgriBizRoute: AppsAgriBizRoute,
