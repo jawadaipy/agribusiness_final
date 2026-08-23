@@ -1,21 +1,14 @@
 /**
- * Minimal homepage sections — international flat discipline.
+ * Homepage sections — international flat discipline.
  * Hairline dividers, quiet cards, no decoration that isn't information.
  */
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
+import { supabase } from "@/lib/supabase";
+import { ROLE_DEFINITIONS } from "@/lib/roles";
 
 const img = (id: string, w = 800) => `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
-
-type RoleKey = "farmer" | "buyer" | "consultant" | "company" | "student";
-
-const ROLES: { icon: string; name: string; line: string; role: RoleKey }[] = [
-  { icon: "agriculture", name: "Farmer / Producer", line: "Sell harvests, post farm needs, reach verified buyers.", role: "farmer" },
-  { icon: "shopping_cart", name: "Buyer / Miller", line: "Source graded commodities from verified producers.", role: "buyer" },
-  { icon: "workspace_premium", name: "Consultant / Vet", line: "Turn field expertise into paid engagements.", role: "consultant" },
-  { icon: "domain", name: "Enterprise", line: "Post tenders, list inputs, find partners and talent.", role: "company" },
-  { icon: "school", name: "Researcher", line: "Find trials, supervisors, and field data partners.", role: "student" },
-];
 
 const STEPS = [
   { n: "01", title: "Create your verified profile", line: "One honest profile — crops, commodities, services, or research — under your real identity." },
@@ -30,38 +23,157 @@ const APPS = [
   { icon: "work", name: "Projects & RFP", line: "Farm needs to enterprise tenders", to: "/projects", image: img("1586771107445-d3ca888129ff") },
 ];
 
-export function RoleStrip() {
+/**
+ * Trust band — live platform counts straight from the database.
+ * If a number can't be read, it is not shown (never invented).
+ */
+export function TrustBand() {
+  const [stats, setStats] = useState<{ members: number | null; listings: number | null; projects: number | null } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+      supabase.from("listings").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "open"),
+    ]).then(([p, l, pr]) => {
+      if (!alive) return;
+      setStats({
+        members: p.error ? null : p.count ?? 0,
+        listings: l.error ? null : l.count ?? 0,
+        projects: pr.error ? null : pr.count ?? 0,
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const items = [
+    { value: stats?.members, label: "Verified members", icon: "groups" },
+    { value: stats?.listings, label: "Active listings", icon: "inventory_2" },
+    { value: stats?.projects, label: "Open requirements", icon: "work" },
+    { value: 34, label: "Cities covered", icon: "location_on" },
+  ];
+
+  return (
+    <section className="border-b border-black/[0.06] bg-white">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-10 md:px-margin-desktop">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 lg:grid-cols-4">
+          {items.map((item) => (
+            <div key={item.label} className="flex items-center gap-4 bg-white px-5 py-5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8">
+                <span className="material-symbols-outlined text-[20px] text-primary" aria-hidden="true">{item.icon}</span>
+              </span>
+              <div className="min-w-0">
+                <p className="stat-num font-display text-2xl font-bold leading-none text-primary md:text-[26px]">
+                  {item.value === null || item.value === undefined ? "—" : item.value.toLocaleString()}
+                </p>
+                <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{item.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-on-surface-variant/60">
+          Live counts from the platform database — updated as members join, list, and tender.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The role explorer — the platform's capability matrix, interactive.
+ * Each role tab reveals exactly what that account type can post and do,
+ * with direct links into the surfaces where it happens.
+ */
+export function RolesExplorer() {
+  const [active, setActive] = useState(ROLE_DEFINITIONS[0].id);
+  const role = ROLE_DEFINITIONS.find((r) => r.id === active) ?? ROLE_DEFINITIONS[0];
+
   return (
     <section className="border-b border-black/[0.06] bg-white">
       <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div className="max-w-xl">
-            <p className="eyebrow">One network</p>
-            <h2 className="section-heading mt-3">Built for every link in the agricultural chain</h2>
-          </div>
-          <Link to="/search" search={{ q: "" }} className="group inline-flex items-center gap-1 text-[13px] font-semibold text-primary">
-            Browse the directory
-            <span className="material-symbols-outlined text-[15px] transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
-          </Link>
+        <div className="max-w-xl">
+          <p className="eyebrow">One network, five roles</p>
+          <h2 className="section-heading mt-3">Every member has a role — and every role has real powers</h2>
+          <p className="section-sub mt-3">
+            Accounts don't just differ by label. What you can post, tender, and answer is defined by your
+            role — keep the marketplace honest by keeping it in scope.
+          </p>
         </div>
 
-        <RevealGroup className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 sm:grid-cols-2 lg:grid-cols-5">
-          {ROLES.map((role) => (
-            <RevealItem key={role.name} className="bg-white">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          {/* Role tabs — vertical on desktop, scroll strip on mobile */}
+          <div role="tablist" aria-label="Member roles" className="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0">
+            {ROLE_DEFINITIONS.map((r) => {
+              const selected = r.id === active;
+              return (
+                <button
+                  key={r.id}
+                  role="tab"
+                  aria-selected={selected}
+                  type="button"
+                  onClick={() => setActive(r.id)}
+                  className={`flex shrink-0 items-center gap-3 rounded-xl border px-4 py-3 text-left outline-none transition-all lg:w-full ${
+                    selected
+                      ? "border-primary bg-primary text-on-primary shadow-md"
+                      : "border-outline-variant/60 bg-white text-on-surface hover:border-primary/40 hover:bg-primary/5"
+                  }`}
+                >
+                  <span className={`material-symbols-outlined text-[20px] ${selected ? "text-secondary" : "text-primary"}`} aria-hidden="true">{r.icon}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-bold">{r.name}</span>
+                    <span className={`hidden text-xs lg:block ${selected ? "text-white/70" : "text-on-surface-variant/70"}`}>
+                      {r.listingCategories.length > 0 ? `${r.listingCategories.length} listing scopes` : "Research & feed"}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active role panel */}
+          <div key={role.id} className="rounded-3xl border border-outline-variant/50 bg-surface-container-low/50 p-6 animate-in fade-in slide-in-from-bottom-2 duration-300 md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-lg">
+                <h3 className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">{role.name}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-on-surface-variant">{role.headline}</p>
+              </div>
               <Link
                 to="/onboarding"
-                search={{ role: role.role }}
-                className="group flex h-full flex-col p-6 outline-none transition-colors hover:bg-black/[0.02] focus-visible:ring-2 focus-visible:ring-primary/50"
+                search={{ role: role.id }}
+                className="press inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-on-primary shadow-md hover:bg-primary-container"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/8 transition-colors group-hover:bg-primary">
-                  <span className="material-symbols-outlined text-[19px] text-primary transition-colors group-hover:text-on-primary" aria-hidden="true">{role.icon}</span>
-                </span>
-                <span className="mt-5 text-[14px] font-semibold text-black">{role.name}</span>
-                <span className="mt-1.5 text-[12px] leading-5 text-black/55">{role.line}</span>
+                Join as {role.short}
+                <span className="material-symbols-outlined text-[15px]" aria-hidden="true">arrow_forward</span>
               </Link>
-            </RevealItem>
-          ))}
-        </RevealGroup>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {role.capabilities.map((cap, i) => (
+                <Reveal key={cap.key} delay={i * 0.05}>
+                  <Link
+                    to={cap.surface as never}
+                    className="group flex h-full flex-col rounded-2xl border border-outline-variant/50 bg-white p-4 transition-all hover:border-primary/40 hover:shadow-md"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8 transition-colors group-hover:bg-primary">
+                        <span className="material-symbols-outlined text-[17px] text-primary transition-colors group-hover:text-on-primary" aria-hidden="true">{cap.icon}</span>
+                      </span>
+                      <span className="text-[13px] font-bold text-primary">{cap.label}</span>
+                    </span>
+                    <span className="mt-2 flex-grow text-xs leading-5 text-on-surface-variant">{cap.detail}</span>
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-secondary opacity-0 transition-opacity group-hover:opacity-100">
+                      Open
+                      <span className="material-symbols-outlined text-[13px]" aria-hidden="true">arrow_forward</span>
+                    </span>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

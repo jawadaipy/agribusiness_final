@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { CITIES } from "@/lib/constants";
 import { formatPKR } from "@/lib/format";
 import { SaveButton } from "@/components/shared/SaveButton";
+import { AdSlot } from "@/components/shared/AdSlot";
 import { fetchSavedIds } from "@/lib/saved-items";
 
 export const Route = createFileRoute("/marketplace")({
@@ -292,6 +293,11 @@ function MarketplacePage() {
             <p className="text-xs text-on-surface-variant">
               Showing <span className="font-bold text-primary">{filtered.length}</span> listing{filtered.length !== 1 ? "s" : ""}
             </p>
+          </div>
+
+          {/* Platform-sponsored placement (only when a flight is live) */}
+          <div className="mb-5">
+            <AdSlot variant="banner" />
           </div>
 
           {loading ? (

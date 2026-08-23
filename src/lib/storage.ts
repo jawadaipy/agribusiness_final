@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
  * One implementation for feed photos, clinic evidence, and listing images.
  */
 export async function uploadMedia(
-  bucket: "problem-media" | "listing-images" | "avatars",
+  bucket: "problem-media" | "listing-images" | "avatars" | "ad-creatives",
   profileId: string,
   file: File,
 ): Promise<{ url: string | null; error: string | null }> {

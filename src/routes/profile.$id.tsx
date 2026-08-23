@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { CitySelect } from "@/components/shared/CitySelect";
+import { roleDefinition } from "@/lib/roles";
+import { Link as RouterLink } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/profile/$id")({
   head: () => ({
@@ -384,6 +386,35 @@ function ProfilePage() {
                       <InfoItem icon="badge" label="Role" value={profile.userType} />
                       <InfoItem icon={profile.isVerified ? "verified_user" : "person"} label="Profile status" value={profile.isVerified ? "Platform verified" : "Member profile"} />
                     </div>
+
+                    {/* Role capability matrix — what this member type can do on the platform */}
+                    {(() => {
+                      const role = roleDefinition(profile.userType);
+                      if (!role) return null;
+                      return (
+                        <div className="mt-6 border-t border-outline-variant/30 pt-5">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                            What a {role.short} does on AgriBusiness
+                          </h3>
+                          <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                            {role.capabilities.map((cap) => (
+                              <li key={cap.key}>
+                                <RouterLink
+                                  to={cap.surface as never}
+                                  className="group flex h-full items-start gap-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-low/60 p-3 transition hover:border-primary/40 hover:bg-white"
+                                >
+                                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-secondary" aria-hidden="true">{cap.icon}</span>
+                                  <span>
+                                    <span className="block text-xs font-bold text-primary">{cap.label}</span>
+                                    <span className="mt-0.5 block text-xs leading-4 text-on-surface-variant">{cap.detail}</span>
+                                  </span>
+                                </RouterLink>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })()}
                   </motion.section>
                 )}
               </div>

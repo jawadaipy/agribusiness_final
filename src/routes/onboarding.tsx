@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { formatCooldown, getAuthFeedback } from "@/lib/auth-feedback";
 import { CITIES } from "@/lib/constants";
 import { validatePKPhone } from "@/lib/format";
+import { roleDefinition } from "@/lib/roles";
 
 const ROLE_IDS = ["farmer", "buyer", "consultant", "company", "student"] as const;
 
@@ -534,6 +535,27 @@ function OnboardingPage() {
                   ))}
                 </div>
 
+                {/* Live capability preview for the selected role */}
+                {(() => {
+                  const def = roleDefinition(userRole);
+                  if (!def) return null;
+                  return (
+                    <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                        As a {def.short}, you will be able to
+                      </p>
+                      <ul className="mt-2.5 grid gap-2 sm:grid-cols-2">
+                        {def.capabilities.map((cap) => (
+                          <li key={cap.key} className="flex items-start gap-2">
+                            <span className="material-symbols-outlined mt-0.5 text-[16px] text-secondary" aria-hidden="true">{cap.icon}</span>
+                            <span className="text-xs font-medium leading-5 text-on-surface-variant">{cap.label}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
+
                 <div className="pt-2 flex justify-end">
                   <button
                     type="button"
@@ -541,7 +563,7 @@ function OnboardingPage() {
                     className="px-8 py-3 bg-primary text-on-primary rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md flex items-center gap-2 cursor-pointer"
                   >
                     Continue to Credentials
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
                   </button>
                 </div>
               </div>

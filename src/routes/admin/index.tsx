@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { getAuthenticatedPlatformProfile, type PlatformProfile } from "@/lib/member";
 import { ROLE_LABELS, ROLE_ICONS } from "@/lib/matching";
+import { uploadMedia } from "@/lib/storage";
 import type { AccountRole } from "@/lib/member";
 
 export const Route = createFileRoute("/admin/")({
@@ -266,7 +267,19 @@ function SuperAdminPage() {
                   />
                 )}
                 {activeTab === "members" && <MembersPanel members={visibleMembers} total={counts.members} query={memberQuery} setQuery={setMemberQuery} roleFilter={roleFilter} setRoleFilter={setRoleFilter} statusFilter={statusFilter} setStatusFilter={setStatusFilter} actingId={actingId} onModerate={moderateMember} />}
-                {activeTab === "ads" && <AdsPanel ads={ads} actingId={actingId} rejectionTarget={rejectionTarget} rejectionReason={rejectionReason} setRejectionTarget={setRejectionTarget} setRejectionReason={setRejectionReason} onModerate={moderateAd} />}
+                {activeTab === "ads" && (
+                  <AdsConsole
+                    adminProfile={{ id: admin.id }}
+                    ads={ads}
+                    actingId={actingId}
+                    rejectionTarget={rejectionTarget}
+                    rejectionReason={rejectionReason}
+                    setRejectionTarget={setRejectionTarget}
+                    setRejectionReason={setRejectionReason}
+                    onModerate={moderateAd}
+                    onCreated={loadData}
+                  />
+                )}
                 {activeTab === "content" && <ContentPanel listings={listings} projects={projects} counts={counts} />}
                 {activeTab === "categories" && <CategoriesPanel categories={categories} actingId={actingId} onToggle={setCategoryState} />}
                 {activeTab === "audit" && <AuditPanel rows={auditRows} />}
@@ -509,16 +522,168 @@ function MembersPanel({ members, total, query, setQuery, roleFilter, setRoleFilt
   );
 }
 
-function AdsPanel({ ads, actingId, rejectionTarget, rejectionReason, setRejectionTarget, setRejectionReason, onModerate }: {
-  ads: AdRow[]; actingId: string; rejectionTarget: string | null; rejectionReason: string; setRejectionTarget: (value: string | null) => void; setRejectionReason: (value: string) => void;
+/**
+ * Ads console: platform ad creation (published as the admin's own
+ * profile, pre-approved — the admin IS the approver) + the member
+ * campaign review queue below.
+ */
+function AdsConsole({ adminProfile, ads, actingId, rejectionTarget, rejectionReason, setRejectionTarget, setRejectionReason, onModerate, onCreated }: {
+  adminProfile: { id: string };
+  ads: AdRow[];
+  actingId: string;
+  rejectionTarget: string | null;
+  rejectionReason: string;
+  setRejectionTarget: (value: string | null) => void;
+  setRejectionReason: (value: string) => void;
+  onModerate: (ad: AdRow, status: "approved" | "rejected", reason?: string | null) => Promise<void>;
+  onCreated: () => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [targetUrl, setTargetUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [creativeFile, setCreativeFile] = useState<File[]>([]);
+  const [days, setDays] = useState("30");
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState("");
+
+  const inputCls = "w-full rounded-xl border border-outline-variant/60 bg-white px-3 py-2.5 text-xs font-medium text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15";
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setFeedback("");
+    if (title.trim().length < 5) { setError("Give the campaign a clear title (at least 5 characters)."); return; }
+    const dest = targetUrl.trim();
+    if (dest && !/^https?:\/\//.test(dest) && !dest.startsWith("/")) { setError("Destination must be an internal path (e.g. /rates) or a full https:// URL."); return; }
+
+    let creative = imageUrl.trim();
+    if (creativeFile[0]) {
+      if (!creativeFile[0].type.startsWith("image/")) { setError("The creative must be an image file."); return; }
+      setSaving(true);
+      const { url, error: upErr } = await uploadMedia("ad-creatives", adminProfile.id, creativeFile[0]);
+      if (upErr || !url) { setError(upErr ?? "Creative upload failed."); setSaving(false); return; }
+      creative = url;
+    }
+    if (!creative) { setError("Upload a creative image or paste an image URL."); setSaving(false); return; }
+
+    setSaving(true);
+    const flightDays = Math.min(365, Math.max(1, Number(days) || 30));
+    const { error: insertError } = await supabase.from("ads").insert({
+      profile_id: adminProfile.id,
+      title: title.trim(),
+      body: body.trim() || null,
+      creative_url: creative,
+      target_url: dest || null,
+      starts_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + flightDays * 86400000).toISOString(),
+      status: "approved",
+    });
+    setSaving(false);
+    if (insertError) { setError(insertError.message); return; }
+    setTitle(""); setBody(""); setTargetUrl(""); setImageUrl(""); setCreativeFile([]); setDays("30");
+    setFeedback(`Campaign published — live for ${flightDays} days across the platform's sponsored slots.`);
+    await onCreated();
+  };
+
+  return (
+    <div>
+      {/* Create platform advertisement */}
+      <p className="eyebrow">Advertising</p>
+      <div className="mt-1.5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl text-primary">Ads &amp; sponsored placements</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-on-surface-variant">
+            Publish platform campaigns to the sponsored slots on the homepage, marketplace, and app pages — and review member-submitted campaigns below.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setOpen((v) => !v); setFeedback(""); setError(""); }}
+          className="press inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary hover-lift"
+        >
+          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">{open ? "close" : "add_campaign"}</span>
+          {open ? "Close creator" : "Create advertisement"}
+        </button>
+      </div>
+
+      {open ? (
+        <form onSubmit={submit} className="mt-5 rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-sm">
+          <p className="mb-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">New platform campaign</p>
+          {error ? <p className="mb-4 rounded-xl border border-error/25 bg-error/10 p-3 text-xs font-semibold text-error">{error}</p> : null}
+          {feedback ? <p className="mb-4 rounded-xl border border-success/25 bg-success/10 p-3 text-xs font-semibold text-success">{feedback}</p> : null}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block space-y-1 md:col-span-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Campaign title *</span>
+              <input required value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. Solar tubewell season offer — cut diesel costs 70%" />
+            </label>
+            <label className="block space-y-1 md:col-span-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Description</span>
+              <textarea rows={2} value={body} onChange={(e) => setBody(e.target.value)} className={`${inputCls} resize-y`} placeholder="One or two lines shown under the title on the banner." />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Destination link</span>
+              <input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} className={inputCls} placeholder="/apps/agri-biz or https://…" />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Flight length (days)</span>
+              <input type="number" min="1" max="365" value={days} onChange={(e) => setDays(e.target.value)} className={inputCls} />
+            </label>
+            <label className="block space-y-1 md:col-span-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Creative image — upload or paste URL</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-surface-container-low px-3 py-2 text-xs font-bold text-primary transition hover:bg-surface-container">
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">upload</span>
+                  {creativeFile[0] ? creativeFile[0].name.slice(0, 28) : "Choose image"}
+                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => { setCreativeFile(e.target.files ? [e.target.files[0]] : []); setImageUrl(""); }} />
+                </label>
+                <span className="text-xs text-on-surface-variant/60">or</span>
+                <input value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setCreativeFile([]); }} className={`${inputCls} flex-1 min-w-48`} placeholder="https://…/creative.jpg" />
+              </div>
+              <span className="block text-xs text-on-surface-variant/60">Wide crops (≥1200px) look best on banner slots.</span>
+            </label>
+          </div>
+
+          <div className="mt-4 flex justify-end gap-2 border-t border-outline-variant/40 pt-4">
+            <button type="submit" disabled={saving} className="press rounded-xl bg-secondary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-on-secondary hover:bg-secondary-light disabled:opacity-50">
+              {saving ? "Publishing…" : "Publish campaign"}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {/* Member campaign review queue */}
+      <div className="mt-8">
+        <h3 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+          <span className="material-symbols-outlined text-[18px] text-secondary" aria-hidden="true">rate_review</span>
+          Member campaigns awaiting review
+        </h3>
+        <AdsPanel
+          ads={ads}
+          actingId={actingId}
+          rejectionTarget={rejectionTarget}
+          rejectionReason={rejectionReason}
+          setRejectionTarget={setRejectionTarget}
+          setRejectionReason={setRejectionReason}
+          onModerate={onModerate}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AdsPanel({ ads, actingId, rejectionTarget, rejectionReason, setRejectionTarget, setRejectionReason, onModerate }: {  ads: AdRow[]; actingId: string; rejectionTarget: string | null; rejectionReason: string; setRejectionTarget: (value: string | null) => void; setRejectionReason: (value: string) => void;
   onModerate: (ad: AdRow, status: "approved" | "rejected", reason?: string | null) => Promise<void>;
 }) {
   return (
     <div>
-      <p className="eyebrow">Advertising</p>
-      <h2 className="mt-1.5 font-display text-2xl text-primary">Advertisement review</h2>
-      <p className="mt-1 max-w-2xl text-xs leading-5 text-on-surface-variant">Approve or reject only real pending campaigns. Rejections require a reason and every decision is stored in the audit trail.</p>
-      <div className="mt-6 space-y-4">
+      {ads.length ? null : (
+        <p className="mb-4 max-w-2xl text-xs leading-5 text-on-surface-variant">No member campaigns are pending review right now — new submissions appear here instantly.</p>
+      )}
+      <div className="mt-2 space-y-4">
         {ads.length ? ads.map((ad) => (
           <article key={ad.id} className="hover-lift rounded-2xl border border-outline-variant/60 bg-white p-5">
             <div className="flex flex-col justify-between gap-4 lg:flex-row">

@@ -9,8 +9,10 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MediaUploader } from "@/components/shared/MediaUploader";
+import { AdSlot } from "@/components/shared/AdSlot";
 import { formatPKR } from "@/lib/format";
 import { uploadMedia } from "@/lib/storage";
+import { allowedListingCategories, canPostListings, listingScopeSentence } from "@/lib/roles";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/apps/agri-biz")({
@@ -27,7 +29,7 @@ export const Route = createFileRoute("/apps/agri-biz")({
 
 const PAGE_SIZE = 16;
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; slug: string | null };
 type ListingRow = {
   id: string;
   profile_id: string;
@@ -84,6 +86,17 @@ function AgriBizPage() {
     city: "",
   });
   const [pendingImages, setPendingImages] = useState<File[]>([]);
+  /** Categories the signed-in member may post in, per the role matrix. */
+  const [myRole, setMyRole] = useState<string>("");
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      supabase.from("profiles").select("user_type").eq("id", data.user.id).maybeSingle().then(({ data: p }) => {
+        if (p?.user_type) setMyRole(p.user_type as string);
+      });
+    });
+  }, []);
+  const postingCategories = myRole ? allowedListingCategories(myRole, categories) : categories;
 
   const loadListings = async () => {
     setIsLoading(true);
@@ -99,7 +112,7 @@ function AgriBizPage() {
             .eq("status", "active")
             .order("created_at", { ascending: false })
             .limit(96),
-          supabase.from("categories").select("id,name").order("name"),
+          supabase.from("categories").select("id,name,slug").order("name"),
         ]),
         12000,
       )) as [typeof listingResult, typeof categoryResult];
@@ -211,8 +224,17 @@ function AgriBizPage() {
       setPostSubmitting(false);
       return;
     }
-    if (!["farmer", "company", "consultant"].includes(member.user_type)) {
-      setPostError("Only Farmer, Company, and Consultant accounts can publish commercial marketplace listings.");
+    // Role capability gate — each account type posts only within its scope.
+    if (!canPostListings(member.user_type)) {
+      setPostError(
+        `${member.user_type === "buyer" ? "Buyer accounts post demand notices and procurement tenders" : "Student / Researcher accounts post on the feed and clinics"} — commercial listings are not part of your role. See what your role can do on the homepage role guide.`,
+      );
+      setPostSubmitting(false);
+      return;
+    }
+    const allowed = allowedListingCategories(member.user_type, categories);
+    if (newListing.categoryId && !allowed.some((c) => c.id === newListing.categoryId)) {
+      setPostError(listingScopeSentence(member.user_type));
       setPostSubmitting(false);
       return;
     }
@@ -335,7 +357,11 @@ function AgriBizPage() {
               </button>
             </div>
           ) : (
-            <section className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <>
+            <div className="mt-4">
+              <AdSlot variant="banner" />
+            </div>
+            <section className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, index) => <div key={index} className="h-72 skeleton rounded-2xl border border-outline-variant/30" />)
               ) : visibleListings.length ? (
@@ -397,6 +423,7 @@ function AgriBizPage() {
                 </div>
               )}
             </section>
+            </>
           )}
 
           {/* Load more */}
@@ -464,10 +491,10 @@ function AgriBizPage() {
                   </label>
 
                   <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
-                    Category
+                    Category {myRole && listingScopeSentence(myRole) ? <span className="ml-1 normal-case font-medium text-on-surface-variant/60">({listingScopeSentence(myRole).replace(/^As a [^,]+, /, "")})</span> : null}
                     <select value={newListing.categoryId} onChange={(e) => setNewListing({ ...newListing, categoryId: e.target.value })} className={`${inputClass} mt-1`}>
                       <option value="">Choose a category</option>
-                      {categories.map((category) => (
+                      {(postingCategories.length ? postingCategories : categories).map((category) => (
                         <option key={category.id} value={category.id}>{category.name}</option>
                       ))}
                     </select>
