@@ -289,4 +289,5 @@ npm run build
 
 ## 📄 License & Terms
 
-Engineered for **AgriBusiness Pakistan**. All rights reserved.
+Engineered for **AgriBusiness Pakistan**. All rights reserved.#   a g r i b u s i n e s s _ f i n a l i z e d  
+ 
