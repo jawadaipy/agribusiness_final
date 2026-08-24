@@ -28,14 +28,56 @@ export function isPlatformRole(value: unknown): value is PlatformRole {
   return value === "admin" || isAccountRole(value);
 }
 
+export const SESSION_MAX_AGE_MS = 2 * 24 * 60 * 60 * 1000; // 2 days (48 hours)
+export const SESSION_LOGIN_KEY = "agri_session_login_time";
+
+export function recordSessionLogin(): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(SESSION_LOGIN_KEY, Date.now().toString());
+  }
+}
+
+export function clearSessionLogin(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(SESSION_LOGIN_KEY);
+  }
+}
+
+export function isSessionExpired(): boolean {
+  if (typeof window === "undefined") return false;
+  const loginTimeStr = localStorage.getItem(SESSION_LOGIN_KEY);
+  if (!loginTimeStr) return false;
+  const loginTime = Number(loginTimeStr);
+  if (isNaN(loginTime)) return false;
+  return Date.now() - loginTime > SESSION_MAX_AGE_MS;
+}
+
 /**
- * Resolve the current user from the local session first (no network round
- * trip); fall back to a server getUser() only when no session is cached.
- * All privileged checks still go through RLS-protected profile queries.
+ * Resolve the current user from the local session first.
+ * Enforces 2-day (48-hour) session expiry.
  */
 async function currentUser(): Promise<User | null> {
   const { data: sessionData } = await supabase.auth.getSession();
-  if (sessionData.session?.user) return sessionData.session.user;
+  const session = sessionData.session;
+
+  if (session?.user) {
+    if (typeof window !== "undefined") {
+      const loginTimeStr = localStorage.getItem(SESSION_LOGIN_KEY);
+      if (loginTimeStr) {
+        const loginTime = Number(loginTimeStr);
+        if (!isNaN(loginTime) && Date.now() - loginTime > SESSION_MAX_AGE_MS) {
+          // Session is older than 2 days — force expire and sign out
+          clearSessionLogin();
+          await supabase.auth.signOut();
+          return null;
+        }
+      } else {
+        localStorage.setItem(SESSION_LOGIN_KEY, Date.now().toString());
+      }
+    }
+    return session.user;
+  }
+
   const { data: authData } = await supabase.auth.getUser();
   return authData.user ?? null;
 }

@@ -6,7 +6,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getAuthFeedback } from "@/lib/auth-feedback";
-import { getAuthenticatedPlatformProfile } from "@/lib/member";
+import { getAuthenticatedPlatformProfile, recordSessionLogin } from "@/lib/member";
 
 export const Route = createFileRoute("/admin-login")({
   head: () => ({
@@ -61,6 +61,7 @@ function AdminLoginPage() {
       setLoading(false);
       return;
     }
+    recordSessionLogin();
     navigate({ to: "/admin", replace: true });
   };
 

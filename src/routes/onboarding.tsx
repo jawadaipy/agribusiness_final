@@ -7,6 +7,7 @@ import { formatCooldown, getAuthFeedback } from "@/lib/auth-feedback";
 import { CITIES } from "@/lib/constants";
 import { validatePKPhone } from "@/lib/format";
 import { roleDefinition } from "@/lib/roles";
+import { recordSessionLogin } from "@/lib/member";
 
 const ROLE_IDS = ["farmer", "buyer", "consultant", "company", "student"] as const;
 
@@ -190,8 +191,9 @@ function OnboardingPage() {
         return;
       }
 
-      // If session is returned immediately, redirect to dashboard
+      // If session is returned immediately, record session and redirect to dashboard
       if (data.session) {
+        recordSessionLogin();
         navigate({ to: "/dashboard", replace: true });
         return;
       }
@@ -203,6 +205,7 @@ function OnboardingPage() {
       });
 
       if (signInData?.session) {
+        recordSessionLogin();
         navigate({ to: "/dashboard", replace: true });
         return;
       }
@@ -213,6 +216,7 @@ function OnboardingPage() {
         );
         setAuthMode("login");
       } else {
+        recordSessionLogin();
         navigate({ to: "/dashboard", replace: true });
       }
     } catch (err: unknown) {
@@ -250,6 +254,7 @@ function OnboardingPage() {
         setApiError(feedback.message);
         setCooldownSeconds(feedback.retryAfterSeconds ?? 0);
       } else {
+        recordSessionLogin();
         navigate({ to: "/dashboard", replace: true });
       }
     } catch (err: unknown) {
