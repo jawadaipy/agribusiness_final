@@ -99,7 +99,7 @@ function SimpleRatesPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[#F5F7F3] pb-24 text-on-background">
+      <main className="min-h-screen bg-[#F5F7F3] pt-16 pb-24 text-on-background">
         {/* Simple & Clean Header */}
         <div className="border-b border-outline-variant/50 bg-white py-8 shadow-xs">
           <div className="mx-auto max-w-container-max px-4 sm:px-6">

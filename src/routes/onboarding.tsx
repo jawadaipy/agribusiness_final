@@ -33,32 +33,27 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
+/** Primary directory sectors requested for the platform. Keywords refine, but never replace, this choice. */
+export const PRIMARY_SECTORS = ["Agriculture", "Engineering", "Basic Sciences", "Energy", "DVM", "Nursing"] as const;
+
 export const OFFICIAL_DISCIPLINES = [
-  "Agricultural Engineering and Technology",
-  "Agribusiness Family Care",
-  "Agriculture",
-  "Basic Sciences",
-  "Business Management Sciences",
-  "Computer Science",
-  "Construction",
-  "Education",
-  "Electronic and Print Media",
-  "Engineering (Civil, Mechanical Electric and Electronics)",
-  "Food Science and Technology",
-  "Health and Diagnostics",
-  "Horticultural Sciences",
-  "Information Technology",
-  "Lab Equipments and Chemicals",
-  "Law and Lawyers",
-  "Marketing (General Order Supplies)",
-  "Oil Industry",
-  "Poultry Science/Animal Science",
-  "Real-Estate",
-  "Sugar Industry",
-  "Textile Industry",
-  "Veterinary Science-DVM",
-  "Others",
+  "Agronomy & Crop Production", "Horticulture & Orchards", "Soil & Water Management",
+  "Agricultural Engineering", "Civil & Mechanical Engineering", "Electrical & Electronics",
+  "Renewable & Solar Energy", "Animal Science & Poultry", "Veterinary Medicine",
+  "Food Science & Technology", "Basic Sciences", "Nursing & Health Diagnostics",
+  "Business & Agribusiness", "Computer Science & IT", "Research & Education",
+  "Seeds & Varieties", "Fertilizers & Crop Nutrition", "Pest & Disease Management",
+  "Irrigation & Water Pumps", "Precision Agri-Tech", "Machinery & Equipment",
+  "Export & Trade Advisory", "Laboratory Equipment & Chemicals", "Other Specialism",
 ];
+
+const ROLE_DETAIL_FIELDS: Record<string, { label: string; first: string; second: string; tags: string }> = {
+  farmer: { label: "Farm profile", first: "Farm / producer name", second: "Acreage (optional)", tags: "Main crops or livestock" },
+  buyer: { label: "Procurement profile", first: "Organization name", second: "Expected volume (optional)", tags: "Commodities you buy" },
+  consultant: { label: "Professional profile", first: "Degree / qualification", second: "Years of experience", tags: "Services and technologies" },
+  company: { label: "Company profile", first: "Legal company name", second: "Registration number (optional)", tags: "Products, services and technologies" },
+  student: { label: "Academic profile", first: "Institution", second: "Programme / degree", tags: "Research interests" },
+};
 
 function OnboardingPage() {
   const { t, isRTL } = useTranslation();
@@ -81,6 +76,7 @@ function OnboardingPage() {
   });
 
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>(["Agriculture"]);
+  const [roleDetails, setRoleDetails] = useState({ first: "", second: "", tags: "" });
   const [keywordSearch, setKeywordSearch] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -177,6 +173,11 @@ function OnboardingPage() {
             city: formData.city,
             primary_discipline: formData.primaryDiscipline,
             keywords: selectedKeywords,
+            role_profile: {
+              first: roleDetails.first.trim(),
+              second: roleDetails.second.trim(),
+              tags: roleDetails.tags.split(",").map((value) => value.trim()).filter(Boolean).slice(0, 25),
+            },
           },
         },
       });
@@ -307,7 +308,7 @@ function OnboardingPage() {
             {[
               { n: 1, label: "Role & Identity", desc: "Select user classification" },
               { n: 2, label: "Credentials", desc: "Basic details & security" },
-              { n: 3, label: "Disciplines", desc: "Select official expertise sectors" },
+              { n: 3, label: "Sector & profile", desc: "Set your speciality and work profile" },
             ].map((s) => (
               <div
                 key={s.n}
@@ -729,12 +730,32 @@ function OnboardingPage() {
                     Step 3 of 3
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
-                    Official Disciplines & Keywords
+                    Sector, Speciality & Profile
                   </h2>
                   <p className="text-xs text-on-surface-variant font-medium mt-1">
-                    Select the categories and keywords that represent your agricultural expertise or
-                    business operations.
+                    Choose your primary sector, then add searchable specialities and the details
+                    that tell people what you can do on AgriBusiness.
                   </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="space-y-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Primary sector</span>
+                    <select
+                      value={formData.primaryDiscipline}
+                      onChange={(e) => {
+                        const primaryDiscipline = e.target.value;
+                        setFormData({ ...formData, primaryDiscipline });
+                        setSelectedKeywords((current) => current.includes(primaryDiscipline) ? current : [primaryDiscipline, ...current]);
+                      }}
+                      className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none focus:border-primary"
+                    >
+                      {PRIMARY_SECTORS.map((sector) => <option key={sector} value={sector}>{sector}</option>)}
+                    </select>
+                  </label>
+                  <div className="rounded-xl border border-primary/10 bg-primary/5 px-3.5 py-2.5 text-xs leading-5 text-primary/80">
+                    Your primary sector controls relevant recommendations, category highlights, and ad targeting. You can still add cross-sector skills below.
+                  </div>
                 </div>
 
                 {/* Search keywords */}
@@ -745,7 +766,7 @@ function OnboardingPage() {
                   <input
                     value={keywordSearch}
                     onChange={(e) => setKeywordSearch(e.target.value)}
-                    placeholder="Search 24 official disciplines..."
+                    placeholder="Search specialities..."
                     className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium text-primary focus:outline-none"
                   />
                 </div>
@@ -784,6 +805,23 @@ function OnboardingPage() {
                     profile and qualify you for verified RFP matches and trade leads.
                   </p>
                 </div>
+
+                {(() => {
+                  const detail = ROLE_DETAIL_FIELDS[userRole] ?? ROLE_DETAIL_FIELDS.farmer;
+                  return (
+                    <section className="rounded-2xl border border-outline-variant/35 bg-white p-4">
+                      <div className="mb-3">
+                        <h3 className="text-sm font-bold text-primary">{detail.label}</h3>
+                        <p className="mt-0.5 text-xs text-on-surface-variant">These details personalize your workspace and make your directory profile useful from day one.</p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="space-y-1"><span className="text-xs font-bold text-on-surface-variant">{detail.first}</span><input value={roleDetails.first} onChange={(e) => setRoleDetails({ ...roleDetails, first: e.target.value })} className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 py-2.5 text-xs text-primary focus:outline-none focus:border-primary" /></label>
+                        <label className="space-y-1"><span className="text-xs font-bold text-on-surface-variant">{detail.second}</span><input value={roleDetails.second} onChange={(e) => setRoleDetails({ ...roleDetails, second: e.target.value })} className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 py-2.5 text-xs text-primary focus:outline-none focus:border-primary" /></label>
+                      </div>
+                      <label className="mt-3 block space-y-1"><span className="text-xs font-bold text-on-surface-variant">{detail.tags}</span><input value={roleDetails.tags} onChange={(e) => setRoleDetails({ ...roleDetails, tags: e.target.value })} placeholder="Separate items with commas" className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 py-2.5 text-xs text-primary focus:outline-none focus:border-primary" /></label>
+                    </section>
+                  );
+                })()}
 
                 <div className="pt-3 flex justify-between items-center">
                   <button

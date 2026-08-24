@@ -27,17 +27,21 @@ export function AdSlot({ variant = "banner", className = "" }: { variant?: Varia
     let alive = true;
     supabase
       .from("ads")
-      .select("id,title,body,creative_url,target_url")
+      .select("id,title,body,creative_url,target_url,starts_at,ends_at")
       .eq("status", "approved")
-      .lte("starts_at", new Date().toISOString())
-      .gte("ends_at", new Date().toISOString())
       .not("creative_url", "is", null)
       .order("rotation_order")
-      .limit(5)
+      .limit(20)
       .then(({ data }) => {
         if (!alive || !data?.length) return;
-        // Rotation: stable per page-load pick weighted by rotation order.
-        const pick = data[Math.floor(Math.random() * data.length)] as AdRow;
+        const now = Date.now();
+        const active = (data as (AdRow & { starts_at?: string | null; ends_at?: string | null })[]).filter((item) => {
+          const starts = item.starts_at ? new Date(item.starts_at).getTime() : 0;
+          const ends = item.ends_at ? new Date(item.ends_at).getTime() : Infinity;
+          return starts <= now && ends >= now;
+        });
+        const pool = active.length > 0 ? active : (data as AdRow[]);
+        const pick = pool[Math.floor(Math.random() * pool.length)] as AdRow;
         setAd(pick);
         void supabase.rpc("track_ad_event", { p_ad_id: pick.id, p_event: "impression" });
       });

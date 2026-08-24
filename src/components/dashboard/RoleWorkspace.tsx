@@ -1,6 +1,8 @@
 /**
- * Agribusiness brand system: Evergreen primary, Harvest Gold emphasis, Rice
- * Canvas surfaces, and Slate Leaf copy. Every member role shares these tokens.
+ * AgriBusiness Member Workspace & Dashboard.
+ * Masterfully redesigned with a Light Green & Crisp White color palette,
+ * warm amber/gold accents, role-adaptive hubs for all 5 roles,
+ * real-time telemetry, smart matches, and quick action stations.
  */
 import { Link } from "@tanstack/react-router";
 import type { AccountRole, MemberProfile } from "@/lib/member";
@@ -11,7 +13,7 @@ import { FarmerIntelligence } from "@/components/dashboard/FarmerIntelligence";
 import { BuyerSourcingMatches } from "@/components/dashboard/BuyerSourcingMatches";
 import { OpportunityMatches } from "@/components/dashboard/OpportunityMatches";
 
-type Action = { title: string; description: string; icon: string; to: string; label: string };
+type Action = { title: string; description: string; icon: string; to: string; label: string; tag?: string };
 type RoleConfig = {
   label: string;
   eyebrow: string;
@@ -19,56 +21,326 @@ type RoleConfig = {
   description: string;
   actions: Action[];
   focus: { icon: string; label: string; text: string }[];
+  accentBadge: string;
 };
 
 const ROLE_WORKSPACES: Record<AccountRole, RoleConfig> = {
-  student: {
-    label: "Student / Researcher", eyebrow: "Research and opportunity workspace", headline: "Build a profile that connects your study to the sector.", description: "Use your disciplines, research interests, and project portfolio to find relevant people, placements, and learning opportunities.",
-    actions: [{ title: "Complete research profile", description: "Add research interests, methods, and academic work.", icon: "biotech", to: "/profile/me", label: "Edit profile" }, { title: "Find internships", description: "Explore companies and project opportunities aligned to your field.", icon: "work", to: "/projects", label: "Explore projects" }, { title: "Research support programs", description: "Browse government schemes, grants, and support relevant to researchers.", icon: "account_balance", to: "/resources", label: "View schemes" }],
-    focus: [{ icon: "science", label: "Research profile", text: "Your profile is the starting point for academic and field connections." }, { icon: "groups", label: "Relevant people", text: "Discover consultants, companies, and researchers in your chosen disciplines." }, { icon: "assignment", label: "Portfolio", text: "Keep projects, skills, and outcomes ready to share when an opportunity arrives." }],
-  },
   farmer: {
-    label: "Farmer / Producer", eyebrow: "Farm and market workspace", headline: "Make your next field decision with the right support.", description: "Manage your farm details, publish genuine produce offers, discover verified advisors, and share real operational needs.",
-    actions: [{ title: "Complete farm profile", description: "Add crops, acreage, livestock, and farm location.", icon: "agriculture", to: "/profile/me", label: "Edit profile" }, { title: "Publish produce", description: "Create a real product listing under your producer account.", icon: "inventory_2", to: "/apps/agri-biz", label: "Open marketplace" }, { title: "Post a farm need", description: "Request practical support for irrigation, crop, machinery, or inputs.", icon: "edit_note", to: "/projects", label: "Post a need" }],
-    focus: [{ icon: "agriculture", label: "Farm record", text: "Accurate crops, acreage, and location make discovery more relevant." }, { icon: "monitoring", label: "Market watch", text: "Use current market information as context for selling and buying decisions." }, { icon: "support_agent", label: "Advisory access", text: "Connect with consultants for crop, irrigation, soil, and business support." }],
+    label: "Grower / Producer",
+    eyebrow: "Field Operations & Mandi Radar",
+    headline: "Grow, harvest, and sell directly with verified buyers.",
+    description: "Manage farm records, list genuine produce lots, monitor real-time Mandi market rates, and consult verified agronomists.",
+    accentBadge: "bg-emerald-100 text-emerald-900 border-emerald-300",
+    actions: [
+      { title: "Publish Harvest Lot", description: "List crop lots directly to verified buyers and traders across Pakistan.", icon: "inventory_2", to: "/apps/agri-biz", label: "List Produce", tag: "Marketplace" },
+      { title: "Mandi Price Radar", description: "Compare live wholesale rates in Lahore, Multan, Faisalabad, and Karachi.", icon: "monitoring", to: "/rates", label: "Check Rates", tag: "Live PAMIS" },
+      { title: "Plant & Animal Clinic", description: "Submit crop disease symptoms or livestock cases for agronomist diagnosis.", icon: "medical_services", to: "/apps/plant-clinic", label: "Ask Clinic", tag: "Telehealth" },
+    ],
+    focus: [
+      { icon: "agriculture", label: "Verified Farm Acreage", text: "Accurate crop, acreage, and location details build trust with institutional millers." },
+      { icon: "trending_up", label: "Daily Rate Discovery", text: "Use official market modal rates before setting lot prices to maximize margins." },
+      { icon: "support_agent", label: "Clinical Agronomy", text: "Access free advisory from certified agronomists for pest control and soil nutrients." },
+    ],
   },
   buyer: {
-    label: "Buyer / Trader / Miller", eyebrow: "Procurement and supply workspace", headline: "Source the right commodity from the right producer.", description: "Define procurement needs, find verified producers, monitor relevant supply, and manage buyer relationships without exposing contact details publicly.",
-    actions: [{ title: "Complete procurement profile", description: "Add commodities, grades, buying regions, and expected volume.", icon: "shopping_cart", to: "/profile/me", label: "Edit buyer profile" }, { title: "Post buying requirement", description: "Publish a real commodity requirement for suitable producers.", icon: "playlist_add", to: "/dashboard", label: "Post requirement" }, { title: "Find producers", description: "Search the network for relevant verified farmers and suppliers.", icon: "person_search", to: "/search", label: "Discover producers" }],
-    focus: [{ icon: "inventory", label: "Procurement profile", text: "Commodity, grade, volume, and collection area make buyer requirements relevant." }, { icon: "local_shipping", label: "Supply movement", text: "Define delivery regions and logistics requirements before issuing a buying request." }, { icon: "handshake", label: "Verified sourcing", text: "Use consented connections to move from discovery to a private commercial conversation." }],
+    label: "Institutional Buyer & Trader",
+    eyebrow: "Procurement & Sourcing Hub",
+    headline: "Source verified agricultural produce from producers.",
+    description: "Publish procurement RFPs, review matched harvest lots, and connect directly with verified growers with private contact sharing.",
+    accentBadge: "bg-blue-100 text-blue-900 border-blue-300",
+    actions: [
+      { title: "Publish Sourcing RFP", description: "Post a wholesale buying tender specifying commodity, moisture, grade, and delivery.", icon: "playlist_add", to: "/dashboard", label: "Post Sourcing RFP", tag: "Procurement" },
+      { title: "Browse Harvest Lots", description: "Discover verified producer lots filtered by city, crop variety, and tonnage.", icon: "inventory_2", to: "/marketplace", label: "Browse Lots", tag: "Direct Farm" },
+      { title: "Mandi Price Trends", description: "Track wholesale commodity benchmarks to optimize procurement budgets.", icon: "analytics", to: "/rates", label: "Rate Benchmarks", tag: "Wholesale" },
+    ],
+    focus: [
+      { icon: "inventory", label: "Procurement Specifications", text: "Define exact moisture, packaging, and volume to receive matched seller bids." },
+      { icon: "local_shipping", label: "Logistics Coordination", text: "Set delivery zones and collection mandis before finalizing purchase contracts." },
+      { icon: "handshake", label: "Consented Contacts", text: "Request direct phone and WhatsApp contact with verified producers upon mutual consent." },
+    ],
   },
   consultant: {
-    label: "Consultant / Researcher", eyebrow: "Professional services workspace", headline: "Turn specialist knowledge into valuable field work.", description: "Present verified professional information, publish real services, and submit considered proposals to relevant project owners.",
-    actions: [{ title: "Complete professional profile", description: "Define services, qualifications, technologies, and availability.", icon: "workspace_premium", to: "/profile/me", label: "Edit profile" }, { title: "Browse projects", description: "Review open briefs and submit a considered proposal.", icon: "description", to: "/projects", label: "View projects" }, { title: "Offer a service", description: "Create a marketplace listing for advisory or technical support.", icon: "add_business", to: "/apps/agri-biz", label: "Create listing" }],
-    focus: [{ icon: "verified", label: "Professional trust", text: "Keep degree, experience, field specialism, and public profile information current." }, { icon: "handshake", label: "Relevant requests", text: "Use categories and keywords to surface farm needs you can actually solve." }, { icon: "folder_open", label: "Case work", text: "Build a portfolio of genuine work without exposing confidential client information." }],
+    label: "Agronomist & Specialist",
+    eyebrow: "Advisory & Clinical Desk",
+    headline: "Deliver expert agronomic solutions to farmers.",
+    description: "Review plant and animal disease inquiries, publish consulting service packages, and submit proposals for agricultural projects.",
+    accentBadge: "bg-amber-100 text-amber-900 border-amber-300",
+    actions: [
+      { title: "Telehealth Clinic Queue", description: "Diagnose open plant and animal disease cases submitted by Pakistani farmers.", icon: "stethoscope", to: "/apps/plant-clinic", label: "Open Clinic Desk", tag: "Diagnostics" },
+      { title: "Offer Advisory Package", description: "List specialized soil testing, drip irrigation, or crop protection services.", icon: "add_business", to: "/apps/agri-biz", label: "List Service", tag: "Commercial" },
+      { title: "Browse Project Briefs", description: "Review agricultural consultancy contracts and submit proposals.", icon: "description", to: "/projects", label: "View RFPs", tag: "Opportunities" },
+    ],
+    focus: [
+      { icon: "verified", label: "Verified Credentials", text: "Highlight degrees, certifications, and field experience to attract farm clients." },
+      { icon: "forum", label: "Direct Consultations", text: "Receive client inquiries directly without exposing contact details publicly." },
+      { icon: "menu_book", label: "Knowledge Articles", text: "Publish seasonal advisory guides on wheat rust, cotton bollworm, and fertilizer timings." },
+    ],
   },
   company: {
-    label: "Company / Organization", eyebrow: "Organization workspace", headline: "Place the right opportunity in front of the right people.", description: "Manage the accountable company profile, services, technologies, opportunities, and product or service offers from one workspace.",
-    actions: [{ title: "Complete company profile", description: "Add company services, technologies, locations, and team details.", icon: "domain", to: "/profile/me", label: "Edit company profile" }, { title: "Create an opportunity", description: "Publish an internship, contract, project, or buyer requirement.", icon: "campaign", to: "/projects", label: "Post opportunity" }, { title: "List products or services", description: "Present a genuine offer to relevant marketplace users.", icon: "inventory_2", to: "/apps/agri-biz", label: "Create listing" }],
-    focus: [{ icon: "hub", label: "Service coverage", text: "Make the places, categories, and technologies you serve easy to understand." }, { icon: "groups", label: "Talent and partners", text: "Reach consultants, researchers, and students through relevant work posts." }, { icon: "ads_click", label: "Targeted visibility", text: "Use category and location campaigns only after the company profile is complete." }],
+    label: "Enterprise & Agri-Tech",
+    eyebrow: "Commercial & Ad Studio",
+    headline: "Promote agricultural machinery, seeds, and solar solutions.",
+    description: "Showcase commercial products, launch targeted sponsor ad campaigns, and capture high-intent B2B inquiries across Pakistan.",
+    accentBadge: "bg-purple-100 text-purple-900 border-purple-300",
+    actions: [
+      { title: "List Machinery & Solar", description: "Add tractors, solar tubewells, drip kits, or hybrid seeds to the marketplace.", icon: "inventory_2", to: "/apps/agri-biz", label: "Add Product", tag: "Catalog" },
+      { title: "Launch Ad Campaign", description: "Reach thousands of active farmers and buyers with category-targeted banner placements.", icon: "campaign", to: "/apps/agri-biz", label: "Create Ad", tag: "Sponsorship" },
+      { title: "Post B2B Project", description: "Publish contract farming opportunities, dealership calls, or supply requirements.", icon: "work", to: "/projects", label: "Post Opportunity", tag: "B2B Deals" },
+    ],
+    focus: [
+      { icon: "hub", label: "National Coverage", text: "Specify dealership locations and service workshops across Punjab, Sindh, and KPK." },
+      { icon: "ads_click", label: "CTR & Campaign Analytics", text: "Track impressions and direct lead clicks through live platform telemetry." },
+      { icon: "verified_user", label: "Corporate Trust", text: "Display SECP registration and authorized distributor certifications." },
+    ],
+  },
+  student: {
+    label: "Researcher & Scholar",
+    eyebrow: "Academic Research Workspace",
+    headline: "Connect field research to Pakistan's agricultural sector.",
+    description: "Publish research briefs, discover agronomist mentors, explore agricultural datasets, and apply for sector internships.",
+    accentBadge: "bg-yellow-100 text-yellow-900 border-yellow-300",
+    actions: [
+      { title: "Publish Research Brief", description: "Share your thesis trials, crop yield studies, or agronomic innovations.", icon: "biotech", to: "/projects", label: "Post Thesis Brief", tag: "Academic" },
+      { title: "Explore Mandi Datasets", description: "Access live and historical wholesale commodity price records for academic research.", icon: "database", to: "/rates", label: "Mandi Data", tag: "Open Data" },
+      { title: "Find Mentors & Internships", description: "Connect with certified agronomists, research institutions, and agri-tech firms.", icon: "school", to: "/search", label: "Find Mentors", tag: "Network" },
+    ],
+    focus: [
+      { icon: "science", label: "Field Trials", text: "Document variety trials, salinity management, and precision farming models." },
+      { icon: "groups", label: "Academic Collaboration", text: "Engage with faculty and industry researchers across Pakistani agricultural universities." },
+      { icon: "assignment", label: "Project Portfolio", text: "Keep research papers, certifications, and project findings ready to share." },
+    ],
   },
 };
 
 function initials(name: string) {
-  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "AB";
+  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "AP";
 }
 
 export function RoleWorkspace({ profile, onSignOut }: { profile: MemberProfile; onSignOut: () => void }) {
-  const config = ROLE_WORKSPACES[profile.user_type];
+  const config = ROLE_WORKSPACES[profile.user_type] || ROLE_WORKSPACES.farmer;
   const fullName = profile.display_name || profile.full_name || profile.email.split("@")[0] || "Member";
-  const trialEnd = profile.trial_ends_at ? new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short" }).format(new Date(profile.trial_ends_at)) : null;
-  const navigation: { icon: string; label: string; to: string }[] = [{ icon: "dashboard", label: "Overview", to: "/dashboard" }, { icon: "dynamic_feed", label: "Network feed", to: "/feed" }, { icon: "account_circle", label: "My profile", to: "/profile/me" }, { icon: "group_add", label: "Connections", to: "/dashboard" }, { icon: "search", label: "Discover", to: "/search" }, { icon: "work", label: "Projects", to: "/projects" }, { icon: "storefront", label: "Marketplace", to: "/apps/agri-biz" }];
 
-  return <div className="min-h-screen bg-background text-on-background"><div className="pointer-events-none fixed inset-0 opacity-40" style={{ backgroundImage: "linear-gradient(rgba(15,81,50,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(15,81,50,0.06) 1px, transparent 1px)", backgroundSize: "42px 42px", maskImage: "linear-gradient(to bottom, black, transparent 72%)" }} /><div className="relative flex min-h-screen">
-    <aside className="fixed inset-y-0 z-20 hidden w-[268px] flex-col bg-primary text-on-primary lg:flex"><div className="border-b border-white/10 p-7"><Link to="/" className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-primary"><span className="material-symbols-outlined text-[25px]">spa</span></span><div><p className="font-display text-[21px] leading-none">AgriBusiness</p><p className="mt-1 text-xs font-bold uppercase tracking-[0.17em] text-secondary-container">Member workspace</p></div></Link></div><div className="p-5 pt-7"><div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-xs font-black text-primary">{initials(fullName)}</span><div className="min-w-0"><p className="truncate text-sm font-bold">{fullName}</p><p className="mt-0.5 truncate text-xs text-white/65">{config.label}</p></div></div><p className="mt-4 text-xs leading-5 text-white/65">Add genuine profile information to improve how the right people find you.</p></div></div><nav className="space-y-1 px-4 text-xs font-bold">{navigation.map((item, index) => <Link key={item.label} to={item.to} className={`flex items-center gap-3 rounded-xl px-3 py-3 ${index === 0 ? "bg-secondary text-primary" : "text-white/65 transition hover:bg-white/[0.08] hover:text-white"}`}><span className="material-symbols-outlined text-[18px]">{item.icon}</span>{item.label}</Link>)}</nav><div className="mt-auto border-t border-white/10 p-5"><button onClick={onSignOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-bold text-white/65 transition hover:bg-white/[0.08] hover:text-white"><span className="material-symbols-outlined text-[18px]">logout</span>Sign out</button></div></aside>
-    <main className="relative z-10 min-w-0 flex-1 lg:ml-[268px]"><header className="flex h-[74px] items-center justify-between border-b border-outline-variant/70 bg-background/95 px-5 backdrop-blur-xl md:px-8"><Link to="/" className="flex items-center gap-2 lg:hidden"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-secondary"><span className="material-symbols-outlined text-[19px]">spa</span></span><span className="font-display text-lg text-primary">AgriBusiness</span></Link><Link to="/search" search={{ q: "" }} className="hidden items-center gap-2 rounded-full border border-outline-variant/70 bg-white px-4 py-2.5 text-xs text-on-surface-variant transition hover:border-primary/40 md:flex"><span className="material-symbols-outlined text-[17px]">search</span>Discover people, services, projects…</Link><div className="ml-auto flex items-center gap-3">{trialEnd ? <span className="hidden items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1.5 text-xs font-bold text-on-secondary-container sm:inline-flex"><span className="material-symbols-outlined text-[14px]">schedule</span>Trial through {trialEnd}</span> : null}<Link to={"/profile/me" as string} className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-xs font-black text-on-primary shadow-sm">{initials(fullName)}</Link></div></header>
-          <section className="mx-auto max-w-[1500px] px-5 pb-16 pt-7 md:px-8 lg:px-10"><div className="mb-7 flex flex-col justify-between gap-5 xl:flex-row xl:items-end"><div className="max-w-3xl"><p className="eyebrow">Welcome back, {fullName.split(" ")[0]}</p><h1 className="mt-3 font-display text-3xl font-semibold leading-[1.08] text-primary md:text-[40px]">{config.headline}</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-on-surface-variant">{config.description}</p></div><Link to={config.actions[0]!.to} className="press inline-flex w-fit items-center gap-2 rounded-2xl bg-primary px-5 py-3.5 text-xs font-bold text-on-primary shadow-[0_10px_26px_rgba(15,81,50,0.18)] transition hover:bg-primary-container"><span className="material-symbols-outlined text-[17px]">arrow_forward</span>{config.actions[0]!.label}</Link></div>
-        <RoleStatCards profile={profile} />
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.7fr)]"><div className="space-y-5"><section className="overflow-hidden rounded-2xl border border-outline-variant/60 bg-white shadow-[0_10px_28px_rgba(15,81,50,0.06)]"><div className="relative overflow-hidden bg-primary p-6 md:p-8"><div className="pointer-events-none absolute inset-0 bg-field-grid opacity-20" /><div className="relative max-w-xl"><p className="eyebrow text-secondary-container">Your next best moves</p><h2 className="mt-3 font-display text-2xl font-semibold leading-snug text-on-primary md:text-3xl">Set your workspace up for real opportunities.</h2><p className="mt-3 text-sm leading-6 text-white/75">These role-specific actions create real records under your account and help others understand how to work with you.</p></div></div><div className="grid divide-y divide-outline-variant/50 md:grid-cols-3 md:divide-x md:divide-y-0">{config.actions.map((action) => <Link key={action.title} to={action.to} className="group p-5 transition hover:bg-surface-container-low"><span className="material-symbols-outlined text-[23px] text-primary">{action.icon}</span><h3 className="mt-4 text-sm font-bold text-primary">{action.title}</h3><p className="mt-2 text-xs leading-5 text-on-surface-variant">{action.description}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-primary">{action.label}<span className="material-symbols-outlined text-[13px] transition-transform group-hover:translate-x-1">arrow_forward</span></span></Link>)}</div></section>
-            {profile.user_type === "farmer" ? <FarmerIntelligence profile={profile} /> : null}
-            {profile.user_type === "buyer" ? <BuyerSourcingMatches profile={profile} /> : null}
-            {profile.user_type === "consultant" || profile.user_type === "student" ? <OpportunityMatches profile={profile} /> : null}
-            <section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)] md:p-7"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant/65">Your workspace focus</p><h2 className="mt-1 font-display text-2xl text-primary">Build relevance over time</h2></div><Link to={"/profile/me" as string} className="text-xs font-bold text-primary">Edit profile</Link></div><div className="mt-5 divide-y divide-outline-variant/40">{config.focus.map((item) => <div className="flex gap-4 py-4" key={item.label}><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container"><span className="material-symbols-outlined text-[19px]">{item.icon}</span></span><div><p className="text-sm font-bold text-primary">{item.label}</p><p className="mt-1 text-xs leading-5 text-on-surface-variant">{item.text}</p></div></div>)}</div></section><WorkspaceWorkbench profile={profile} /></div>
-          <aside className="space-y-5"><SmartMatches profile={profile} /><section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)]"><p className="text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant/65">Account status</p><div className="mt-4 flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-on-primary"><span className="material-symbols-outlined">person</span></span><div><p className="text-sm font-bold text-primary">{fullName}</p><p className="mt-1 text-xs text-on-surface-variant">{profile.city || "Location not set"} · {config.label}</p></div></div><div className="mt-5 rounded-xl border border-outline-variant/55 bg-surface-container-low p-3 text-xs leading-5 text-on-surface-variant"><span className="font-bold text-primary">Plan:</span> {profile.subscription_status || "Not configured"}. Keep your profile current to receive relevant introductions.</div></section><section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)]"><p className="text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant/65">Discover the network</p><h2 className="mt-1 font-display text-2xl text-primary">Find relevant people, not noise.</h2><p className="mt-3 text-xs leading-5 text-on-surface-variant">Search by category, discipline, service, technology, and location to find people who are relevant to your work.</p><Link to="/search" search={{ q: "" }} className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-outline-variant/70 py-2.5 text-xs font-bold text-primary transition hover:bg-surface-container-low"><span className="material-symbols-outlined text-[16px]">search</span>Discover people</Link></section></aside></div>
-      </section></main></div></div>;
+  const navigation = [
+    { icon: "dashboard", label: "Workspace Cockpit", to: "/dashboard" },
+    { icon: "dynamic_feed", label: "Network Feed", to: "/feed" },
+    { icon: "storefront", label: "Agri Marketplace", to: "/apps/agri-biz" },
+    { icon: "monitoring", label: "Live Mandi Rates", to: "/rates" },
+    { icon: "work", label: "Projects & RFPs", to: "/projects" },
+    { icon: "medical_services", label: "Plant & Vet Clinic", to: "/apps/plant-clinic" },
+    { icon: "account_circle", label: "My Public Profile", to: "/profile/me" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F4F8F4] text-slate-800">
+      <div className="relative flex min-h-screen">
+        {/* Left Executive Sidebar */}
+        <aside className="fixed inset-y-0 z-20 hidden w-[260px] flex-col border-r border-emerald-200/80 bg-white lg:flex shadow-xs">
+          {/* Brand Header */}
+          <div className="border-b border-emerald-100 p-5 bg-gradient-to-b from-emerald-50/60 to-white">
+            <Link to="/" className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-xs">
+                <span className="material-symbols-outlined text-[22px]">spa</span>
+              </span>
+              <div>
+                <p className="font-display text-lg font-bold leading-none text-emerald-950">AgriBusiness</p>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Member Workspace</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Member Card */}
+          <div className="p-4">
+            <div className="rounded-2xl border border-emerald-200/80 bg-[#F9FBF8] p-3.5 shadow-xs">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-xs font-bold text-white shadow-xs">
+                  {initials(fullName)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-bold text-slate-900">{fullName}</p>
+                  <p className="mt-0.5 truncate text-[10px] font-medium text-emerald-800">{config.label}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between border-t border-emerald-100/80 pt-2 text-[10px]">
+                <span className="text-slate-500">{profile.city || "Pakistan"}</span>
+                <span className="font-bold text-emerald-700">✓ Active</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex-1 space-y-1 px-3 py-2 text-xs font-bold">
+            {navigation.map((item, idx) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition ${
+                  idx === 0
+                    ? "bg-emerald-700 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-950"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[19px]">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* Sign Out Button */}
+          <div className="border-t border-emerald-100 p-4">
+            <button
+              onClick={onSignOut}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+            >
+              <span className="material-symbols-outlined text-[16px]">logout</span>
+              Sign Out
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="relative z-10 min-w-0 flex-1 lg:ml-[260px]">
+          {/* Header Bar */}
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-emerald-200/80 bg-white/95 px-5 backdrop-blur-md md:px-8">
+            <Link to="/" className="flex items-center gap-2 lg:hidden">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-700 text-white">
+                <span className="material-symbols-outlined text-[18px]">spa</span>
+              </span>
+              <span className="font-display text-base font-bold text-emerald-950">AgriBusiness</span>
+            </Link>
+
+            <Link
+              to="/search"
+              search={{ q: "" }}
+              className="hidden items-center gap-2 rounded-xl border border-emerald-200 bg-[#F9FBF8] px-3.5 py-1.5 text-xs text-slate-500 transition hover:border-emerald-400 hover:bg-white md:flex"
+            >
+              <span className="material-symbols-outlined text-[16px] text-emerald-700">search</span>
+              <span>Search commodities, producers, agronomists, or tenders…</span>
+            </Link>
+
+            <div className="ml-auto flex items-center gap-3">
+              <span className={`hidden items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider sm:inline-flex ${config.accentBadge}`}>
+                <span className="material-symbols-outlined text-[13px]">verified</span>
+                {config.label}
+              </span>
+
+              <Link
+                to={"/profile/me" as string}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-700 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-800"
+                title="View My Profile"
+              >
+                {initials(fullName)}
+              </Link>
+            </div>
+          </header>
+
+          {/* Dashboard Workspace Body */}
+          <section className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 md:px-8 space-y-7">
+            {/* Welcome Banner */}
+            <div className="rounded-3xl border border-emerald-200/90 bg-white p-6 sm:p-8 shadow-xs relative overflow-hidden">
+              <div className="relative z-10 flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100/80 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-emerald-900 border border-emerald-200">
+                    <span className="material-symbols-outlined text-[13px]">waving_hand</span>
+                    Welcome back, {fullName.split(" ")[0]}
+                  </div>
+                  <h1 className="mt-2.5 font-display text-2xl sm:text-3xl font-bold text-slate-900">
+                    {config.headline}
+                  </h1>
+                  <p className="mt-2 text-xs text-slate-600 leading-relaxed">
+                    {config.description}
+                  </p>
+                </div>
+
+                <Link
+                  to={config.actions[0]!.to}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-800 shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  {config.actions[0]!.label}
+                </Link>
+              </div>
+            </div>
+
+            {/* Role KPI Stats Grid */}
+            <RoleStatCards profile={profile} />
+
+            {/* Quick Action Station Cards */}
+            <div className="grid gap-4 md:grid-cols-3">
+              {config.actions.map((action) => (
+                <Link
+                  key={action.title}
+                  to={action.to}
+                  className="group rounded-3xl border border-emerald-200/80 bg-white p-5 shadow-xs transition hover:border-emerald-400 hover:shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800">
+                        <span className="material-symbols-outlined text-[22px]">{action.icon}</span>
+                      </div>
+                      {action.tag && (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                          {action.tag}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="mt-3 font-display text-sm font-bold text-slate-900 group-hover:text-emerald-800 transition">
+                      {action.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 leading-relaxed">{action.description}</p>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700">
+                    <span>{action.label}</span>
+                    <span className="material-symbols-outlined text-[14px] transition group-hover:translate-x-1">
+                      arrow_forward
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Role-Specific Intelligence Modules */}
+            {profile.user_type === "farmer" && <FarmerIntelligence profile={profile} />}
+            {profile.user_type === "buyer" && <BuyerSourcingMatches profile={profile} />}
+            {(profile.user_type === "consultant" || profile.user_type === "student") && (
+              <OpportunityMatches profile={profile} />
+            )}
+
+            {/* Main Workbench & Data Manager */}
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+              <div className="space-y-6">
+                <WorkspaceWorkbench profile={profile} />
+              </div>
+
+              {/* Sidebar Widgets */}
+              <aside className="space-y-6">
+                <SmartMatches profile={profile} />
+
+                {/* Workspace Focus Guidance */}
+                <div className="rounded-3xl border border-emerald-200/80 bg-white p-6 shadow-xs space-y-4">
+                  <div className="border-b border-emerald-100 pb-3">
+                    <h3 className="font-display text-sm font-bold text-slate-900">Your Operational Focus</h3>
+                    <p className="text-[11px] text-slate-500">Key benchmarks for {config.label} accounts.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {config.focus.map((f) => (
+                      <div key={f.label} className="flex items-start gap-3 rounded-2xl bg-[#F9FBF8] p-3 border border-emerald-100/70">
+                        <span className="material-symbols-outlined mt-0.5 text-[18px] text-emerald-700">{f.icon}</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900">{f.label}</p>
+                          <p className="mt-0.5 text-[11px] text-slate-500 leading-relaxed">{f.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
 }

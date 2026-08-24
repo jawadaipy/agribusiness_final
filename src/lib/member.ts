@@ -52,7 +52,7 @@ export async function getAuthenticatedPlatformProfile(): Promise<{
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
+    .select("id,email,full_name,display_name,user_type,city,primary_discipline,trial_ends_at,subscription_status,is_verified,is_active")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -74,7 +74,7 @@ export async function getAuthenticatedMember(): Promise<{
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
+    .select("id,email,full_name,display_name,user_type,city,primary_discipline,trial_ends_at,subscription_status,is_verified,is_active")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -105,7 +105,7 @@ export async function getAuthenticatedMember(): Promise<{
         },
         { onConflict: "id" },
       )
-      .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
+      .select("id,email,full_name,display_name,user_type,city,primary_discipline,trial_ends_at,subscription_status,is_verified,is_active")
       .maybeSingle();
 
     if (inserted && isAccountRole(inserted.user_type)) {
@@ -124,6 +124,7 @@ export async function getAuthenticatedMember(): Promise<{
       display_name: fullName,
       user_type: role,
       city: city,
+      primary_discipline: (user.user_metadata?.["primary_discipline"] as string) || null,
       trial_ends_at: null,
       subscription_status: "Active",
       is_verified: false,
