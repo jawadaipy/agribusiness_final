@@ -105,6 +105,7 @@ function ProfilePage() {
   const [userClinicPosts, setUserClinicPosts] = useState<UserClinicPost[]>([]);
 
   // Connection & privacy states
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [connection, setConnection] = useState<ConnectionState | null>(null);
   const [connectionContact, setConnectionContact] = useState<ContactCard | null>(null);
   const [connectionLoading, setConnectionLoading] = useState(false);
@@ -121,16 +122,17 @@ function ProfilePage() {
     setConnectionContact(null);
 
     const { data: authData } = await supabase.auth.getUser();
-    const currentUserId = authData.user?.id;
+    const curId = authData.user?.id || null;
+    setCurrentUserId(curId);
     const isSelfRoute = id === "me" || id === "self";
 
-    if (isSelfRoute && !currentUserId) {
+    if (isSelfRoute && !curId) {
       navigate({ to: "/onboarding", replace: true });
       return;
     }
 
-    const effectiveId = isSelfRoute ? currentUserId! : id;
-    const owner = currentUserId === effectiveId;
+    const effectiveId = isSelfRoute ? curId! : id;
+    const owner = curId === effectiveId;
     setIsOwner(owner);
 
     // Fetch profile, private data, and public portfolios in parallel
@@ -281,6 +283,34 @@ function ProfilePage() {
     setConnectionLoading(false);
   };
 
+  const handleAcceptConnection = async () => {
+    if (!connection) return;
+    setConnectionLoading(true);
+    const { error } = await supabase
+      .from("connection_requests")
+      .update({ status: "accepted" })
+      .eq("id", connection.id);
+    if (!error) {
+      setConnection({ ...connection, status: "accepted" });
+      setConnectionFeedback("Connection accepted! Direct contact details are now exchanged.");
+    }
+    setConnectionLoading(false);
+  };
+
+  const handleDeclineConnection = async () => {
+    if (!connection) return;
+    setConnectionLoading(true);
+    const { error } = await supabase
+      .from("connection_requests")
+      .update({ status: "declined" })
+      .eq("id", connection.id);
+    if (!error) {
+      setConnection({ ...connection, status: "declined" });
+      setConnectionFeedback("Connection request declined.");
+    }
+    setConnectionLoading(false);
+  };
+
   const copyProfileLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopyFeedback(true);
@@ -373,27 +403,50 @@ function ProfilePage() {
                       </button>
                     ) : (
                       <>
-                        <button
-                          type="button"
-                          onClick={handleConnectionAction}
-                          disabled={connectionLoading}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-xs ${
-                            connection?.status === "accepted"
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                        {connection?.status === "pending" && connection.requester_profile_id !== currentUserId ? (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={handleAcceptConnection}
+                              disabled={connectionLoading}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-emerald-800 shadow-xs disabled:opacity-60 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                              Accept Request
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDeclineConnection}
+                              disabled={connectionLoading}
+                              className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">close</span>
+                              Decline
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleConnectionAction}
+                            disabled={connectionLoading}
+                            className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition shadow-xs cursor-pointer ${
+                              connection?.status === "accepted"
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : connection?.status === "pending"
+                                ? "bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200"
+                                : "bg-emerald-700 text-white hover:bg-emerald-800"
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              {connection?.status === "accepted" ? "handshake" : connection?.status === "pending" ? "hourglass_top" : "person_add"}
+                            </span>
+                            {connection?.status === "accepted"
+                              ? "Connected (Contacts Shared)"
                               : connection?.status === "pending"
-                              ? "bg-amber-100 text-amber-900 border border-amber-300"
-                              : "bg-emerald-700 text-white hover:bg-emerald-800"
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            {connection?.status === "accepted" ? "handshake" : connection?.status === "pending" ? "hourglass_top" : "person_add"}
-                          </span>
-                          {connection?.status === "accepted"
-                            ? "Connected (Contacts Shared)"
-                            : connection?.status === "pending"
-                            ? "Request Pending (Withdraw)"
-                            : "Request Direct Contact"}
-                        </button>
+                              ? "Request Pending (Withdraw)"
+                              : "Request Direct Contact"}
+                          </button>
+                        )}
 
                         <Link
                           to="/messages"
