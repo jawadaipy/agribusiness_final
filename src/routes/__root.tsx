@@ -9,12 +9,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 
 import appCss from "../styles.css?url";
 import { LanguageProvider, useTranslation } from "@/lib/i18n";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
-import { PageFade } from "@/components/motion/Reveal";
+import { PageFade, ScrollProgress } from "@/components/motion/Reveal";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -92,9 +93,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
+      { title: "AgriBusiness — Pakistan's Agri Professional Network" },
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AgriBusiness — Pakistan's Premier Agri-Tech Marketplace" },
       { name: "description", content: "Empowering Pakistan's agriculture sector. Connect with farmers, experts, suppliers, and institutions." },
       { property: "og:title", content: "AgriBusiness Pakistan" },
       { property: "og:description", content: "Pakistan's premier digital agriculture network and B2B marketplace." },
@@ -109,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.json" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" },
     ],
   }),
@@ -148,10 +149,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PageFade routeKey={pathname}>
-        <Outlet />
-      </PageFade>
-      <Toaster position="top-right" richColors closeButton />
+      <MotionConfig reducedMotion="user">
+        <ScrollProgress />
+        <PageFade routeKey={pathname}>
+          <Outlet />
+        </PageFade>
+        <Toaster position="top-right" richColors closeButton />
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

@@ -5,8 +5,7 @@ import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/apps/")({
   head: () => ({
-    title: "Our Apps Suite | AgriBusiness Pakistan",
-    meta: [
+    meta: [{ title: "Our Apps Suite | AgriBusiness Pakistan" },
       {
         name: "description",
         content: "Explore AgriBusiness suite of companion apps: Agri Biz Trading Floor, Animal Clinic, Plant Clinic, and Agri-Education Portal.",

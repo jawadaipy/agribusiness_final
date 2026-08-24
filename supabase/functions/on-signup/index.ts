@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
     )
 
     const requestedType = user.user_metadata?.user_type as string | undefined
-    const ALLOWED_TYPES = ['student', 'company', 'consultant', 'farmer', 'org']
+    const ALLOWED_TYPES = ['student', 'company', 'consultant', 'farmer', 'buyer']
     const safeType = ALLOWED_TYPES.includes(requestedType ?? '')
       ? requestedType!
       : 'farmer'

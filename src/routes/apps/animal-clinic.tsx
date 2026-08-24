@@ -34,8 +34,7 @@ const AnimalClinicPage = () => (
 
 export const Route = createFileRoute("/apps/animal-clinic")({
   head: () => ({
-    title: "Animal Clinic | Veterinary Telehealth | AgriBusiness",
-    meta: [
+    meta: [{ title: "Animal Clinic | Veterinary Telehealth | AgriBusiness" },
       { name: "description", content: "Veterinary telehealth advisory for dairy and livestock farmers." },
       { property: "og:title", content: "AgriBusiness Animal Clinic" },
       { property: "og:description", content: "Certified veterinary telehealth support for cattle, poultry, and livestock." },

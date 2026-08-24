@@ -10,8 +10,7 @@ import { getAuthenticatedPlatformProfile } from "@/lib/member";
 
 export const Route = createFileRoute("/admin-login")({
   head: () => ({
-    title: "Admin Portal | AgriBusiness Pakistan",
-    meta: [{ name: "robots", content: "noindex, nofollow" }],
+    meta: [{ title: "Admin Portal | AgriBusiness Pakistan" },{ name: "robots", content: "noindex, nofollow" }],
   }),
   component: AdminLoginPage,
 });
@@ -30,7 +29,7 @@ function AdminLoginPage() {
       const { user, profile } = await getAuthenticatedPlatformProfile();
       if (!mounted) return;
       if (user && profile?.user_type === "admin") {
-        navigate({ to: "/admin/", replace: true });
+        navigate({ to: "/admin", replace: true });
         return;
       }
       if (user) {
@@ -62,7 +61,7 @@ function AdminLoginPage() {
       setLoading(false);
       return;
     }
-    navigate({ to: "/admin/", replace: true });
+    navigate({ to: "/admin", replace: true });
   };
 
   return (
@@ -85,7 +84,7 @@ function AdminLoginPage() {
             <p className="mt-2 text-sm leading-6 text-on-surface-variant">Enter the credentials assigned to your administrator account. Access is verified again against the database role.</p>
             {error ? <div className="mt-6 rounded-xl border border-error/25 bg-error/10 p-3 text-xs leading-5 text-error">{error}</div> : null}
             {checking ? <div className="mt-8 rounded-xl border border-outline-variant bg-white p-4 text-xs font-medium text-on-surface-variant">Checking existing secure session…</div> : <form onSubmit={handleSubmit} className="mt-8 space-y-5"><label className="block space-y-1.5"><span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Administrator email</span><input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.com" className="w-full rounded-xl border border-outline-variant/60 bg-white px-4 py-3 text-sm font-medium text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15" /></label><label className="block space-y-1.5"><span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Password</span><input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" className="w-full rounded-xl border border-outline-variant/60 bg-white px-4 py-3 text-sm font-medium text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15" /></label><button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-xs font-bold uppercase tracking-[0.12em] text-on-primary transition hover:bg-primary-container disabled:opacity-50"><span className="material-symbols-outlined text-[17px]" aria-hidden="true">lock</span>{loading ? "Verifying access…" : "Enter Super Admin portal"}</button></form>}
-            <p className="mt-6 text-[11px] leading-5 text-on-surface-variant">Administrator accounts are provisioned privately. The standard member registration flow never creates an admin role.</p>
+            <p className="mt-6 text-xs leading-5 text-on-surface-variant">Administrator accounts are provisioned privately. The standard member registration flow never creates an admin role.</p>
           </div>
         </section>
       </div>

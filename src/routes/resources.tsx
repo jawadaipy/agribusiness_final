@@ -12,8 +12,7 @@ import { GOV_SCHEMES, SCHEME_PROVINCES, SCHEME_CATEGORIES, CATEGORY_ICONS, type 
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
-    title: "Government Schemes & Support | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "A curated guide to Pakistani agricultural support programs — loans, subsidies, crop insurance, land records, and advisory services." }],
+    meta: [{ title: "Government Schemes & Support | AgriBusiness Pakistan" },{ name: "description", content: "A curated guide to Pakistani agricultural support programs — loans, subsidies, crop insurance, land records, and advisory services." }],
   }),
   component: ResourcesPage,
 });
@@ -35,7 +34,7 @@ function ResourcesPage() {
         <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           {/* Hero */}
           <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-primary">
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[.12em] text-primary">
               <span className="material-symbols-outlined text-[14px]">account_balance</span>
               Government support directory
             </p>
@@ -49,14 +48,14 @@ function ResourcesPage() {
           {/* Filters */}
           <div className="mt-7 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant/70">Region</span>
+              <span className="text-xs font-bold uppercase tracking-[.12em] text-on-surface-variant/70">Region</span>
               {SCHEME_PROVINCES.map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => setProvince(p)}
                   className={cn(
-                    "rounded-xl px-3 py-1.5 text-[11px] font-bold transition",
+                    "rounded-xl px-3 py-1.5 text-xs font-bold transition",
                     province === p ? "bg-primary text-on-primary" : "control-secondary",
                   )}
                 >
@@ -65,11 +64,11 @@ function ResourcesPage() {
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant/70">Type</span>
+              <span className="text-xs font-bold uppercase tracking-[.12em] text-on-surface-variant/70">Type</span>
               <button
                 type="button"
                 onClick={() => setCategory("all")}
-                className={cn("rounded-xl px-3 py-1.5 text-[11px] font-bold transition", category === "all" ? "bg-primary text-on-primary" : "control-secondary")}
+                className={cn("rounded-xl px-3 py-1.5 text-xs font-bold transition", category === "all" ? "bg-primary text-on-primary" : "control-secondary")}
               >
                 All types
               </button>
@@ -79,7 +78,7 @@ function ResourcesPage() {
                   type="button"
                   onClick={() => setCategory(c)}
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-bold transition",
+                    "inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition",
                     category === c ? "bg-primary text-on-primary" : "control-secondary",
                   )}
                 >
@@ -110,18 +109,18 @@ function ResourcesPage() {
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">{scheme.category}</span>
-                    <span className="rounded-full bg-surface-container px-2 py-0.5 text-[9px] font-bold text-on-surface-variant">{scheme.province}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold uppercase text-primary">{scheme.category}</span>
+                    <span className="rounded-full bg-surface-container px-2 py-0.5 text-xs font-bold text-on-surface-variant">{scheme.province}</span>
                   </div>
 
                   <p className="mt-3 text-xs leading-5 text-on-surface-variant">{scheme.summary}</p>
 
                   <div className="mt-4 space-y-3 border-t border-outline-variant/40 pt-3">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant/70">Who qualifies</p>
+                      <p className="text-xs font-bold uppercase tracking-[.1em] text-on-surface-variant/70">Who qualifies</p>
                       <ul className="mt-1 space-y-1">
                         {scheme.eligibility.map((item) => (
-                          <li key={item} className="flex items-start gap-1.5 text-[11px] leading-4 text-on-surface-variant">
+                          <li key={item} className="flex items-start gap-1.5 text-xs leading-4 text-on-surface-variant">
                             <span className="material-symbols-outlined mt-px text-[12px] text-primary">check</span>
                             {item}
                           </li>
@@ -129,10 +128,10 @@ function ResourcesPage() {
                       </ul>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant/70">How to apply</p>
+                      <p className="text-xs font-bold uppercase tracking-[.1em] text-on-surface-variant/70">How to apply</p>
                       <ol className="mt-1 space-y-1">
                         {scheme.howToApply.map((step, index) => (
-                          <li key={step} className="flex items-start gap-1.5 text-[11px] leading-4 text-on-surface-variant">
+                          <li key={step} className="flex items-start gap-1.5 text-xs leading-4 text-on-surface-variant">
                             <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-black text-primary">{index + 1}</span>
                             {step}
                           </li>
@@ -145,7 +144,7 @@ function ResourcesPage() {
                     href={scheme.source.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-auto inline-flex w-fit items-center gap-1.5 pt-4 text-[11px] font-bold text-primary transition hover:underline"
+                    className="mt-auto inline-flex w-fit items-center gap-1.5 pt-4 text-xs font-bold text-primary transition hover:underline"
                   >
                     <span className="material-symbols-outlined text-[14px]">open_in_new</span>
                     {scheme.source.label}
@@ -156,7 +155,7 @@ function ResourcesPage() {
           )}
 
           {/* Disclaimer */}
-          <p className="mt-8 rounded-2xl border border-secondary/30 bg-secondary-container/40 p-4 text-[11px] leading-5 text-on-surface-variant">
+          <p className="mt-8 rounded-2xl border border-secondary/30 bg-secondary-container/40 p-4 text-xs leading-5 text-on-surface-variant">
             <span className="font-bold text-primary">Verify before you apply:</span> scheme windows, subsidy rates, and eligibility rules
             change with government notifications. Always confirm current details with the issuing department or your district office
             before travelling or submitting documents. AgriBusiness lists programs for awareness and never charges for applications.

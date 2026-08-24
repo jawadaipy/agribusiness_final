@@ -54,7 +54,7 @@ export function SaveButton({
       aria-pressed={saved}
       className={`inline-flex items-center justify-center gap-1 rounded-xl border transition ${
         saved ? "border-primary/40 bg-primary/10 text-primary" : "border-outline-variant/60 bg-white text-on-surface-variant hover:border-primary/30 hover:text-primary"
-      } ${compact ? "h-8 w-8" : "px-2.5 py-1.5 text-[10px] font-bold"}`}
+      } ${compact ? "h-8 w-8" : "px-2.5 py-1.5 text-xs font-bold"}`}
     >
       <span className="material-symbols-outlined text-[15px]">{saved ? "bookmark_added" : "bookmark_add"}</span>
       {!compact && (saved ? "Saved" : "Save")}

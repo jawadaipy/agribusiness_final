@@ -16,8 +16,8 @@ import { Link as RouterLink } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/profile/$id")({
   head: () => ({
-    title: "Member Profile | AgriBusiness Pakistan",
     meta: [
+      { title: "Member Profile | AgriBusiness Pakistan" },
       { name: "description", content: "View an AgriBusiness member's public professional profile." },
       { property: "og:title", content: "AgriBusiness Member Profile" },
       { property: "og:type", content: "profile" },

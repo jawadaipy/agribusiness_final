@@ -8,7 +8,7 @@
  */
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type Variants } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
 import { normalizeUnit, useMarketRates } from "@/hooks/useMarketRates";
 import { EASE_OUT_EXPO } from "@/components/motion/Reveal";
@@ -29,15 +29,69 @@ const enterItem: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_OUT_EXPO } },
 };
 
+/** Word-by-word headline reveal — each word rises in sequence. */
+function StaggerHeadline() {
+  const { t } = useTranslation();
+  const reduced = useReducedMotion();
+  const line1 = t("hero_headline_1");
+  const line2 = t("hero_headline_2");
+  const words: { text: string; accent: boolean }[] = [
+    ...line1.split(" ").map((w) => ({ text: w, accent: false })),
+    ...line2.split(" ").map((w) => ({ text: w, accent: true })),
+  ];
+  if (reduced) {
+    return (
+      <h1 className="display-hero mt-6 max-w-[11ch] text-[42px] text-white sm:text-[52px] lg:text-[60px]">
+        {line1} <em className="text-secondary-light">{line2}</em>
+      </h1>
+    );
+  }
+  return (
+    <h1 className="display-hero mt-6 max-w-[11ch] text-[42px] text-white sm:text-[52px] lg:text-[60px]" aria-label={`${line1} ${line2}`}>
+      {words.map((w, i) => (
+        <span key={`${w.text}-${i}`} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+          <motion.span
+            className={`inline-block ${w.accent ? "text-secondary-light" : ""}`}
+            initial={{ y: "110%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.18 + i * 0.055, ease: EASE_OUT_EXPO }}
+          >
+            {w.text}
+            {i < words.length - 1 ? "\u00A0" : ""}
+          </motion.span>
+        </span>
+      ))}
+    </h1>
+  );
+}
+
 /** Counts up when in view; static under reduced motion. `fast` ticks like a rate board. */
 function Counter({ to, fast = false }: { to: number; fast?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
   const reduced = useReducedMotion();
-  const [value, setValue] = useState(reduced ? to : 0);
+  const [started, setStarted] = useState(false);
+  const [value, setValue] = useState(to);
 
   useEffect(() => {
-    if (!inView || reduced) return;
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setStarted(true);
+          setValue(0);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
+
+  useEffect(() => {
+    if (!started || reduced) return;
     let raf = 0;
     const start = performance.now();
     const duration = fast ? 700 : 900;
@@ -48,7 +102,7 @@ function Counter({ to, fast = false }: { to: number; fast?: boolean }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [inView, reduced, to, fast]);
+  }, [started, reduced, to, fast]);
 
   return <span ref={ref}>{value.toLocaleString()}</span>;
 }
@@ -80,12 +134,29 @@ function ExchangeBoard() {
     return () => clearTimeout(timer);
   }, [loading, reduced, rates.length]);
 
+  // Pointer parallax — the board tilts a couple of degrees toward the cursor.
+  // Fine-pointer devices only; entirely skipped for reduced motion.
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [2.2, -2.2]), { stiffness: 120, damping: 20 });
+  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-2.6, 2.6]), { stiffness: 120, damping: 20 });
+  const canTilt = !reduced && typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
+
   const updatedLabel = lastUpdated
     ? lastUpdated.toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })
     : "";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/12 bg-exchange-raised shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+    <motion.div
+      style={canTilt ? { rotateX, rotateY, transformPerspective: 1200 } : {}}
+      onPointerMove={canTilt ? (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        px.set((e.clientX - r.left) / r.width - 0.5);
+        py.set((e.clientY - r.top) / r.height - 0.5);
+      } : undefined}
+      onPointerLeave={canTilt ? () => { px.set(0); py.set(0); } : undefined}
+      className="overflow-hidden rounded-2xl border border-white/12 bg-exchange-raised shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
+    >
       {/* Board header */}
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
@@ -127,7 +198,7 @@ function ExchangeBoard() {
                 key={`${rate.commodity}-${rate.city}`}
                 variants={enterItem}
                 role="row"
-                className={`grid grid-cols-[1fr_auto] items-center gap-x-4 px-5 py-3 sm:grid-cols-[1.4fr_1fr_0.9fr_0.5fr] sm:gap-3 ${index === flashRow ? "row-flash" : ""}`}
+                className={`grid grid-cols-[1fr_auto] items-center gap-x-4 px-5 py-3 transition-colors duration-300 hover:bg-white/[0.03] sm:grid-cols-[1.4fr_1fr_0.9fr_0.5fr] sm:gap-3 ${index === flashRow ? "row-flash" : ""}`}
               >
                 <span role="cell" className="min-w-0">
                   <span className="block truncate text-[13px] font-semibold text-white/90">{rate.commodity}</span>
@@ -156,12 +227,12 @@ function ExchangeBoard() {
         <p className="text-xs text-white/40">
           {indicative ? t("board_footer_indicative") : t("board_footer_live")}
         </p>
-        <Link to="/rates" className="flex items-center gap-1 text-xs font-semibold text-secondary hover:underline">
+        <Link to="/rates" className="group flex items-center gap-1 text-xs font-semibold text-secondary hover:underline">
           {t("board_full_market")}
-          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">arrow_forward</span>
+          <span className="material-symbols-outlined text-[14px] transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -191,7 +262,7 @@ export function Hero() {
       <div className="pointer-events-none absolute right-[8%] top-[30%] h-[380px] w-[380px] rounded-full bg-secondary/10 blur-[110px] glow-breathe" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-        <div className="grid items-center gap-10 pb-12 pt-10 md:pt-14 lg:grid-cols-12 lg:gap-12 lg:pb-14 lg:pt-16">
+        <div className="grid items-center gap-12 pb-16 pt-12 md:gap-16 md:pb-20 md:pt-16 lg:grid-cols-12 lg:gap-14 lg:pb-24 lg:pt-20">
           {/* Left: thesis + actions */}
           <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-5">
             <motion.p variants={enterItem} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
@@ -199,16 +270,13 @@ export function Hero() {
               {t("hero_badge")}
             </motion.p>
 
-            <motion.h1 variants={enterItem} className="display-hero mt-5 text-[38px] text-white sm:text-[44px] lg:text-[48px]">
-              {t("hero_headline_1")}{" "}
-              <em className="text-secondary-light">{t("hero_headline_2")}</em>
-            </motion.h1>
+            <StaggerHeadline />
 
-            <motion.p variants={enterItem} className="mt-4 max-w-sm text-sm leading-6 text-white/60">
+            <motion.p variants={enterItem} className="mt-5 max-w-md text-[15px] leading-7 text-white/65">
               {t("hero_sub_short")}
             </motion.p>
 
-            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-7 flex max-w-md items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] p-1.5 backdrop-blur transition focus-within:border-secondary/50 focus-within:ring-4 focus-within:ring-secondary/10">
+            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-8 flex max-w-lg items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] p-1.5 backdrop-blur transition focus-within:border-secondary/50 focus-within:ring-4 focus-within:ring-secondary/10">
               <span className="material-symbols-outlined pl-2 text-[20px] text-white/40" aria-hidden="true">search</span>
               <input
                 type="text"
@@ -223,8 +291,8 @@ export function Hero() {
               </button>
             </motion.form>
 
-            <motion.div variants={enterItem} className="mt-6 flex flex-wrap items-center gap-5">
-              <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-exchange hover:bg-white/90">
+            <motion.div variants={enterItem} className="mt-7 flex flex-wrap items-center gap-5">
+              <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-exchange transition-colors hover:bg-white/90">
                 {t("hero_join_free")}
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
               </Link>
@@ -235,7 +303,7 @@ export function Hero() {
             </motion.div>
 
             {/* Facts — one line, counting up */}
-            <motion.p variants={enterItem} className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/12 pt-5 text-xs font-semibold uppercase tracking-[0.13em] text-white/45">
+            <motion.p variants={enterItem} className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/12 pt-6 text-xs font-semibold uppercase tracking-[0.13em] text-white/45">
               {FACTS.map((fact, index) => (
                 <span key={fact.labelKey} className="flex items-center gap-4">
                   {index > 0 ? <span className="h-0.5 w-0.5 rounded-full bg-white/30" aria-hidden="true" /> : null}

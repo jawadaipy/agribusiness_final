@@ -11,14 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
-import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as RatesRouteImport } from './routes/rates'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ResourcesRouteImport } from './routes/resources'
@@ -28,8 +26,10 @@ import { Route as AppsIndexRouteImport } from './routes/apps/index'
 import { Route as AppsAgriBizRouteImport } from './routes/apps/agri-biz'
 import { Route as AppsAnimalClinicRouteImport } from './routes/apps/animal-clinic'
 import { Route as AppsPlantClinicRouteImport } from './routes/apps/plant-clinic'
+import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
 import { Route as ProfileIdRouteImport } from './routes/profile.$id'
+import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -40,11 +40,6 @@ const IndexRoute = IndexRouteImport.update({
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin-login',
   path: '/admin-login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CategoriesRoute = CategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -75,11 +70,6 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RatesRoute = RatesRouteImport.update({
@@ -127,33 +117,41 @@ const AppsPlantClinicRoute = AppsPlantClinicRouteImport.update({
   path: '/apps/plant-clinic',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
+  id: '/categories/',
+  path: '/categories/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategoriesSlugRoute = CategoriesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => CategoriesRoute,
+  id: '/categories/$slug',
+  path: '/categories/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileIdRoute = ProfileIdRouteImport.update({
   id: '/profile/$id',
   path: '/profile/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectsIdRoute = ProjectsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ProjectsRoute,
+  id: '/projects/$id',
+  path: '/projects/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
-  '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/marketplace': typeof MarketplaceRoute
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
-  '/projects': typeof ProjectsRouteWithChildren
   '/rates': typeof RatesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
@@ -166,18 +164,18 @@ export interface FileRoutesByFullPath {
   '/projects/$id': typeof ProjectsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/apps/': typeof AppsIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
-  '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/marketplace': typeof MarketplaceRoute
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
-  '/projects': typeof ProjectsRouteWithChildren
   '/rates': typeof RatesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
@@ -190,19 +188,19 @@ export interface FileRoutesByTo {
   '/projects/$id': typeof ProjectsIdRoute
   '/admin': typeof AdminIndexRoute
   '/apps': typeof AppsIndexRoute
+  '/categories': typeof CategoriesIndexRoute
+  '/projects': typeof ProjectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
-  '/categories': typeof CategoriesRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/marketplace': typeof MarketplaceRoute
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
-  '/projects': typeof ProjectsRouteWithChildren
   '/rates': typeof RatesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
@@ -215,20 +213,20 @@ export interface FileRoutesById {
   '/projects/$id': typeof ProjectsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/apps/': typeof AppsIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin-login'
-    | '/categories'
     | '/dashboard'
     | '/feed'
     | '/marketplace'
     | '/messages'
     | '/notifications'
     | '/onboarding'
-    | '/projects'
     | '/rates'
     | '/reset-password'
     | '/resources'
@@ -241,18 +239,18 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/admin/'
     | '/apps/'
+    | '/categories/'
+    | '/projects/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin-login'
-    | '/categories'
     | '/dashboard'
     | '/feed'
     | '/marketplace'
     | '/messages'
     | '/notifications'
     | '/onboarding'
-    | '/projects'
     | '/rates'
     | '/reset-password'
     | '/resources'
@@ -265,18 +263,18 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/admin'
     | '/apps'
+    | '/categories'
+    | '/projects'
   id:
     | '__root__'
     | '/'
     | '/admin-login'
-    | '/categories'
     | '/dashboard'
     | '/feed'
     | '/marketplace'
     | '/messages'
     | '/notifications'
     | '/onboarding'
-    | '/projects'
     | '/rates'
     | '/reset-password'
     | '/resources'
@@ -289,19 +287,19 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/admin/'
     | '/apps/'
+    | '/categories/'
+    | '/projects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLoginRoute: typeof AdminLoginRoute
-  CategoriesRoute: typeof CategoriesRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   FeedRoute: typeof FeedRoute
   MarketplaceRoute: typeof MarketplaceRoute
   MessagesRoute: typeof MessagesRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
-  ProjectsRoute: typeof ProjectsRouteWithChildren
   RatesRoute: typeof RatesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
@@ -309,9 +307,13 @@ export interface RootRouteChildren {
   AppsAgriBizRoute: typeof AppsAgriBizRoute
   AppsAnimalClinicRoute: typeof AppsAnimalClinicRoute
   AppsPlantClinicRoute: typeof AppsPlantClinicRoute
+  CategoriesSlugRoute: typeof CategoriesSlugRoute
   ProfileIdRoute: typeof ProfileIdRoute
+  ProjectsIdRoute: typeof ProjectsIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AppsIndexRoute: typeof AppsIndexRoute
+  CategoriesIndexRoute: typeof CategoriesIndexRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -328,13 +330,6 @@ declare module '@tanstack/react-router' {
       path: '/admin-login'
       fullPath: '/admin-login'
       preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/categories': {
-      id: '/categories'
-      path: '/categories'
-      fullPath: '/categories'
-      preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -377,13 +372,6 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rates': {
@@ -449,12 +437,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppsPlantClinicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categories/': {
+      id: '/categories/'
+      path: '/categories'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/categories/$slug': {
       id: '/categories/$slug'
-      path: '/$slug'
+      path: '/categories/$slug'
       fullPath: '/categories/$slug'
       preLoaderRoute: typeof CategoriesSlugRouteImport
-      parentRoute: typeof CategoriesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/profile/$id': {
       id: '/profile/$id'
@@ -463,51 +458,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects/$id': {
       id: '/projects/$id'
-      path: '/$id'
+      path: '/projects/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof ProjectsIdRouteImport
-      parentRoute: typeof ProjectsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface CategoriesRouteChildren {
-  CategoriesSlugRoute: typeof CategoriesSlugRoute
-}
-
-const CategoriesRouteChildren: CategoriesRouteChildren = {
-  CategoriesSlugRoute: CategoriesSlugRoute,
-}
-
-const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
-  CategoriesRouteChildren,
-)
-
-interface ProjectsRouteChildren {
-  ProjectsIdRoute: typeof ProjectsIdRoute
-}
-
-const ProjectsRouteChildren: ProjectsRouteChildren = {
-  ProjectsIdRoute: ProjectsIdRoute,
-}
-
-const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
-  ProjectsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLoginRoute: AdminLoginRoute,
-  CategoriesRoute: CategoriesRouteWithChildren,
   DashboardRoute: DashboardRoute,
   FeedRoute: FeedRoute,
   MarketplaceRoute: MarketplaceRoute,
   MessagesRoute: MessagesRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
-  ProjectsRoute: ProjectsRouteWithChildren,
   RatesRoute: RatesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
@@ -515,9 +491,13 @@ const rootRouteChildren: RootRouteChildren = {
   AppsAgriBizRoute: AppsAgriBizRoute,
   AppsAnimalClinicRoute: AppsAnimalClinicRoute,
   AppsPlantClinicRoute: AppsPlantClinicRoute,
+  CategoriesSlugRoute: CategoriesSlugRoute,
   ProfileIdRoute: ProfileIdRoute,
+  ProjectsIdRoute: ProjectsIdRoute,
   AdminIndexRoute: AdminIndexRoute,
   AppsIndexRoute: AppsIndexRoute,
+  CategoriesIndexRoute: CategoriesIndexRoute,
+  ProjectsIndexRoute: ProjectsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

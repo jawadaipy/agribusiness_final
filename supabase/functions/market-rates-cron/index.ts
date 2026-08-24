@@ -51,9 +51,7 @@ async function fetchRatesFromKisanMandi(): Promise<CommodityRate[]> {
     'https://api.kisanmandi.com/v1/rates/today'
 
   if (!apiKey) {
-    console.warn('KISANMANDI_API_KEY not set; returning stub data for testing')
-    // Return minimal stub so the function doesn't hard-fail in dev
-    return getStubRates()
+    throw new Error('KISANMANDI_API_KEY is not configured; refusing to publish unverified market rates')
   }
 
   const res = await fetch(apiUrl, {
@@ -80,22 +78,6 @@ async function fetchRatesFromKisanMandi(): Promise<CommodityRate[]> {
     market: String(item.market ?? item.mandi ?? ''),
     province: String(item.province ?? item.region ?? ''),
   }))
-}
-
-// ----------------------------------------------------------------
-// Stub rates (used when no API key is configured)
-// ----------------------------------------------------------------
-function getStubRates(): CommodityRate[] {
-  return [
-    { commodity: 'Wheat', variety: 'Chakwal-50', unit: 'per_40kg', price: 4800, currency: 'PKR', market: 'Lahore Mandi', province: 'Punjab' },
-    { commodity: 'Rice', variety: 'Basmati 1121', unit: 'per_40kg', price: 8200, currency: 'PKR', market: 'Gujranwala', province: 'Punjab' },
-    { commodity: 'Maize', variety: 'Hybrid', unit: 'per_40kg', price: 3200, currency: 'PKR', market: 'Faisalabad', province: 'Punjab' },
-    { commodity: 'Tomato', unit: 'per_kg', price: 120, currency: 'PKR', market: 'Multan', province: 'Punjab' },
-    { commodity: 'Potato', unit: 'per_kg', price: 65, currency: 'PKR', market: 'Okara', province: 'Punjab' },
-    { commodity: 'Onion', unit: 'per_kg', price: 90, currency: 'PKR', market: 'Khairpur', province: 'Sindh' },
-    { commodity: 'Sugarcane', unit: 'per_40kg', price: 450, currency: 'PKR', market: 'Dera Ismail Khan', province: 'KPK' },
-    { commodity: 'Cotton', variety: 'MNH-886', unit: 'per_40kg', price: 8500, currency: 'PKR', market: 'Multan', province: 'Punjab' },
-  ]
 }
 
 // ----------------------------------------------------------------

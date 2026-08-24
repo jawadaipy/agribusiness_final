@@ -138,10 +138,10 @@ const CategoriesPage = () => {
   );
 };
 
-export const Route = createFileRoute("/categories")({
+export const Route = createFileRoute("/categories/")({
   head: () => ({
-    title: "Agri Taxonomy | AgriBusiness Pakistan",
     meta: [
+      { title: "Agri Taxonomy | AgriBusiness Pakistan" },
       { name: "description", content: "Explore Pakistan's most comprehensive agricultural classification system and sector directory." },
       { property: "og:title", content: "AgriBusiness Sectors" },
       { property: "og:description", content: "Navigate through the Pakistan agricultural ecosystem by sector and commodity." },

@@ -10,8 +10,8 @@ import { Footer } from "@/components/layout/Footer";
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
-    title: "AgriBusiness — Pakistan's Agri Professional Network",
     meta: [
+      { title: "AgriBusiness — Pakistan's Agri Professional Network" },
       { name: "description", content: "The professional network where Pakistan's farmers, buyers, consultants, enterprises, and researchers do real business — live mandi rates, verified listings, open tenders." },
     ],
   }),

@@ -5,6 +5,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -17,8 +18,7 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/apps/agri-biz")({
   head: () => ({
-    title: "Agri-Biz Trading Floor | AgriBusiness Pakistan",
-    meta: [
+    meta: [{ title: "Agri-Biz Trading Floor | AgriBusiness Pakistan" },
       { name: "description", content: "A role-aware marketplace for agricultural products and services." },
       { property: "og:title", content: "AgriBusiness B2B Marketplace" },
       { property: "og:type", content: "website" },
@@ -50,7 +50,7 @@ type DisplayListing = ListingRow & { category: string; seller: string; isVerifie
 const inputClass =
   "w-full rounded-xl border border-outline-variant/50 bg-surface-container-low px-3.5 py-2.5 text-xs font-medium text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15";
 
-function withTimeout<T>(promise: Promise<T>, milliseconds: number) {
+function withTimeout<T>(promise: PromiseLike<T>, milliseconds: number) {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) => {
@@ -194,6 +194,21 @@ function AgriBizPage() {
     }
     setPostError("");
     setPostSuccess("");
+    // Role capability gate — open the form only for roles that can actually publish.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_type")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    if (profile?.user_type && !canPostListings(profile.user_type)) {
+      toast(
+        profile.user_type === "buyer"
+          ? "Buyer accounts post wanted notices and procurement tenders — use Post a Requirement on the projects board."
+          : "Student / Researcher accounts post on the feed and in the clinics — commercial listings are not part of your role.",
+        { description: "See what your role can do in the homepage role guide." },
+      );
+      return;
+    }
     setShowModal(true);
   };
 

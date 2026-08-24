@@ -249,7 +249,7 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       to={link.to}
-                      search={link.search}
+                      search={link.search ?? {}}
                       className="inline-block py-0.5 text-xs font-medium text-white/75 transition-colors hover:text-secondary"
                     >
                       {link.label}

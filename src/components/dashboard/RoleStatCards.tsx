@@ -21,8 +21,8 @@ function Card({ stat }: { stat: StatCard }) {
         <p className="font-display text-2xl leading-none text-primary">
           {stat.value === null ? <span className="inline-block h-6 w-8 animate-pulse rounded bg-surface-container-low align-middle" /> : stat.value}
         </p>
-        <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant">{stat.label}</p>
-        {stat.hint ? <p className="mt-0.5 truncate text-[10px] text-on-surface-variant/70">{stat.hint}</p> : null}
+        <p className="mt-1 truncate text-xs font-bold uppercase tracking-[.1em] text-on-surface-variant">{stat.label}</p>
+        {stat.hint ? <p className="mt-0.5 truncate text-xs text-on-surface-variant/70">{stat.hint}</p> : null}
       </div>
       <span className="material-symbols-outlined ml-auto text-[16px] text-on-surface-variant/40 transition-transform group-hover:translate-x-1">chevron_right</span>
     </Link>

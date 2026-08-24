@@ -190,15 +190,15 @@ const ProjectDetailPage = () => {
                 <div className="space-y-6 lg:col-span-8">
                   <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-outline-variant/40 bg-white p-6 shadow-sm sm:p-8">
                     <div className="mb-4 flex flex-wrap items-center gap-3">
-                      <span className="rounded-md border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                      <span className="rounded-md border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
                         {project.status.toUpperCase()} REQUIREMENT
                       </span>
-                      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/60">
+                      <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-on-surface-variant/60">
                         <span className="material-symbols-outlined text-[14px]">schedule</span>
                         Posted {new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short", year: "numeric" }).format(new Date(project.created_at))}
                       </div>
                       {project.is_remote && (
-                        <span className="rounded-md bg-secondary/15 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
+                        <span className="rounded-md bg-secondary/15 px-2 py-0.5 text-xs font-bold uppercase text-primary">
                           Remote Available
                         </span>
                       )}
@@ -214,7 +214,7 @@ const ProjectDetailPage = () => {
                           <span className="material-symbols-outlined text-[20px]">payments</span>
                         </div>
                         <div>
-                          <div className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant/60">Budget Range</div>
+                          <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">Budget Range</div>
                           <div className="text-sm font-bold text-primary">
                             {project.budget_min !== null || project.budget_max !== null
                               ? `${formatPKR(project.budget_min ?? 0)} – ${formatPKR(project.budget_max ?? 0)}`
@@ -228,7 +228,7 @@ const ProjectDetailPage = () => {
                           <span className="material-symbols-outlined text-[20px]">location_on</span>
                         </div>
                         <div>
-                          <div className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant/60">Location</div>
+                          <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">Location</div>
                           <div className="text-sm font-bold text-primary">{project.location || project.city || "Pakistan"}</div>
                         </div>
                       </div>
@@ -238,7 +238,7 @@ const ProjectDetailPage = () => {
                           <span className="material-symbols-outlined text-[20px]">event</span>
                         </div>
                         <div>
-                          <div className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant/60">Deadline</div>
+                          <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">Deadline</div>
                           <div className="text-sm font-bold text-primary">
                             {project.deadline
                               ? new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short", year: "numeric" }).format(new Date(project.deadline))
@@ -293,7 +293,7 @@ const ProjectDetailPage = () => {
                                 <Link to="/profile/$id" params={{ id: proposal.profile_id }} className="text-xs font-bold text-primary hover:underline">
                                   View Consultant Profile →
                                 </Link>
-                                <span className="text-[11px] font-bold text-primary">
+                                <span className="text-xs font-bold text-primary">
                                   Quote: {proposal.quoted_amount ? formatPKR(proposal.quoted_amount) : "Quote on discussion"}
                                 </span>
                               </div>
@@ -348,7 +348,7 @@ const ProjectDetailPage = () => {
                     )}
 
                     <div className="border-t border-outline-variant/30 pt-4">
-                      <h4 className="mb-4 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">Project Publisher</h4>
+                      <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Project Publisher</h4>
                       {owner ? (
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">
@@ -360,7 +360,7 @@ const ProjectDetailPage = () => {
                                 {owner.display_name || "Enterprise Member"}
                                 {owner.is_verified && <span className="material-symbols-outlined text-[14px] text-secondary">verified</span>}
                               </div>
-                              <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/60">
+                              <div className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-on-surface-variant/60">
                                 {owner.user_type} · {owner.city || "Pakistan"}
                               </div>
                             </div>
@@ -385,7 +385,7 @@ const ProjectDetailPage = () => {
                       <span className="material-symbols-outlined text-[16px] text-secondary">lock</span>
                       Protected Engagement
                     </h4>
-                    <p className="relative z-10 text-[11px] font-medium leading-relaxed text-white/80">
+                    <p className="relative z-10 text-xs font-medium leading-relaxed text-white/80">
                       All project requirements, proposals, and connection requests are protected by Supabase Row-Level Security. Contact details remain confidential until connection consent.
                     </p>
                   </div>
@@ -493,8 +493,7 @@ const ProjectDetailPage = () => {
 
 export const Route = createFileRoute("/projects/$id")({
   head: () => ({
-    title: "Project Details | AgriBusiness Pakistan",
-    meta: [
+    meta: [{ title: "Project Details | AgriBusiness Pakistan" },
       { name: "description", content: "View detailed requirements and submit proposals for verified agricultural projects." },
       { property: "og:title", content: "AgriBusiness Project Details" },
       { property: "og:description", content: "Detailed project brief and bidding platform." },

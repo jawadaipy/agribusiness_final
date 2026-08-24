@@ -93,7 +93,7 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
     headline: "Trade inputs and machinery, list company services, and post tenders.",
     listingCategories: ["agri-inputs", "machinery-tech", "solar-energy", "consultancy-services", "crops-grains", "livestock-dairy"],
     canPostProjects: true,
-    canSubmitProposals: true,
+    canSubmitProposals: false,
     capabilities: [
       { key: "catalog", label: "Full commercial catalog", detail: "Inputs, machinery, solar, services, and commodity lots — the widest listing scope.", icon: "inventory_2", surface: MARKET },
       { key: "tenders", label: "Post corporate tenders", detail: "Tender logistics, installations, data programmes, and supply contracts.", icon: "assignment", surface: PROJECTS },

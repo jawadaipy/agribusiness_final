@@ -78,7 +78,7 @@ function TreeNode({
           </span>
         </div>
         {node.count !== undefined && (
-          <span className="text-[9px] font-bold text-on-surface-variant/40 bg-surface-container-low px-2 py-0.5 rounded-lg border border-outline-variant/20 group-hover:border-primary/20 transition-colors">
+          <span className="text-xs font-bold text-on-surface-variant/40 bg-surface-container-low px-2 py-0.5 rounded-lg border border-outline-variant/20 group-hover:border-primary/20 transition-colors">
             {node.count}
           </span>
         )}

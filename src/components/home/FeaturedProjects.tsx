@@ -36,9 +36,10 @@ function FeaturedCard({ proj, index }: { proj: FeaturedProject; index: number })
     <motion.article
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -6 }}
       viewport={{ once: true }}
       transition={{ delay: 0.08 * index, duration: 0.5, ease: EASE_OUT_EXPO }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/40 bg-white text-left card-shadow transition-all duration-300 hover:card-shadow-hover hover:-translate-y-1"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-outline-variant/40 bg-white text-left card-shadow transition-shadow duration-300 hover:card-shadow-hover"
     >
       {/* Ledger-style header band */}
       <div className="relative gradient-agri px-5 pb-5 pt-6">
@@ -105,7 +106,17 @@ export function FeaturedProjects() {
       .limit(2)
       .then(({ data }) => {
         if (!alive) return;
-        setProjects((data as never[] | null)?.length ? (data as unknown as FeaturedProject[]).map((p) => ({
+        const rows = (data ?? []) as Array<{
+          id: string;
+          title: string;
+          description: string;
+          budget_min: number | null;
+          budget_max: number | null;
+          city: string | null;
+          deadline: string | null;
+          required_skills: string[] | null;
+        }>;
+        setProjects(rows.map((p) => ({
           id: p.id,
           title: p.title,
           description: p.description,
@@ -113,8 +124,8 @@ export function FeaturedProjects() {
           budgetMax: p.budget_max === null ? null : Number(p.budget_max),
           city: p.city,
           deadline: p.deadline,
-          skills: (p.required_skills as string[]) ?? [],
-        })) : []);
+          skills: p.required_skills ?? [],
+        })));
       });
     return () => {
       alive = false;

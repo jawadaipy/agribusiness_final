@@ -70,7 +70,7 @@ export function KeywordPicker({
       
       {inputValue && (
         <div className="mt-2 p-2 border border-slate-100 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-800 shadow-lg absolute z-10 w-full max-w-sm">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest px-2 mb-1">Suggestions</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest px-2 mb-1">Suggestions</p>
           {suggestions
             .filter(s => s.toLowerCase().includes(inputValue.toLowerCase()) && !keywords.includes(s))
             .map(s => (

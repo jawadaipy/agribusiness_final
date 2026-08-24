@@ -10,8 +10,7 @@ import { getAuthFeedback } from "@/lib/auth-feedback";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
-    title: "Reset Password | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "Set a new password for your AgriBusiness account." }],
+    meta: [{ title: "Reset Password | AgriBusiness Pakistan" },{ name: "description", content: "Set a new password for your AgriBusiness account." }],
   }),
   component: ResetPasswordPage,
 });

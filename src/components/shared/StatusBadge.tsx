@@ -34,7 +34,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <Badge 
       variant="outline" 
       className={cn(
-        "font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded-md border",
+        "font-bold uppercase tracking-widest text-xs px-2 py-0.5 rounded-md border",
         current.className,
         className
       )}

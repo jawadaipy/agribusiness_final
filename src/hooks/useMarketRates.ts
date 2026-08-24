@@ -64,7 +64,7 @@ export function useMarketRates(limit = 10, pollMs = 60_000) {
     }
 
     const latest = data as RawRate[];
-    const latestDate = latest[0].rate_date;
+    const latestDate = latest[0]?.rate_date ?? "";
     const prevDate = latest.map((r) => r.rate_date).find((d) => d < latestDate) ?? null;
 
     // Pull the previous day's rows to compute real deltas where history exists.

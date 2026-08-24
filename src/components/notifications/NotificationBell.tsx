@@ -61,7 +61,7 @@ export function NotificationBell({
           {unreadCount > 0 ? "notifications_active" : "notifications"}
         </span>
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-error px-1 text-[9px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-error px-1 text-xs font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -76,7 +76,7 @@ export function NotificationBell({
               <button
                 type="button"
                 onClick={onMarkAllRead}
-                className="text-[10px] font-bold text-secondary hover:text-primary transition"
+                className="text-xs font-bold text-secondary hover:text-primary transition"
               >
                 Mark all read
               </button>
@@ -115,9 +115,9 @@ export function NotificationBell({
                       {n.title}
                     </p>
                     {n.body && (
-                      <p className="mt-0.5 line-clamp-2 text-[10px] text-on-surface-variant/70">{n.body}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-on-surface-variant/70">{n.body}</p>
                     )}
-                    <p className="mt-1 text-[9px] font-semibold text-on-surface-variant/50">
+                    <p className="mt-1 text-xs font-semibold text-on-surface-variant/50">
                       {timeAgo(n.created_at)}
                     </p>
                   </div>

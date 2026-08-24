@@ -82,13 +82,13 @@ export function BuyerSourcingMatches({ profile }: { profile: MemberProfile }) {
     <section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)] md:p-7">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-[.14em] text-on-surface-variant/65">Sourcing desk</p>
+          <p className="text-xs font-bold uppercase tracking-[.14em] text-on-surface-variant/65">Sourcing desk</p>
           <h2 className="mt-1 font-display text-2xl text-primary">Supply matched to your requirements</h2>
-          <p className="mt-2 max-w-2xl text-[11px] leading-5 text-on-surface-variant">
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-on-surface-variant">
             Live producer listings that overlap with the commodities and collection regions on your procurement profile.
           </p>
         </div>
-        <Link to="/marketplace" className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-outline-variant/70 px-3.5 py-2.5 text-[11px] font-bold text-primary transition hover:bg-surface-container-low">
+        <Link to="/marketplace" className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-outline-variant/70 px-3.5 py-2.5 text-xs font-bold text-primary transition hover:bg-surface-container-low">
           <span className="material-symbols-outlined text-[15px]">storefront</span>
           Open marketplace
         </Link>
@@ -118,19 +118,19 @@ export function BuyerSourcingMatches({ profile }: { profile: MemberProfile }) {
                 <h3 className="text-sm font-bold text-primary group-hover:underline">{match.title}</h3>
                 <span className="material-symbols-outlined shrink-0 text-[16px] text-on-surface-variant/40 transition-transform group-hover:translate-x-1">chevron_right</span>
               </div>
-              <p className="mt-1 text-[11px] font-semibold text-primary">
+              <p className="mt-1 text-xs font-semibold text-primary">
                 {match.price !== null && match.price !== undefined && match.price !== ("" as unknown as number)
                   ? `₨ ${new Intl.NumberFormat("en-PK").format(Number(match.price))}${match.unit ? ` / ${match.unit}` : ""}`
                   : "Price on request"}
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {match.commodityHits.map((hit) => (
-                  <span key={hit} className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary">Your commodity: {hit}</span>
+                  <span key={hit} className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">Your commodity: {hit}</span>
                 ))}
                 {match.regionHit ? (
-                  <span key={match.regionHit} className="rounded-full bg-secondary/30 px-2 py-0.5 text-[9px] font-bold text-[#6B4E00]">Your region: {match.regionHit}</span>
+                  <span key={match.regionHit} className="rounded-full bg-secondary/30 px-2 py-0.5 text-xs font-bold text-[#6B4E00]">Your region: {match.regionHit}</span>
                 ) : null}
-                {match.city ? <span className="rounded-full bg-surface-container px-2 py-0.5 text-[9px] font-bold text-on-surface-variant">{match.city}</span> : null}
+                {match.city ? <span className="rounded-full bg-surface-container px-2 py-0.5 text-xs font-bold text-on-surface-variant">{match.city}</span> : null}
               </div>
             </Link>
           ))}

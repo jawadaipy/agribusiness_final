@@ -61,7 +61,7 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
     <section className="rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.06)]">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-on-surface-variant/65">Grow your network</p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant/65">Grow your network</p>
           <h2 className="mt-1 font-display text-xl text-primary">Suggested for you</h2>
         </div>
         <button type="button" onClick={() => void load()} className="rounded-lg p-1.5 text-on-surface-variant transition hover:bg-surface-container-low" aria-label="Refresh suggestions">
@@ -69,7 +69,7 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
         </button>
       </div>
 
-      {notice ? <p className="mt-3 rounded-xl bg-primary/10 px-3 py-2 text-[11px] leading-4 text-primary">{notice}</p> : null}
+      {notice ? <p className="mt-3 rounded-xl bg-primary/10 px-3 py-2 text-xs leading-4 text-primary">{notice}</p> : null}
 
       {loading ? (
         <div className="mt-4 space-y-3">
@@ -78,11 +78,11 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
           ))}
         </div>
       ) : unavailable ? (
-        <p className="mt-4 rounded-xl border border-dashed border-outline bg-surface-container-low p-3 text-[11px] leading-5 text-on-surface-variant">
+        <p className="mt-4 rounded-xl border border-dashed border-outline bg-surface-container-low p-3 text-xs leading-5 text-on-surface-variant">
           The member directory is not reachable right now. Suggestions will appear once the secure directory view is available.
         </p>
       ) : matches.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-dashed border-outline bg-surface-container-low p-3 text-[11px] leading-5 text-on-surface-variant">
+        <p className="mt-4 rounded-xl border border-dashed border-outline bg-surface-container-low p-3 text-xs leading-5 text-on-surface-variant">
           No strong suggestions yet. Complete your profile fields — crops, commodities, services, or research interests — so the network can find people relevant to you.
         </p>
       ) : (
@@ -94,7 +94,7 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
             return (
               <div key={match.id} className="rounded-xl border border-outline-variant/50 bg-surface-container-low/60 p-3">
                 <div className="flex items-start gap-3">
-                  <Link to="/profile/$id" params={{ id: match.id }} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-[11px] font-black text-on-primary">
+                  <Link to="/profile/$id" params={{ id: match.id }} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-black text-on-primary">
                     {initials}
                   </Link>
                   <div className="min-w-0 flex-1">
@@ -102,14 +102,14 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
                       <span className="truncate">{name}</span>
                       {match.is_verified ? <span className="material-symbols-outlined text-[13px] text-secondary" title="Platform verified">verified</span> : null}
                     </Link>
-                    <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-on-surface-variant">
+                    <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-on-surface-variant">
                       <span className="material-symbols-outlined text-[12px]">{ROLE_ICONS[match.user_type]}</span>
                       {ROLE_LABELS[match.user_type]}
                     </p>
                     <ul className="mt-1.5 space-y-0.5">
                       {match.reasons.slice(0, 2).map((reason) => (
-                        <li key={reason} className="flex items-start gap-1 text-[10px] leading-4 text-on-surface-variant">
-                          <span className="material-symbols-outlined mt-px text-[11px] text-secondary">check_circle</span>
+                        <li key={reason} className="flex items-start gap-1 text-xs leading-4 text-on-surface-variant">
+                          <span className="material-symbols-outlined mt-px text-xs text-secondary">check_circle</span>
                           {reason}
                         </li>
                       ))}
@@ -120,7 +120,7 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
                   type="button"
                   disabled={isRequested}
                   onClick={() => void connect(match.id)}
-                  className={`mt-3 w-full rounded-xl py-2 text-[11px] font-bold transition ${
+                  className={`mt-3 w-full rounded-xl py-2 text-xs font-bold transition ${
                     isRequested ? "border border-outline-variant/60 bg-white text-on-surface-variant" : "bg-primary text-on-primary hover:bg-primary-container"
                   }`}
                 >
@@ -131,7 +131,7 @@ export function SmartMatches({ profile, limit = 4 }: { profile: MemberProfile; l
           })}
         </div>
       )}
-      <Link to="/search" search={{ q: "" }} className="mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-outline-variant/70 py-2.5 text-[11px] font-bold text-primary transition hover:bg-surface-container-low">
+      <Link to="/search" search={{ q: "" }} className="mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-outline-variant/70 py-2.5 text-xs font-bold text-primary transition hover:bg-surface-container-low">
         <span className="material-symbols-outlined text-[15px]">search</span>
         Browse the whole network
       </Link>

@@ -39,8 +39,8 @@ export function RateTicker() {
               <div className="flex items-center gap-8">
                 {items.map((rate, i) => (
                   <div key={i} className="inline-flex items-center gap-1.5 text-xs">
-                    <span className="text-[11px] font-medium text-black/50">{rate.label}:</span>
-                    <span className="stat-num text-[11px] font-semibold text-black">{rate.price}</span>
+                    <span className="text-xs font-medium text-black/50">{rate.label}:</span>
+                    <span className="stat-num text-xs font-semibold text-black">{rate.price}</span>
                     {rate.changePct !== null ? (
                       <span
                         className={cn(
@@ -67,8 +67,8 @@ export function RateTicker() {
               <div className="flex items-center gap-8" aria-hidden="true">
                 {items.map((rate, i) => (
                   <div key={i} className="inline-flex items-center gap-1.5 text-xs">
-                    <span className="text-[11px] font-medium text-black/50">{rate.label}:</span>
-                    <span className="stat-num text-[11px] font-semibold text-black">{rate.price}</span>
+                    <span className="text-xs font-medium text-black/50">{rate.label}:</span>
+                    <span className="stat-num text-xs font-semibold text-black">{rate.price}</span>
                     <span
                       className={cn(
                         "text-xs font-bold",

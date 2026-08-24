@@ -292,7 +292,7 @@ function SuperAdminPage() {
   );
 }
 
-function KpiCard({ icon, value, label, delta, tone = "primary" }: { icon: string; value: number | string; label: string; delta?: string; tone?: "primary" | "gold" | "error" }) {
+function KpiCard({ icon, value, label, delta, tone = "primary" }: { icon: string; value: number | string; label: string; delta?: string | undefined; tone?: "primary" | "gold" | "error" }) {
   const toneClass = tone === "gold" ? "bg-secondary-container text-on-secondary-container" : tone === "error" ? "bg-error/10 text-error" : "bg-primary/10 text-primary";
   return (
     <article className="hover-lift rounded-2xl border border-outline-variant/60 bg-white p-5">
@@ -638,7 +638,7 @@ function AdsConsole({ adminProfile, ads, actingId, rejectionTarget, rejectionRea
                 <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-surface-container-low px-3 py-2 text-xs font-bold text-primary transition hover:bg-surface-container">
                   <span className="material-symbols-outlined text-[16px]" aria-hidden="true">upload</span>
                   {creativeFile[0] ? creativeFile[0].name.slice(0, 28) : "Choose image"}
-                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => { setCreativeFile(e.target.files ? [e.target.files[0]] : []); setImageUrl(""); }} />
+                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => { setCreativeFile(e.target.files?.[0] ? [e.target.files[0]] : []); setImageUrl(""); }} />
                 </label>
                 <span className="text-xs text-on-surface-variant/60">or</span>
                 <input value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setCreativeFile([]); }} className={`${inputCls} flex-1 min-w-48`} placeholder="https://…/creative.jpg" />

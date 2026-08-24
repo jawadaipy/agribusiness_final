@@ -60,23 +60,23 @@ export function SavedItemsPanel({ profileId }: { profileId: string }) {
 
       {listings.length > 0 ? (
         <div>
-          <h3 className="mb-3 font-display text-lg text-primary">Saved listings <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{listings.length}</span></h3>
+          <h3 className="mb-3 font-display text-lg text-primary">Saved listings <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">{listings.length}</span></h3>
           <div className="grid gap-3 md:grid-cols-2">
             {listings.map((listing) => (
               <article key={listing.id} className="rounded-xl border border-outline-variant bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <h4 className="text-sm font-bold text-primary">{listing.title}</h4>
-                  <span className="h-fit rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">{listing.status}</span>
+                  <span className="h-fit rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold uppercase text-primary">{listing.status}</span>
                 </div>
                 <p className="mt-2 text-xs font-bold text-primary">
-                  {formatPkr(listing.price)}{listing.unit ? <span className="text-[10px] font-medium text-on-surface-variant"> / {listing.unit}</span> : null}
+                  {formatPkr(listing.price)}{listing.unit ? <span className="text-xs font-medium text-on-surface-variant"> / {listing.unit}</span> : null}
                 </p>
-                <p className="mt-1 text-[11px] text-on-surface-variant">{listing.city || "City not set"}</p>
+                <p className="mt-1 text-xs text-on-surface-variant">{listing.city || "City not set"}</p>
                 <div className="mt-3 flex gap-2">
-                  <Link to="/marketplace" className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-[10px] font-bold text-primary transition hover:bg-surface-container">
+                  <Link to="/marketplace" className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-surface-container">
                     <span className="material-symbols-outlined text-[13px]">storefront</span> Marketplace
                   </Link>
-                  <button type="button" onClick={() => void remove("listing", listing.id)} className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-[10px] font-bold text-error transition hover:bg-error/10">
+                  <button type="button" onClick={() => void remove("listing", listing.id)} className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-xs font-bold text-error transition hover:bg-error/10">
                     <span className="material-symbols-outlined text-[13px]">bookmark_remove</span> Remove
                   </button>
                 </div>
@@ -88,28 +88,28 @@ export function SavedItemsPanel({ profileId }: { profileId: string }) {
 
       {projects.length > 0 ? (
         <div>
-          <h3 className="mb-3 font-display text-lg text-primary">Saved opportunities <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{projects.length}</span></h3>
+          <h3 className="mb-3 font-display text-lg text-primary">Saved opportunities <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">{projects.length}</span></h3>
           <div className="space-y-3">
             {projects.map((project) => (
               <article key={project.id} className="rounded-xl border border-outline-variant bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h4 className="text-sm font-bold text-primary">{project.title}</h4>
-                    <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-on-surface-variant">{project.description}</p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-on-surface-variant">{project.description}</p>
                   </div>
-                  <span className="h-fit rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">{project.status}</span>
+                  <span className="h-fit rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold uppercase text-primary">{project.status}</span>
                 </div>
-                <p className="mt-2 text-[11px] font-medium text-on-surface-variant">
+                <p className="mt-2 text-xs font-medium text-on-surface-variant">
                   {project.budget_min !== null || project.budget_max !== null
                     ? `${formatPkr(project.budget_min)} – ${formatPkr(project.budget_max)}`
                     : "Budget on request"}
                   {project.city ? ` · ${project.city}` : ""}
                 </p>
                 <div className="mt-3 flex gap-2">
-                  <Link to="/projects/$id" params={{ id: project.id }} className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-[10px] font-bold text-primary transition hover:bg-surface-container">
+                  <Link to="/projects/$id" params={{ id: project.id }} className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-surface-container">
                     <span className="material-symbols-outlined text-[13px]">open_in_new</span> Open
                   </Link>
-                  <button type="button" onClick={() => void remove("project", project.id)} className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-[10px] font-bold text-error transition hover:bg-error/10">
+                  <button type="button" onClick={() => void remove("project", project.id)} className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-xs font-bold text-error transition hover:bg-error/10">
                     <span className="material-symbols-outlined text-[13px]">bookmark_remove</span> Remove
                   </button>
                 </div>

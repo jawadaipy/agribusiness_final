@@ -17,7 +17,7 @@ interface NavUser {
 /** Map a Supabase auth user to the navbar identity — the single implementation. */
 function mapUser(user: User): NavUser {
   const name =
-    (user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "Member";
+    (user.user_metadata?.["full_name"] as string) || user.email?.split("@")[0] || "Member";
   const initials =
     name
       .split(" ")
@@ -29,7 +29,7 @@ function mapUser(user: User): NavUser {
   return {
     name,
     initials,
-    userType: (user.user_metadata?.user_type as string) || "Member",
+    userType: (user.user_metadata?.["user_type"] as string) || "Member",
     email: user.email || "",
   };
 }
@@ -254,7 +254,7 @@ export function Navbar() {
                   <span className="text-xs font-semibold leading-tight line-clamp-1 text-black">
                     {currentUser.name}
                   </span>
-                  <span className="text-[11px] font-medium text-black/50 capitalize">
+                  <span className="text-xs font-medium text-black/50 capitalize">
                     {currentUser.userType}
                   </span>
                 </div>
@@ -280,7 +280,7 @@ export function Navbar() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-primary truncate">{currentUser.name}</p>
-                        <p className="text-[11px] text-on-surface-variant/60 truncate">
+                        <p className="text-xs text-on-surface-variant/60 truncate">
                           {currentUser.email || currentUser.userType}
                         </p>
                       </div>
@@ -289,7 +289,7 @@ export function Navbar() {
 
                   <div className="space-y-0.5">
                     <Link
-                      to="/profile/me"
+                      to={"/profile/me" as string}
                       onClick={() => setUserDropdownOpen(false)}
                       role="menuitem"
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-primary hover:bg-primary/8 transition-colors"
@@ -384,10 +384,10 @@ export function Navbar() {
               </div>
               <div className="flex-1 text-left min-w-0">
                 <div className="font-bold text-primary text-sm truncate">{currentUser.name}</div>
-                <div className="text-[11px] text-secondary font-bold uppercase tracking-wider">{currentUser.userType}</div>
+                <div className="text-xs text-secondary font-bold uppercase tracking-wider">{currentUser.userType}</div>
               </div>
               <Link
-                to="/profile/me"
+                to={"/profile/me" as string}
                 onClick={() => setMobileOpen(false)}
                 className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold shrink-0"
               >
@@ -454,7 +454,7 @@ export function Navbar() {
                   Workspace Dashboard
                 </Link>
                 <Link
-                  to="/profile/me"
+                  to={"/profile/me" as string}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-outline-variant/50 text-xs font-bold text-primary hover:bg-surface-container-low transition-colors"
                 >

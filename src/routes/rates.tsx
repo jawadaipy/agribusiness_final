@@ -13,8 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/rates")({
   head: () => ({
-    title: "Mandi Rates Board | AgriBusiness Pakistan",
-    meta: [
+    meta: [{ title: "Mandi Rates Board | AgriBusiness Pakistan" },
       { name: "description", content: "Live mandi rates for wheat, rice, cotton, maize, sugarcane, and fertilizer across Pakistani markets — with day-over-day change." },
       { property: "og:title", content: "AgriBusiness Mandi Rates Board" },
       { property: "og:type", content: "website" },

@@ -14,10 +14,9 @@ import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/search")({
-  validateSearch: (search: Record<string, unknown>) => ({ q: (search.q as string) || "" }),
+  validateSearch: (search: Record<string, unknown>) => ({ q: (search["q"] as string) || "" }),
   head: () => ({
-    title: "Network Search | AgriBusiness Pakistan",
-    meta: [
+    meta: [{ title: "Network Search | AgriBusiness Pakistan" },
       { name: "description", content: "Search and request a private connection with verified agricultural producers, buyers, advisors, companies, and researchers." },
       { property: "og:title", content: "AgriBusiness Expert Network" },
     ],
@@ -91,7 +90,7 @@ function SearchPage() {
               name: profile.display_name || "Profile name not set",
               title: bio ? bio.slice(0, 90) : roleHeadline(type),
               location: profile.location || [profile.city, profile.province].filter(Boolean).join(", ") || "Location not set",
-              rating: profile.rating === null || profile.rating === undefined ? undefined : Number(profile.rating),
+              ...(profile.rating !== null && profile.rating !== undefined ? { rating: Number(profile.rating) } : {}),
               keywords: [],
               isVerified: profile.is_verified === true,
               image: profile.avatar_url || undefined,

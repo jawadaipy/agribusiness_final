@@ -4,7 +4,8 @@
  */
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
+import { AnimatePresence, motion } from "framer-motion";
+import { CountUp, EASE_OUT_EXPO, Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { supabase } from "@/lib/supabase";
 import { ROLE_DEFINITIONS } from "@/lib/roles";
 
@@ -50,7 +51,7 @@ export function TrustBand() {
   }, []);
 
   const items = [
-    { value: stats?.members, label: "Verified members", icon: "groups" },
+    { value: stats?.members, label: "Active members", icon: "groups" },
     { value: stats?.listings, label: "Active listings", icon: "inventory_2" },
     { value: stats?.projects, label: "Open requirements", icon: "work" },
     { value: 34, label: "Cities covered", icon: "location_on" },
@@ -58,20 +59,22 @@ export function TrustBand() {
 
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-10 md:px-margin-desktop md:py-12">
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 lg:grid-cols-4">
-          {items.map((item) => (
-            <div key={item.label} className="flex items-center gap-4 bg-white px-5 py-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8">
-                <span className="material-symbols-outlined text-[20px] text-primary" aria-hidden="true">{item.icon}</span>
-              </span>
-              <div className="min-w-0">
-                <p className="stat-num font-display text-2xl font-bold leading-none text-primary md:text-[26px]">
-                  {item.value === null || item.value === undefined ? "—" : item.value.toLocaleString()}
-                </p>
-                <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{item.label}</p>
+          {items.map((item, i) => (
+            <Reveal key={item.label} delay={i * 0.07} y={12}>
+              <div className="flex items-center gap-4 bg-white px-5 py-4 h-full">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8">
+                  <span className="material-symbols-outlined text-[20px] text-primary" aria-hidden="true">{item.icon}</span>
+                </span>
+                <div className="min-w-0">
+                  <p className="stat-num font-display text-2xl font-bold leading-none text-primary md:text-[26px]">
+                    {item.value === null || item.value === undefined ? "—" : <CountUp to={item.value} />}
+                  </p>
+                  <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{item.label}</p>
+                </div>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
         <p className="mt-3 text-xs text-on-surface-variant/60">
@@ -88,12 +91,12 @@ export function TrustBand() {
  * with direct links into the surfaces where it happens.
  */
 export function RolesExplorer() {
-  const [active, setActive] = useState(ROLE_DEFINITIONS[0].id);
-  const role = ROLE_DEFINITIONS.find((r) => r.id === active) ?? ROLE_DEFINITIONS[0];
+  const [active, setActive] = useState(ROLE_DEFINITIONS[0]!.id);
+  const role = ROLE_DEFINITIONS.find((r) => r.id === active) ?? ROLE_DEFINITIONS[0]!;
 
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
         <div className="max-w-xl">
           <p className="eyebrow">One network, five roles</p>
           <h2 className="section-heading mt-3">Every member has a role — and every role has real powers</h2>
@@ -103,7 +106,7 @@ export function RolesExplorer() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="mt-12 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
           {/* Role tabs — vertical on desktop, scroll strip on mobile */}
           <div role="tablist" aria-label="Member roles" className="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0">
             {ROLE_DEFINITIONS.map((r) => {
@@ -115,14 +118,22 @@ export function RolesExplorer() {
                   aria-selected={selected}
                   type="button"
                   onClick={() => setActive(r.id)}
-                  className={`flex shrink-0 items-center gap-3 rounded-xl border px-4 py-3 text-left outline-none transition-all lg:w-full ${
+                  className={`relative flex shrink-0 items-center gap-3 rounded-xl border px-4 py-3 text-left outline-none transition-colors lg:w-full ${
                     selected
-                      ? "border-primary bg-primary text-on-primary shadow-md"
+                      ? "border-transparent text-on-primary"
                       : "border-outline-variant/60 bg-white text-on-surface hover:border-primary/40 hover:bg-primary/5"
                   }`}
                 >
-                  <span className={`material-symbols-outlined text-[20px] ${selected ? "text-secondary" : "text-primary"}`} aria-hidden="true">{r.icon}</span>
-                  <span className="min-w-0">
+                  {selected && (
+                    <motion.span
+                      layoutId="role-tab-pill"
+                      transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                      className="absolute inset-0 rounded-xl bg-primary shadow-md"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className={`material-symbols-outlined relative z-10 text-[20px] ${selected ? "text-secondary" : "text-primary"}`} aria-hidden="true">{r.icon}</span>
+                  <span className="relative z-10 min-w-0">
                     <span className="block text-[13px] font-bold">{r.name}</span>
                     <span className={`hidden text-xs lg:block ${selected ? "text-white/70" : "text-on-surface-variant/70"}`}>
                       {r.listingCategories.length > 0 ? `${r.listingCategories.length} listing scopes` : "Research & feed"}
@@ -134,7 +145,15 @@ export function RolesExplorer() {
           </div>
 
           {/* Active role panel */}
-          <div key={role.id} className="rounded-3xl border border-outline-variant/50 bg-surface-container-low/50 p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 md:p-6">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={role.id}
+              initial={{ opacity: 0, x: 28 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -18 }}
+              transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
+              className="rounded-3xl border border-outline-variant/50 bg-surface-container-low/50 p-5 md:p-6"
+            >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-lg">
                 <h3 className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">{role.name}</h3>
@@ -172,7 +191,8 @@ export function RolesExplorer() {
                 </Reveal>
               ))}
             </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </section>
@@ -182,18 +202,18 @@ export function RolesExplorer() {
 export function HowItWorksMinimal() {
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
         <div className="max-w-xl">
           <p className="eyebrow">How it works</p>
           <h2 className="section-heading mt-3">From profile to partnership in three steps</h2>
         </div>
 
-        <RevealGroup className="mt-8 grid gap-8 md:grid-cols-3 md:gap-6">
+        <RevealGroup className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
           {STEPS.map((step) => (
             <RevealItem key={step.n}>
-              <div className="border-t-2 border-primary/80 pt-5">
-                <p className="stat-num font-display text-[28px] font-semibold leading-none text-black/85">{step.n}</p>
-                <h3 className="mt-4 text-[16px] font-semibold text-black">{step.title}</h3>
+              <div className="group border-t-2 border-primary/80 pt-5 transition-colors duration-300 hover:border-secondary">
+                <p className="stat-num font-display text-[28px] font-semibold leading-none text-black/85 transition-colors duration-300 group-hover:text-secondary">{step.n}</p>
+                <h3 className="mt-4 text-[16px] font-semibold text-black transition-transform duration-300 group-hover:translate-x-1">{step.title}</h3>
                 <p className="mt-2 text-[13px] leading-6 text-black/55">{step.line}</p>
               </div>
             </RevealItem>
@@ -207,7 +227,7 @@ export function HowItWorksMinimal() {
 export function AppsStrip() {
   return (
     <section className="border-b border-black/[0.06] bg-white">
-      <div className="mx-auto max-w-container-max px-margin-mobile py-12 md:px-margin-desktop md:py-16">
+      <div className="mx-auto max-w-container-max px-margin-mobile py-16 md:px-margin-desktop md:py-24">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-xl">
             <p className="eyebrow">The toolkit</p>
@@ -219,10 +239,10 @@ export function AppsStrip() {
           </Link>
         </div>
 
-        <RevealGroup className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {APPS.map((app) => (
             <RevealItem key={app.name}>
-              <Link to={app.to} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white outline-none transition-all hover:border-black/25 hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] focus-visible:ring-2 focus-visible:ring-primary/50">
+              <Link to={app.to} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white outline-none hover-lift hover:border-black/25 focus-visible:ring-2 focus-visible:ring-primary/50">
                 <span className="relative block h-28 overflow-hidden bg-surface-container">
                   <img
                     src={app.image}
@@ -256,6 +276,7 @@ export function CtaBand() {
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "100% 44px" }}
         aria-hidden="true"
       />
+      <div className="glow-breathe pointer-events-none absolute -right-24 -top-28 h-96 w-96 rounded-full bg-secondary/15 blur-3xl" aria-hidden="true" />
       <div className="relative mx-auto flex max-w-container-max flex-col items-start gap-6 px-margin-mobile py-10 md:flex-row md:items-center md:justify-between md:px-margin-desktop md:py-12">
         <Reveal>
           <h2 className="display-hero text-[28px] text-white md:text-[34px]">
@@ -265,15 +286,17 @@ export function CtaBand() {
             Free 7-day trial on every plan. No card required — just an honest profile.
           </p>
         </Reveal>
-        <div className="flex shrink-0 flex-wrap gap-3">
-          <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-secondary px-5 py-2.5 text-[14px] font-semibold text-on-secondary hover:bg-secondary-light">
-            Create your free profile
-            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
-          </Link>
-          <Link to="/search" search={{ q: "" }} className="press inline-flex items-center rounded-lg border border-white/25 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">
-            Explore members
-          </Link>
-        </div>
+        <Reveal delay={0.15} x={24} y={0}>
+          <div className="flex shrink-0 flex-wrap gap-3">
+            <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-secondary px-5 py-2.5 text-[14px] font-semibold text-on-secondary hover:bg-secondary-light">
+              Create your free profile
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
+            </Link>
+            <Link to="/search" search={{ q: "" }} className="press inline-flex items-center rounded-lg border border-white/25 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">
+              Explore members
+            </Link>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

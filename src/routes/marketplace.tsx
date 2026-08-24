@@ -16,8 +16,7 @@ import { fetchSavedIds } from "@/lib/saved-items";
 
 export const Route = createFileRoute("/marketplace")({
   head: () => ({
-    title: "Marketplace | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "Browse produce listings, agri services, and products from verified Pakistani farmers, consultants, and agri-businesses." }],
+    meta: [{ title: "Marketplace | AgriBusiness Pakistan" },{ name: "description", content: "Browse produce listings, agri services, and products from verified Pakistani farmers, consultants, and agri-businesses." }],
   }),
   component: MarketplacePage,
 });
@@ -79,7 +78,7 @@ function ListingCardView({ listing, savedInitially }: { listing: ListingCard; sa
             {TYPE_LABELS[listing.profile?.user_type ?? ""] ?? listing.profile?.user_type}
             {listing.profile?.is_verified && (
               <span className="ml-1 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-secondary text-on-secondary" title="Verified member" aria-label="Verified member">
-                <span className="material-symbols-outlined text-[10px]" aria-hidden="true">check</span>
+                <span className="material-symbols-outlined text-xs" aria-hidden="true">check</span>
               </span>
             )}
           </p>
@@ -172,8 +171,8 @@ function MarketplacePage() {
     const mapped = (data ?? []).map((row: Record<string, unknown>) => ({
       ...(row as object),
       profile: {
-        ...(row.profiles as Record<string, unknown>),
-        id: row.profile_id,
+        ...(row["profiles"] as Record<string, unknown>),
+        id: row["profile_id"],
       },
     })) as ListingCard[];
 

@@ -8,4 +8,4 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-});
+} as Parameters<typeof defineConfig>[0]);

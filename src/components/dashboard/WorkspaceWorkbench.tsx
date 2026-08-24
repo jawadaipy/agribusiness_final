@@ -58,7 +58,7 @@ type Tab = "profile" | "publish" | "opportunities" | "connections" | "saved";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-outline bg-white px-3 py-2.5 text-xs font-medium text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15";
-const labelClass = "text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface-variant";
+const labelClass = "text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant";
 const buttonClass =
   "inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-bold text-on-primary shadow-[0_8px_20px_rgba(15,81,50,0.16)] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60";
 
@@ -382,7 +382,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     void loadWorkspace();
   }, [profile.id]);
 
-  const submit = async (action: () => Promise<{ error: { message: string } | null }>, successMessage: string) => {
+  const submit = async (action: () => PromiseLike<{ error: { message: string } | null }>, successMessage: string) => {
     setSubmitting(true);
     setError("");
     setSuccess("");
@@ -399,7 +399,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
   // Live databases may predate the optional `services` tag column; retry once
   // without it so publishing still works there.
   const withServicesFallback = (
-    run: (includeServices: boolean) => Promise<{ error: { message: string } | null }>,
+    run: (includeServices: boolean) => PromiseLike<{ error: { message: string } | null }>,
   ) => async (): Promise<{ error: { message: string } | null }> => {
     const first = await run(true);
     if (first.error && first.error.message.includes("services")) {
@@ -935,7 +935,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     <div className="mt-6">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-display text-xl text-primary">My listings</h3>
-        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{myListings.length} total</span>
+        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{myListings.length} total</span>
       </div>
       {myListings.length === 0 ? (
         <p className="rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">
@@ -948,7 +948,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
               <div className="flex justify-between gap-3">
                 <h4 className="text-sm font-bold text-primary">{listing.title}</h4>
                 <span
-                  className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
+                  className={`rounded-full px-2 py-1 text-xs font-bold uppercase ${
                     listing.status === "draft"
                       ? "bg-amber-100 text-amber-700"
                       : "bg-primary/10 text-primary"
@@ -959,9 +959,9 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
               </div>
               <p className="mt-2 text-sm font-bold text-primary">
                 {formatPkr(listing.price)}{" "}
-                {listing.unit ? <span className="text-[10px] font-medium text-on-surface-variant">/ {listing.unit}</span> : null}
+                {listing.unit ? <span className="text-xs font-medium text-on-surface-variant">/ {listing.unit}</span> : null}
               </p>
-              <p className="mt-1 text-[11px] text-on-surface-variant">
+              <p className="mt-1 text-xs text-on-surface-variant">
                 {listing.quantity !== null ? `${listing.quantity} available · ` : ""}
                 {listing.city || "City not set"}
               </p>
@@ -969,14 +969,14 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
                 <button
                   type="button"
                   onClick={() => startEditListing(listing)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-[10px] font-bold text-primary transition hover:bg-surface-container"
+                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-surface-container"
                 >
                   <span className="material-symbols-outlined text-[13px]">edit</span> Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => void deleteListing(listing.id)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-[10px] font-bold text-error transition hover:bg-error/10"
+                  className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-xs font-bold text-error transition hover:bg-error/10"
                 >
                   <span className="material-symbols-outlined text-[13px]">delete</span> Delete
                 </button>
@@ -992,7 +992,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
     <div className="mt-6">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-display text-xl text-primary">My opportunities</h3>
-        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{myProjects.length} total</span>
+        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{myProjects.length} total</span>
       </div>
       {myProjects.length === 0 ? (
         <p className="rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">
@@ -1005,10 +1005,10 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
               <div className="flex justify-between gap-3">
                 <div>
                   <h4 className="text-sm font-bold text-primary">{project.title}</h4>
-                  <p className="mt-1 text-[11px] leading-5 text-on-surface-variant">{project.description}</p>
+                  <p className="mt-1 text-xs leading-5 text-on-surface-variant">{project.description}</p>
                 </div>
                 <span
-                  className={`h-fit rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
+                  className={`h-fit rounded-full px-2 py-1 text-xs font-bold uppercase ${
                     project.status === "draft"
                       ? "bg-amber-100 text-amber-700"
                       : "bg-primary/10 text-primary"
@@ -1017,7 +1017,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
                   {project.status === "draft" ? "Draft" : project.status}
                 </span>
               </div>
-              <p className="mt-3 text-[11px] font-medium text-on-surface-variant">
+              <p className="mt-3 text-xs font-medium text-on-surface-variant">
                 {project.budget_min !== null || project.budget_max !== null
                   ? `${formatPkr(project.budget_min)} – ${formatPkr(project.budget_max)}`
                   : "Budget on request"}
@@ -1030,14 +1030,14 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
                 <button
                   type="button"
                   onClick={() => startEditProject(project)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-[10px] font-bold text-primary transition hover:bg-surface-container"
+                  className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-surface-container"
                 >
                   <span className="material-symbols-outlined text-[13px]">edit</span> Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => void deleteProject(project.id)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-[10px] font-bold text-error transition hover:bg-error/10"
+                  className="inline-flex items-center gap-1 rounded-lg border border-error/30 px-2.5 py-1.5 text-xs font-bold text-error transition hover:bg-error/10"
                 >
                   <span className="material-symbols-outlined text-[13px]">delete</span> Delete
                 </button>
@@ -1050,7 +1050,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
   );
 
   const renderOpenProjects = () => (
-    <div className="space-y-4">{openProjects.length === 0 ? <p className="rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">No relevant open projects are available right now. Your saved profile fields will support more relevant matching when the next opportunity is published.</p> : openProjects.map((project) => { const draft = proposalDrafts[project.id] ?? { note: "", quote: "" }; return <article key={project.id} className="rounded-2xl border border-outline-variant bg-white p-5"><div className="flex flex-col justify-between gap-3 sm:flex-row"><div><h3 className="font-display text-xl text-primary">{project.title}</h3><p className="mt-2 text-xs leading-5 text-on-surface-variant">{project.description}</p></div><span className="h-fit rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">Open</span></div><p className="mt-4 text-[11px] font-semibold text-on-surface-variant">{project.required_skills?.length ? `Skills: ${project.required_skills.join(", ")} · ` : ""}{project.city || project.location || "Pakistan"}{project.is_remote ? " · Remote possible" : ""}</p>{isConsultant ? <div className="mt-5 grid gap-3 border-t border-outline-variant pt-4 md:grid-cols-[1fr_180px_auto]"><textarea value={draft.note} onChange={(e) => setProposalDrafts({ ...proposalDrafts, [project.id]: { ...draft, note: e.target.value } })} className={`${inputClass} mt-0 min-h-24 resize-y`} placeholder="Briefly explain your fit, proposed approach, and relevant experience (minimum 20 characters)." /><input type="number" min="0" value={draft.quote} onChange={(e) => setProposalDrafts({ ...proposalDrafts, [project.id]: { ...draft, quote: e.target.value } })} className={`${inputClass} mt-0 h-fit`} placeholder="Quote in PKR (optional)" /><button type="button" disabled={submitting} onClick={() => void submitProposal(project.id)} className={`${buttonClass} h-fit`}>{submitting ? "Sending…" : "Submit proposal"}</button></div> : <p className="mt-4 rounded-xl bg-surface-container-low p-3 text-[11px] leading-5 text-on-surface-variant">This is an open opportunity. Use a connection request to introduce your academic profile; formal consultant proposals are restricted to Consultant accounts.</p>}</article>; })}</div>
+    <div className="space-y-4">{openProjects.length === 0 ? <p className="rounded-xl border border-dashed border-outline bg-surface-container-low p-4 text-xs leading-5 text-on-surface-variant">No relevant open projects are available right now. Your saved profile fields will support more relevant matching when the next opportunity is published.</p> : openProjects.map((project) => { const draft = proposalDrafts[project.id] ?? { note: "", quote: "" }; return <article key={project.id} className="rounded-2xl border border-outline-variant bg-white p-5"><div className="flex flex-col justify-between gap-3 sm:flex-row"><div><h3 className="font-display text-xl text-primary">{project.title}</h3><p className="mt-2 text-xs leading-5 text-on-surface-variant">{project.description}</p></div><span className="h-fit rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">Open</span></div><p className="mt-4 text-xs font-semibold text-on-surface-variant">{project.required_skills?.length ? `Skills: ${project.required_skills.join(", ")} · ` : ""}{project.city || project.location || "Pakistan"}{project.is_remote ? " · Remote possible" : ""}</p>{isConsultant ? <div className="mt-5 grid gap-3 border-t border-outline-variant pt-4 md:grid-cols-[1fr_180px_auto]"><textarea value={draft.note} onChange={(e) => setProposalDrafts({ ...proposalDrafts, [project.id]: { ...draft, note: e.target.value } })} className={`${inputClass} mt-0 min-h-24 resize-y`} placeholder="Briefly explain your fit, proposed approach, and relevant experience (minimum 20 characters)." /><input type="number" min="0" value={draft.quote} onChange={(e) => setProposalDrafts({ ...proposalDrafts, [project.id]: { ...draft, quote: e.target.value } })} className={`${inputClass} mt-0 h-fit`} placeholder="Quote in PKR (optional)" /><button type="button" disabled={submitting} onClick={() => void submitProposal(project.id)} className={`${buttonClass} h-fit`}>{submitting ? "Sending…" : "Submit proposal"}</button></div> : <p className="mt-4 rounded-xl bg-surface-container-low p-3 text-xs leading-5 text-on-surface-variant">This is an open opportunity. Use a connection request to introduce your academic profile; formal consultant proposals are restricted to Consultant accounts.</p>}</article>; })}</div>
   );
 
   if (loading) return <div className="rounded-2xl border border-outline-variant bg-white p-6 text-xs text-on-surface-variant">Loading your secure workspace records…</div>;
@@ -1058,7 +1058,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
   return (
     <section className="rounded-2xl border border-outline-variant bg-white p-5 shadow-[0_10px_28px_rgba(15,81,50,0.08)] md:p-7">
       <div className="flex flex-col justify-between gap-4 border-b border-outline-variant pb-5 md:flex-row md:items-end">
-        <div><p className="text-[9px] font-bold uppercase tracking-[0.14em] text-on-surface-variant">Operational workspace</p><h2 className="mt-1 font-display text-2xl text-primary">Create records that belong to your account</h2><p className="mt-2 max-w-2xl text-[11px] leading-5 text-on-surface-variant">Each action is saved through the signed-in Supabase account and is still constrained by role-specific database policies.</p></div>
+        <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">Operational workspace</p><h2 className="mt-1 font-display text-2xl text-primary">Create records that belong to your account</h2><p className="mt-2 max-w-2xl text-xs leading-5 text-on-surface-variant">Each action is saved through the signed-in Supabase account and is still constrained by role-specific database policies.</p></div>
         <button type="button" onClick={() => void loadWorkspace()} className="control-secondary inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold"><span className="material-symbols-outlined text-[16px]">refresh</span>Refresh records</button>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
@@ -1072,7 +1072,7 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
             <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
             {item.label}
             {item.badge > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-error px-1 text-[9px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-error px-1 text-xs font-bold text-white">
                 {item.badge}
               </span>
             )}
@@ -1117,5 +1117,5 @@ export function WorkspaceWorkbench({ profile }: { profile: MemberProfile }) {
 }
 
 function Field({ label, help, required, className = "", children }: { label: string; help?: string; required?: boolean; className?: string; children: React.ReactNode }) {
-  return <label className={`block ${className}`}><span className={labelClass}>{label}{required ? <span className="text-error"> *</span> : null}</span>{children}{help ? <span className="mt-1 block text-[10px] leading-4 text-on-surface-variant">{help}</span> : null}</label>;
+  return <label className={`block ${className}`}><span className={labelClass}>{label}{required ? <span className="text-error"> *</span> : null}</span>{children}{help ? <span className="mt-1 block text-xs leading-4 text-on-surface-variant">{help}</span> : null}</label>;
 }

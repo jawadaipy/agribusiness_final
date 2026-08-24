@@ -200,7 +200,7 @@ function ProjectsPage() {
           {/* Header Banner */}
           <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div className="max-w-2xl text-left">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -251,7 +251,7 @@ function ProjectsPage() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="mt-3 text-[10px] font-bold uppercase tracking-wider text-secondary hover:underline cursor-pointer"
+                    className="mt-3 text-xs font-bold uppercase tracking-wider text-secondary hover:underline cursor-pointer"
                   >
                     Clear Filter
                   </button>
@@ -267,10 +267,10 @@ function ProjectsPage() {
                 <h2 className="text-xs font-bold uppercase tracking-wider text-secondary-container">
                   Accountable RFP Bidding
                 </h2>
-                <p className="mt-2 text-[11px] leading-5 text-white/80 font-medium">
+                <p className="mt-2 text-xs leading-5 text-white/80 font-medium">
                   Verified Farmers, Buyers, and Enterprises can publish requirements. Qualified agronomists and contractors submit proposals directly.
                 </p>
-                <div className="mt-4 pt-3 border-t border-white/15 flex items-center gap-2 text-[10px] text-secondary font-bold uppercase">
+                <div className="mt-4 pt-3 border-t border-white/15 flex items-center gap-2 text-xs text-secondary font-bold uppercase">
                   <span>100% Verified Identity</span>
                 </div>
               </div>
@@ -442,7 +442,7 @@ function ProjectsPage() {
             >
               <div className="flex items-start justify-between gap-4 border-b border-outline-variant/30 pb-4">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-secondary">
+                  <span className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Official RFP Board
                   </span>
                   <h2 className="font-display text-2xl font-bold text-primary mt-0.5">
@@ -596,7 +596,7 @@ function FormField({
 }) {
   return (
     <label className={`block space-y-1 ${className}`}>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
         {label}
         {required ? <span className="text-error"> *</span> : null}
       </span>
@@ -628,10 +628,10 @@ function ProjectSkeleton() {
   );
 }
 
-export const Route = createFileRoute("/projects")({
+export const Route = createFileRoute("/projects/")({
   head: () => ({
-    title: "Project Board | AgriBusiness Pakistan",
     meta: [
+      { title: "Project Board | AgriBusiness Pakistan" },
       {
         name: "description",
         content: "Browse real agricultural projects and requirements across Pakistan.",

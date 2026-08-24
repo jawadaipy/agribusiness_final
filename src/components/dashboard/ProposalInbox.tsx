@@ -62,8 +62,8 @@ export function ProposalInbox({ profileId }: { profileId: string }) {
 
       const mapped = (data ?? []).map((row: Record<string, unknown>) => ({
         ...(row as object),
-        project_title: pTitleMap[row.project_id as string] ?? "Project",
-        profile: row.profiles,
+        project_title: pTitleMap[row["project_id"] as string] ?? "Project",
+        profile: row["profiles"],
       })) as Proposal[];
 
       setProposals(mapped);
@@ -86,7 +86,7 @@ export function ProposalInbox({ profileId }: { profileId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <h3 className="font-display text-xl text-primary">Proposal inbox</h3>
-        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">
+        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
           {filtered.length} proposal{filtered.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -136,21 +136,21 @@ export function ProposalInbox({ profileId }: { profileId: string }) {
                       >
                         {proposal.profile?.full_name ?? "Applicant"}
                       </Link>
-                      <span className="rounded-full bg-primary/8 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
+                      <span className="rounded-full bg-primary/8 px-2 py-0.5 text-xs font-bold uppercase text-primary">
                         {proposal.profile?.user_type}
                       </span>
                       {proposal.profile?.is_verified && (
-                        <span className="flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
-                          <span className="material-symbols-outlined text-[10px]">verified</span> Verified
+                        <span className="flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                          <span className="material-symbols-outlined text-xs">verified</span> Verified
                         </span>
                       )}
                       {proposal.profile?.city && (
-                        <span className="text-[10px] text-on-surface-variant">{proposal.profile.city}</span>
+                        <span className="text-xs text-on-surface-variant">{proposal.profile.city}</span>
                       )}
                     </div>
 
                     {/* Project label */}
-                    <p className="mt-0.5 text-[10px] text-on-surface-variant">
+                    <p className="mt-0.5 text-xs text-on-surface-variant">
                       For: <span className="font-semibold">{proposal.project_title}</span>
                       {" · "}{timeAgo(proposal.created_at)}
                     </p>
@@ -172,14 +172,14 @@ export function ProposalInbox({ profileId }: { profileId: string }) {
                       <Link
                         to="/profile/$id"
                         params={{ id: proposal.profile?.id ?? "" }}
-                        className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-3 py-1.5 text-[10px] font-bold text-primary transition hover:bg-primary/8"
+                        className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/8"
                       >
                         <span className="material-symbols-outlined text-[13px]">person</span>
                         View profile
                       </Link>
                       <Link
                         to="/messages"
-                        className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[10px] font-bold text-on-primary transition hover:bg-primary-container"
+                        className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-on-primary transition hover:bg-primary-container"
                       >
                         <span className="material-symbols-outlined text-[13px]">chat</span>
                         Message

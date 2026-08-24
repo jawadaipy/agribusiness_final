@@ -15,8 +15,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
-    title: "Notifications | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "Your activity notifications." }],
+    meta: [{ title: "Notifications | AgriBusiness Pakistan" },{ name: "description", content: "Your activity notifications." }],
   }),
   component: NotificationsPage,
 });
@@ -130,7 +129,7 @@ function NotificationsPage() {
               <span className="material-symbols-outlined text-[48px] text-on-surface-variant/30" aria-hidden="true">notifications_none</span>
               <p className="font-display text-xl text-on-surface-variant">No notifications yet</p>
               <p className="text-xs text-on-surface-variant/60">When people connect with you or respond to your listings, you'll see it here.</p>
-              <Link to="/search" className="mt-2 rounded-xl bg-primary px-6 py-3 text-xs font-bold text-on-primary">
+              <Link to="/search" search={{ q: "" }} className="mt-2 rounded-xl bg-primary px-6 py-3 text-xs font-bold text-on-primary">
                 Browse the network
               </Link>
             </div>

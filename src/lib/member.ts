@@ -28,26 +28,38 @@ export function isPlatformRole(value: unknown): value is PlatformRole {
   return value === "admin" || isAccountRole(value);
 }
 
+/**
+ * Resolve the current user from the local session first (no network round
+ * trip); fall back to a server getUser() only when no session is cached.
+ * All privileged checks still go through RLS-protected profile queries.
+ */
+async function currentUser(): Promise<User | null> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (sessionData.session?.user) return sessionData.session.user;
+  const { data: authData } = await supabase.auth.getUser();
+  return authData.user ?? null;
+}
+
 export async function getAuthenticatedPlatformProfile(): Promise<{
   user: User | null;
   profile: PlatformProfile | null;
   error: string | null;
 }> {
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    return { user: null, profile: null, error: authError?.message || null };
+  const user = await currentUser();
+  if (!user) {
+    return { user: null, profile: null, error: null };
   }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
-    .eq("id", authData.user.id)
+    .eq("id", user.id)
     .maybeSingle();
 
-  if (error) return { user: authData.user, profile: null, error: error.message };
-  if (!data || !isPlatformRole(data.user_type)) return { user: authData.user, profile: null, error: null };
-  if (data.is_active === false) return { user: authData.user, profile: null, error: "This account is inactive." };
-  return { user: authData.user, profile: data as PlatformProfile, error: null };
+  if (error) return { user, profile: null, error: error.message };
+  if (!data || !isPlatformRole(data.user_type)) return { user, profile: null, error: null };
+  if (data.is_active === false) return { user, profile: null, error: "This account is inactive." };
+  return { user, profile: data as PlatformProfile, error: null };
 }
 
 export async function getAuthenticatedMember(): Promise<{
@@ -55,37 +67,37 @@ export async function getAuthenticatedMember(): Promise<{
   profile: MemberProfile | null;
   error: string | null;
 }> {
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    return { user: null, profile: null, error: authError?.message || null };
+  const user = await currentUser();
+  if (!user) {
+    return { user: null, profile: null, error: null };
   }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
-    .eq("id", authData.user.id)
+    .eq("id", user.id)
     .maybeSingle();
 
-  if (error) return { user: authData.user, profile: null, error: error.message };
+  if (error) return { user, profile: null, error: error.message };
   
   if (data && isAccountRole(data.user_type)) {
-    if (data.is_active === false) return { user: authData.user, profile: null, error: "This account is inactive." };
-    return { user: authData.user, profile: data as MemberProfile, error: null };
+    if (data.is_active === false) return { user: user, profile: null, error: "This account is inactive." };
+    return { user: user, profile: data as MemberProfile, error: null };
   }
 
   // Fallback / Auto-initialization for newly created accounts
-  const rawRole = (authData.user.user_metadata?.user_type as string) || "farmer";
+  const rawRole = (user.user_metadata?.["user_type"] as string) || "farmer";
   const role: AccountRole = isAccountRole(rawRole) ? rawRole : "farmer";
-  const fullName = (authData.user.user_metadata?.full_name as string) || null;
-  const city = (authData.user.user_metadata?.city as string) || null;
+  const fullName = (user.user_metadata?.["full_name"] as string) || null;
+  const city = (user.user_metadata?.["city"] as string) || null;
 
   try {
     const { data: inserted } = await supabase
       .from("profiles")
       .upsert(
         {
-          id: authData.user.id,
-          email: authData.user.email ?? "",
+          id: user.id,
+          email: user.email ?? "",
           full_name: fullName,
           display_name: fullName,
           user_type: role,
@@ -97,17 +109,17 @@ export async function getAuthenticatedMember(): Promise<{
       .maybeSingle();
 
     if (inserted && isAccountRole(inserted.user_type)) {
-      return { user: authData.user, profile: inserted as MemberProfile, error: null };
+      return { user: user, profile: inserted as MemberProfile, error: null };
     }
   } catch {
     // If upsert encounters an RLS/network issue, return the metadata-backed member object
   }
 
   return {
-    user: authData.user,
+    user: user,
     profile: {
-      id: authData.user.id,
-      email: authData.user.email ?? "",
+      id: user.id,
+      email: user.email ?? "",
       full_name: fullName,
       display_name: fullName,
       user_type: role,

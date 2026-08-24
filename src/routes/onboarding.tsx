@@ -11,12 +11,12 @@ import { roleDefinition } from "@/lib/roles";
 const ROLE_IDS = ["farmer", "buyer", "consultant", "company", "student"] as const;
 
 export const Route = createFileRoute("/onboarding")({
-  validateSearch: (search: Record<string, unknown>): { role?: string } => ({
-    role: typeof search.role === "string" ? search.role : undefined,
+  validateSearch: (search: Record<string, unknown>): { role?: string | undefined } => ({
+    role: typeof search["role"] === "string" ? search["role"] : undefined,
   }),
   head: () => ({
-    title: "Account Portal | AgriBusiness Pakistan",
     meta: [
+      { title: "Account Portal | AgriBusiness Pakistan" },
       {
         name: "description",
         content:
@@ -139,14 +139,14 @@ function OnboardingPage() {
 
   const handleStep2Submit = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.fullName || formData.fullName.trim().length < 2)
-      newErrors.fullName = "Please enter your full name.";
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim()))
-      newErrors.email = "Please enter a valid email address.";
-    if (!formData.password || formData.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters.";
-    if (!formData.phone || !validatePKPhone(formData.phone))
-      newErrors.phone = "Enter a valid Pakistani number, e.g. 03001234567.";
+    if (!formData["fullName"] || formData["fullName"].trim().length < 2)
+      newErrors["fullName"] = "Please enter your full name.";
+    if (!formData["email"] || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData["email"].trim()))
+      newErrors["email"] = "Please enter a valid email address.";
+    if (!formData["password"] || formData["password"].length < 6)
+      newErrors["password"] = "Password must be at least 6 characters.";
+    if (!formData["phone"] || !validatePKPhone(formData["phone"]))
+      newErrors["phone"] = "Enter a valid Pakistani number, e.g. 03001234567.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -162,8 +162,8 @@ function OnboardingPage() {
     setSuccessMessage("");
 
     try {
-      const email = formData.email.trim();
-      const password = formData.password;
+      const email = formData["email"].trim();
+      const password = formData["password"];
 
       // 1. Call Supabase Auth signup
       const { data, error } = await supabase.auth.signUp({
@@ -171,9 +171,9 @@ function OnboardingPage() {
         password: password,
         options: {
           data: {
-            full_name: formData.fullName.trim(),
+            full_name: formData["fullName"].trim(),
             user_type: userRole,
-            phone: formData.phone.trim(),
+            phone: formData["phone"].trim(),
             city: formData.city,
             primary_discipline: formData.primaryDiscipline,
             keywords: selectedKeywords,
@@ -231,17 +231,17 @@ function OnboardingPage() {
     setApiError("");
     setSuccessMessage("");
 
-    if (!formData.email || !formData.password) {
+    if (!formData["email"] || !formData["password"]) {
       setApiError("Please enter both email and password.");
       setIsLoading(false);
       return;
     }
 
     try {
-      const email = formData.email.trim();
+      const email = formData["email"].trim();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password: formData.password,
+        password: formData["password"],
       });
 
       if (error) {
@@ -263,7 +263,7 @@ function OnboardingPage() {
   const handleForgotPassword = async () => {
     setApiError("");
     setSuccessMessage("");
-    const email = formData.email.trim();
+    const email = formData["email"].trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setApiError("Enter your email address above first, then tap Forgot password.");
       return;
@@ -290,7 +290,7 @@ function OnboardingPage() {
           >
             AgriBusiness <span className="text-secondary">PK</span>
           </Link>
-          <span className="inline-block px-3 py-1 bg-secondary text-on-secondary font-bold text-[10px] uppercase tracking-wider rounded-md mb-4">
+          <span className="inline-block px-3 py-1 bg-secondary text-on-secondary font-bold text-xs uppercase tracking-wider rounded-md mb-4">
             Unified Agri-Ecosystem
           </span>
           <h1 className="font-display text-4xl font-bold leading-tight mb-4 tracking-tight">
@@ -327,8 +327,8 @@ function OnboardingPage() {
                   {s.n}
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider">{s.label}</div>
-                  <div className="text-[11px] text-white/70 font-medium">{s.desc}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider">{s.label}</div>
+                  <div className="text-xs text-white/70 font-medium">{s.desc}</div>
                 </div>
               </div>
             ))}
@@ -421,7 +421,7 @@ function OnboardingPage() {
                     id="login-email"
                     type="email"
                     required
-                    value={formData.email}
+                    value={formData["email"]}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-xs font-medium text-primary focus:outline-none focus:border-primary transition-all"
                     placeholder="e.g. arshad.khan@agribiz.pk"
@@ -436,7 +436,7 @@ function OnboardingPage() {
                     id="login-password"
                     type="password"
                     required
-                    value={formData.password}
+                    value={formData["password"]}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-xs font-medium text-primary focus:outline-none focus:border-primary transition-all"
                     placeholder="••••••••"
@@ -480,7 +480,7 @@ function OnboardingPage() {
                   <div className="mx-auto mb-3 h-px w-full max-w-xs bg-outline-variant/70" />
                   <Link
                     to="/admin-login"
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
                   >
                     <span className="material-symbols-outlined text-[15px]">admin_panel_settings</span>
                     Admin Portal
@@ -493,7 +493,7 @@ function OnboardingPage() {
             {authMode === "signup" && step === 1 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div>
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                  <span className="text-xs font-bold text-secondary uppercase tracking-wider">
                     Step 1 of 3
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
@@ -528,7 +528,7 @@ function OnboardingPage() {
                         <span className="material-symbols-outlined text-[22px]">{role.icon}</span>
                       </div>
                       <h3 className="text-sm font-bold text-primary mb-1">{role.label}</h3>
-                      <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed">
+                      <p className="text-xs text-on-surface-variant font-medium leading-relaxed">
                         {role.desc}
                       </p>
                     </button>
@@ -573,7 +573,7 @@ function OnboardingPage() {
             {authMode === "signup" && step === 2 && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div>
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                  <span className="text-xs font-bold text-secondary uppercase tracking-wider">
                     Step 2 of 3
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
@@ -586,86 +586,86 @@ function OnboardingPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Full Name
                     </label>
                     <input
-                      value={formData.fullName}
+                      value={formData["fullName"]}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       className={cn(
                         "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
-                        errors.fullName
+                        errors["fullName"]
                           ? "border-error"
                           : "border-outline-variant/40 focus:border-primary",
                       )}
                       placeholder="e.g. Dr. Arshad Khan / Malik Bilal"
                     />
-                    {errors.fullName && <p className="text-error text-[10px]">{errors.fullName}</p>}
+                    {errors["fullName"] && <p className="text-error text-xs">{errors["fullName"]}</p>}
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Email Address
                     </label>
                     <input
                       type="email"
-                      value={formData.email}
+                      value={formData["email"]}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className={cn(
                         "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
-                        errors.email
+                        errors["email"]
                           ? "border-error"
                           : "border-outline-variant/40 focus:border-primary",
                       )}
                       placeholder="name@example.com / gmail.com"
                     />
-                    {errors.email && <p className="text-error text-[10px]">{errors.email}</p>}
+                    {errors["email"] && <p className="text-error text-xs">{errors["email"]}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Phone Number (WhatsApp)
                     </label>
                     <input
                       type="tel"
-                      value={formData.phone}
+                      value={formData["phone"]}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className={cn(
                         "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
-                        errors.phone
+                        errors["phone"]
                           ? "border-error"
                           : "border-outline-variant/40 focus:border-primary",
                       )}
                       placeholder="03XXXXXXXXX / +923001234567"
                     />
-                    {errors.phone && <p className="text-error text-[10px]">{errors.phone}</p>}
+                    {errors["phone"] && <p className="text-error text-xs">{errors["phone"]}</p>}
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Password
                     </label>
                     <input
                       type="password"
-                      value={formData.password}
+                      value={formData["password"]}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className={cn(
                         "w-full bg-surface-container-low border rounded-xl px-3.5 py-2.5 text-xs font-medium text-primary focus:outline-none transition-all",
-                        errors.password
+                        errors["password"]
                           ? "border-error"
                           : "border-outline-variant/40 focus:border-primary",
                       )}
                       placeholder="At least 6 characters"
                     />
-                    {errors.password && <p className="text-error text-[10px]">{errors.password}</p>}
+                    {errors["password"] && <p className="text-error text-xs">{errors["password"]}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       City / District
                     </label>
                     <select
@@ -681,7 +681,7 @@ function OnboardingPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Primary Discipline
                     </label>
                     <select
@@ -725,7 +725,7 @@ function OnboardingPage() {
             {authMode === "signup" && step === 3 && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div>
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                  <span className="text-xs font-bold text-secondary uppercase tracking-wider">
                     Step 3 of 3
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary tracking-tight mt-1">
@@ -779,7 +779,7 @@ function OnboardingPage() {
                   <span className="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">
                     verified
                   </span>
-                  <p className="text-[11px] text-primary/80 font-medium leading-relaxed">
+                  <p className="text-xs text-primary/80 font-medium leading-relaxed">
                     Selected disciplines ({selectedKeywords.length}) will appear on your public
                     profile and qualify you for verified RFP matches and trade leads.
                   </p>

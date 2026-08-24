@@ -51,7 +51,7 @@ export function ProfileCompletenessBar({ profile }: Props) {
       <div className="flex items-center justify-between">
         <h3 className="font-display text-base font-bold text-primary">Profile completeness</h3>
         <span
-          className={`rounded-full px-3 py-1 text-[10px] font-bold text-white ${getColor(pct)}`}
+          className={`rounded-full px-3 py-1 text-xs font-bold text-white ${getColor(pct)}`}
         >
           {pct}%
         </span>
@@ -65,12 +65,12 @@ export function ProfileCompletenessBar({ profile }: Props) {
         />
       </div>
 
-      <p className="mt-2 text-[10px] leading-4 text-on-surface-variant">{getLabel(pct)}</p>
+      <p className="mt-2 text-xs leading-4 text-on-surface-variant">{getLabel(pct)}</p>
 
       {/* Checklist */}
       {missing.length > 0 && (
         <div className="mt-4 space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">
             Still missing
           </p>
           <ul className="space-y-1.5">
@@ -80,7 +80,7 @@ export function ProfileCompletenessBar({ profile }: Props) {
                   radio_button_unchecked
                 </span>
                 {s.label}
-                <span className="ml-auto text-[9px] font-bold text-on-surface-variant/50">
+                <span className="ml-auto text-xs font-bold text-on-surface-variant/50">
                   +{s.weight}%
                 </span>
               </li>

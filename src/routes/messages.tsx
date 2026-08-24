@@ -13,8 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/messages")({
   head: () => ({
-    title: "Messages | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "Your private messages and conversations." }],
+    meta: [{ title: "Messages | AgriBusiness Pakistan" },{ name: "description", content: "Your private messages and conversations." }],
   }),
   component: MessagesPage,
 });
@@ -134,8 +133,8 @@ function MessagesPage() {
           ...t,
           other_id: otherId,
           other_name: otherId ? (pMap[otherId]?.full_name ?? "Member") : "Group",
-          other_avatar: otherId ? pMap[otherId]?.avatar_url : null,
-          last_message: lastMap[t.id],
+          other_avatar: (otherId ? pMap[otherId]?.avatar_url : null) ?? null,
+          last_message: lastMap[t.id] ?? "",
         };
       });
       if (!alive) return;

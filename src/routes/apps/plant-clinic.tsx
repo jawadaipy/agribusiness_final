@@ -34,8 +34,7 @@ const PlantClinicPage = () => (
 
 export const Route = createFileRoute("/apps/plant-clinic")({
   head: () => ({
-    title: "Plant Clinic | AI-Powered Agronomy | AgriBusiness",
-    meta: [
+    meta: [{ title: "Plant Clinic | AI-Powered Agronomy | AgriBusiness" },
       { name: "description", content: "Diagnostic platform for crop health and expert agronomy recommendations." },
       { property: "og:title", content: "AgriBusiness Plant Clinic" },
       { property: "og:description", content: "Get expert advice and AI-powered diagnosis for your crops." },

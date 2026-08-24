@@ -6,8 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    title: "My Workspace | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "A role-specific AgriBusiness workspace." }],
+    meta: [{ title: "My Workspace | AgriBusiness Pakistan" },{ name: "description", content: "A role-specific AgriBusiness workspace." }],
   }),
   component: DashboardPage,
 });

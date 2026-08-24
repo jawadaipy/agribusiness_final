@@ -312,8 +312,8 @@ const CategoryDetailPage = () => {
 
 export const Route = createFileRoute("/categories/$slug")({
   head: () => ({
-    title: "Sector Hub | Agri Intelligence | AgriBusiness",
     meta: [
+      { title: "Sector Hub | Agri Intelligence | AgriBusiness" },
       { name: "description", content: "Explore specialized agricultural sectors, commodities, and professional networks." },
       { property: "og:title", content: "AgriBusiness Sector Hub" },
       { property: "og:description", content: "Specialized directory and marketplace for agri-sectors." },

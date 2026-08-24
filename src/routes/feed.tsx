@@ -30,8 +30,7 @@ import { isAccountRole } from "@/lib/member";
 
 export const Route = createFileRoute("/feed")({
   head: () => ({
-    title: "Network Feed | AgriBusiness Pakistan",
-    meta: [{ name: "description", content: "Field updates, questions, offers, and milestones from Pakistan's agricultural network." }],
+    meta: [{ title: "Network Feed | AgriBusiness Pakistan" },{ name: "description", content: "Field updates, questions, offers, and milestones from Pakistan's agricultural network." }],
   }),
   component: FeedPage,
 });
