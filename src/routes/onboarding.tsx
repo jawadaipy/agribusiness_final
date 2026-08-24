@@ -807,7 +807,12 @@ function OnboardingPage() {
                 </div>
 
                 {(() => {
-                  const detail = ROLE_DETAIL_FIELDS[userRole] ?? ROLE_DETAIL_FIELDS.farmer;
+                  const detail = ROLE_DETAIL_FIELDS[userRole] ?? {
+                    label: "Farm profile",
+                    first: "Farm / producer name",
+                    second: "Acreage (optional)",
+                    tags: "Main crops or livestock",
+                  };
                   return (
                     <section className="rounded-2xl border border-outline-variant/35 bg-white p-4">
                       <div className="mb-3">

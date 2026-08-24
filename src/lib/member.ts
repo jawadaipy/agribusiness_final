@@ -52,14 +52,19 @@ export async function getAuthenticatedPlatformProfile(): Promise<{
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id,email,full_name,display_name,user_type,city,primary_discipline,trial_ends_at,subscription_status,is_verified,is_active")
+    .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
     .eq("id", user.id)
     .maybeSingle();
 
   if (error) return { user, profile: null, error: error.message };
   if (!data || !isPlatformRole(data.user_type)) return { user, profile: null, error: null };
   if (data.is_active === false) return { user, profile: null, error: "This account is inactive." };
-  return { user, profile: data as PlatformProfile, error: null };
+  
+  const platformProfile: PlatformProfile = {
+    ...(data as PlatformProfile),
+    primary_discipline: (user.user_metadata?.["primary_discipline"] as string) || null,
+  };
+  return { user, profile: platformProfile, error: null };
 }
 
 export async function getAuthenticatedMember(): Promise<{
@@ -74,7 +79,7 @@ export async function getAuthenticatedMember(): Promise<{
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id,email,full_name,display_name,user_type,city,primary_discipline,trial_ends_at,subscription_status,is_verified,is_active")
+    .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -82,7 +87,11 @@ export async function getAuthenticatedMember(): Promise<{
   
   if (data && isAccountRole(data.user_type)) {
     if (data.is_active === false) return { user: user, profile: null, error: "This account is inactive." };
-    return { user: user, profile: data as MemberProfile, error: null };
+    const memberProfile: MemberProfile = {
+      ...(data as MemberProfile),
+      primary_discipline: (user.user_metadata?.["primary_discipline"] as string) || null,
+    };
+    return { user: user, profile: memberProfile, error: null };
   }
 
   // Fallback / Auto-initialization for newly created accounts
@@ -105,11 +114,15 @@ export async function getAuthenticatedMember(): Promise<{
         },
         { onConflict: "id" },
       )
-      .select("id,email,full_name,display_name,user_type,city,primary_discipline,trial_ends_at,subscription_status,is_verified,is_active")
+      .select("id,email,full_name,display_name,user_type,city,trial_ends_at,subscription_status,is_verified,is_active")
       .maybeSingle();
 
     if (inserted && isAccountRole(inserted.user_type)) {
-      return { user: user, profile: inserted as MemberProfile, error: null };
+      const memberProfile: MemberProfile = {
+        ...(inserted as MemberProfile),
+        primary_discipline: (user.user_metadata?.["primary_discipline"] as string) || null,
+      };
+      return { user: user, profile: memberProfile, error: null };
     }
   } catch {
     // If upsert encounters an RLS/network issue, return the metadata-backed member object
