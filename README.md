@@ -1,109 +1,66 @@
 # 🌾 AgriBusiness.pk — Pakistan's Premier Agri-Tech & B2B Trade Ecosystem
 
-> **AgriBusiness** is an enterprise-grade digital agriculture platform, B2B trading floor, clinical advisory suite, and professional verified network engineered specifically for Pakistan's agricultural ecosystem — connecting Farmers & Producers, Commodity Buyers & Millers, Agronomists & Veterinary Consultants, Agribusiness Enterprises, and Students & Researchers.
+> **AgriBusiness** is an enterprise-grade digital agriculture platform, B2B trading floor, clinical advisory suite, and professional verified network engineered specifically for Pakistan's agricultural ecosystem — connecting **Farmers & Producers**, **Commodity Buyers & Millers**, **Agronomists & Veterinary Consultants**, **Agribusiness Enterprises**, and **Students & Researchers**.
 
-[![Vercel Deployment Ready](https://img.shields.io/badge/Vercel-Deployment%20Ready-black?logo=vercel)](https://vercel.com)
-[![React 19](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev)
-[![TanStack Start](https://img.shields.io/badge/TanStack-Start%20SSR-orange?logo=react-query)](https://tanstack.com)
-[![Supabase PostgreSQL](https://img.shields.io/badge/Supabase-PostgreSQL%2015%20%2B%20RLS-3ECF8E?logo=supabase)](https://supabase.com)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-CSS%20v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
+[![Vercel Deployment Ready](https://img.shields.io/badge/Vercel-Deployment%20Ready-black?logo=vercel&style=flat-square)](https://vercel.com)
+[![React 19](https://img.shields.io/badge/React-19.2-blue?logo=react&style=flat-square)](https://react.dev)
+[![TanStack Start](https://img.shields.io/badge/TanStack-Start%20SSR-orange?logo=react-query&style=flat-square)](https://tanstack.com)
+[![Supabase PostgreSQL](https://img.shields.io/badge/Supabase-PostgreSQL%2015%20%2B%20RLS-3ECF8E?logo=supabase&style=flat-square)](https://supabase.com)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-CSS%20v4-38B2AC?logo=tailwind-css&style=flat-square)](https://tailwindcss.com)
+[![TypeScript 5.8](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&style=flat-square)](https://www.typescriptlang.org)
+[![Nitro Engine](https://img.shields.io/badge/Server-Nitro%20v3-F89939?logo=nitro&style=flat-square)](https://nitro.unjs.io)
 
 ---
 
-## 🧭 Navigation & Companion Apps Suite
+## 🧭 Companion Apps Suite & Route Directory
+
+The platform provides dedicated workbench tools, clinical diagnostics, and marketplace engines accessible across 5 agricultural personas:
 
 | Portal / Companion App | Route | Target Audience & Purpose |
 |---|---|---|
-| 📰 **Network Feed** | `/feed` | LinkedIn-style professional feed: field updates, questions, offers, and milestones from every role, with replies, smart-match suggestions, and the mandi snapshot rail. |
-| 🏦 **Government Schemes Directory** | `/resources` | Curated, province-filtered guide to Pakistani agri support programs — Kisan Card, ZTBL/SBP financing, crop insurance, land records, and extension advisory, each with official source links. |
-| 🏪 **Agri-Biz Trading Floor** | `/apps/agri-biz` | Free B2B classifieds and marketplace for crops, livestock, machinery, inputs, and fertilizers across Pakistani mandis. |
-| 🌿 **Plant Clinic** | `/apps/plant-clinic` | Clinical crop health diagnosis, pest identification, symptom analysis, and agronomist consultations. |
-| 🐄 **Animal Clinic** | `/apps/animal-clinic` | Telehealth for livestock and dairy farmers with direct prescriptions from veterinary specialists and university researchers. |
-| 📋 **Projects & RFP Marketplace** | `/projects` | Live agricultural tenders, farm needs, corporate contracts, and consultant proposal bidding. |
-| 🔍 **Universal Search & Network** | `/search` | Directory of verified agricultural professionals, businesses, commodities, and service providers. |
-| 💼 **Member Workbench** | `/dashboard` | Role-specific operating dashboard tailored to each account type. |
-| 🛡️ **Super Admin Portal** | `/admin-login` & `/admin` | Platform moderation, member verification badges, ad review, and audit trail. |
+| 📰 **Network Feed** | `/feed` | Professional network activity feed: crop updates, diagnostic inquiries, commercial offers, and harvest milestones with role-aware composers and Mandi snapshot. |
+| 🏦 **Government Schemes Directory** | `/resources` | Province-filtered repository of Pakistani agricultural support programs (Punjab Kisan Card, ZTBL, SBP Credit, Crop Insurance, Land Records, Extension Advisory) with official links. |
+| 🏪 **Agri-Biz Trading Floor** | `/apps/agri-biz` & `/marketplace` | B2B classifieds and marketplace for crops, livestock, seed lots, machinery, fertilizers, and farm inputs across all Pakistani mandis. |
+| 🌿 **Plant Clinic** | `/apps/plant-clinic` | Crop health diagnostics, pest identification, symptom analysis, and direct consultations with certified agronomists. |
+| 🐄 **Animal Clinic** | `/apps/animal-clinic` | Telehealth for dairy and livestock farmers with prescriptions from veterinary specialists (DVM) and researchers. |
+| 📋 **Projects & RFP Marketplace** | `/projects` | Live agricultural tenders, farm needs, corporate contract requirements, and consultant proposal bidding. |
+| 🔍 **Universal Search & Network** | `/search` | Directory of verified agricultural professionals, enterprises, produce lots, and service providers across 34 cities. |
+| 💼 **Member Workbench** | `/dashboard` | Role-tailored operating dashboard featuring Farm Intelligence, Sourcing Desk, Lead Radar, Bookmarks, and Matchmaking. |
+| 📊 **Mandi Rates Desk** | `/rates` | Real-time and historical commodity price tracking across Pakistan's agricultural markets. |
+| 🛡️ **Super Admin Portal** | `/admin-login` & `/admin` | Platform moderation, member verification badges, ad review, real-time telemetry, and audit trail. |
 
 ---
 
-## 🆕 Network Layer & Role Intelligence (Latest Release)
+## 🏗️ Architecture & Technology Stack
 
-### 🎨 Design Language — "Field Ledger"
-The platform's visual identity system, built to be mistaken for no one else's:
-- **Typography:** Fraunces (optical-size serif display — the harvest-almanac voice) + Inter (UI body) + Noto Nastaliq Urdu (properly loaded Urdu typography, fixed from a broken fallback).
-- **Signature layer:** mandi-ledger eyebrows, tabular numerals (`.stat-num`), hairline rules, and the field-survey grid backdrop.
-- **Motion system:** compositor-only micro-interactions (`.press`, `.hover-lift` at 150–250ms), measured viewport reveals (500ms, ease-out-expo), soft route fades — all collapsed automatically under `prefers-reduced-motion`.
-- **Honest telemetry:** fabricated marketing numbers ("50k members", "₨5.2B volume") were replaced with true platform facts (5 roles, 34 cities, 24 disciplines) across the hero.
-- **Removed:** the Education portal has been fully retired (route, navigation, cards, and links).
+```mermaid
+graph TD
+    Client["Client Browser (React 19 + Tailwind CSS v4)"]
+    Router["TanStack Router (Type-safe Route Tree)"]
+    SSR["Nitro Engine / TanStack Start SSR (Vercel Serverless)"]
+    Supabase["Supabase Cloud (PostgreSQL 15 + RLS + Auth + Storage)"]
+    OpenMeteo["Open-Meteo Weather API (34 Pakistani Cities)"]
+    MandiFeeds["Mandi Rates & Government Schemes DB"]
 
-### 🛡️ Super Admin Console (overhauled)
-- **Live telemetry overview** — KPI cards with deltas ("+N this week"), member growth area chart (6 months), role-distribution donut, verification/deactivation stats — all computed from real profile records.
-- **Action queue** — every pending decision (ads, unverified members, deactivations) in one place with jump-to-tab actions.
-- **Members** — searchable, role-filterable, status-filterable moderation table with role badges.
-- **Content oversight (new)** — read-only pulse on latest listings, opportunities, and feed activity.
-- **Audit trail & ad review** — restyled with timeline treatment and inline rejection reasons.
+    Client --> Router
+    Router --> SSR
+    SSR --> Supabase
+    SSR --> OpenMeteo
+    SSR --> MandiFeeds
+```
 
-### 📰 Network Feed (`/feed`)
-A professional, LinkedIn-style activity layer for the whole ecosystem:
-- **Four post kinds** — Update, Ask the network, Offer, Milestone — each with role-aware composer prompts.
-- **Replies** from any signed-in member; view counts per post; verified badges on authors.
-- **Clinic isolation by design** — feed posts are `problem_posts` rows tagged `network`, and the Plant/Animal Clinics exclude tagged rows, so clinical cases and network conversation never mix.
-- **Right rail** — Suggested-for-you matching plus a live "Mandi today" snapshot from the `market_rates` table.
+### Technology Matrix
 
-### 🤝 Smart Matching Engine (`src/lib/matching.ts`)
-A role-synergy matrix explains **why** two members should connect, then scores real directory profiles:
-- `farmer ↔ buyer` (buys what you grow), `farmer ↔ consultant` (advises your crops), `company ↔ student` (internships), `consultant ↔ student` (research supervision), and every other pairing.
-- Boosts for same city / same province and keyword overlap between role profiles (crops, commodities, services, research interests).
-- Powers the dashboard's **Suggested for you** rail with one-click consented connection requests.
-
-### 📊 Role Intelligence Panels (per-role dashboard upgrades)
-| Role | Live intelligence on `/dashboard` |
-|---|---|
-| 🚜 **Farmer** | **Farm Intelligence**: local weather via open-meteo (no API key), Pakistan crop calendar with Urdu crop names and this-month sowing/harvest windows (your own crops highlighted), mandi indications, and derived weekly advisories (rain → hold sprays, heat → livestock care, dry → irrigation planning). |
-| 🏢 **Buyer** | **Sourcing Desk**: live producer listings matched against the commodities and collection regions on the procurement profile, with "Your commodity / Your region" chips. |
-| 🔬 **Consultant** | **Lead Radar**: open farm needs and enterprise briefs matched to the services/technologies on the professional profile. |
-| 🎓 **Student** | **Opportunity Radar**: open projects and placements matched to research interests. |
-| 🏭 **Company** | Engagement stats (opportunities posted, proposals received) feed the stat-card row; the Proposal Inbox remains in the workbench. |
-
-Plus **live stat cards** for every role (connections, pending requests, and role-specific counters) and a **Network feed** link in the workspace navigation.
-
-### 🌾 Pakistan Agri Intelligence (`src/lib/agri-intel.ts`)
-- 12-crop **Pakistan crop calendar** (wheat, basmati, cotton, sugarcane, maize, potato, tomato, onion, kinnow, mango, chickpea, canola) with Urdu names, regional belts, and field tips.
-- Coordinates for all 34 platform cities → free **open-meteo** weather + 4-day forecast.
-- Season + weather → **advisory generator** (never a prescription; always defers to verified consultants).
-
-### 🛠 Resilience Fix
-Publishing forms now fall back gracefully when a database predates the optional `listings.services` / `projects.services` tag columns — inserts retry once without the column, so publishing works on both old and migrated databases.
-
-### 🔖 Bookmarks (saved_items)
-The previously unused `saved_items` table is now the platform's bookmark system:
-- **Save buttons** on marketplace listing cards and open opportunity cards (signed-out visitors are routed to onboarding).
-- **Saved tab** in every member's workspace — bookmarked listings and opportunities with prices, budgets, quick links, and one-click removal.
-- Owner-scoped RLS: members only ever see and change their own bookmarks.
-
-### 🏦 Government Schemes Directory (`/resources`)
-Eleven curated programs across all provinces and AJK/GB — Punjab Kisan Card, PM Youth Business & Agriculture Loans, ZTBL financing, SBP agricultural credit, Crop Loan Insurance, Punjab/Sindh land records, extension advisory, and provincial support windows. Province + type filters, Urdu names, eligibility checklists, step-by-step application guidance, official source links, and a clear "verify before you apply" disclaimer. The farmer intelligence panel links into it directly.
-
-### 🔑 Demo Accounts (password for all: `DemoAgri2026!`)
-| Role | Email | City |
+| Layer | Technology | Details |
 |---|---|---|
-| 🚜 Farmer | `ali.hassan.farmer@agribiz.demo` | Multan (Vehari farm record) |
-| 🏢 Buyer | `tariq.foods.buyer@agribiz.demo` | Lahore (wheat/maize/cotton procurement) |
-| 🔬 Consultant | `dr.ayesha.agro@agribiz.demo` | Faisalabad (agronomy, soil, irrigation) |
-| 🏭 Company | `admin.greentech@agribiz.demo` | Karachi (drip irrigation & seed supplier) |
-| 🎓 Student | `zara.student@agribiz.demo` | Faisalabad (UAF agronomy researcher) |
-
----
-
-## 🗺️ Suggested Roadmap (next iterations)
-
-1. **Post reactions** — a `network_post_likes` table for lightweight endorsement of feed posts (bookmarks above already cover saving).
-2. **Profile analytics** — `profile_views` table + "Who viewed your profile" card; weekly digest email.
-3. **Skills & endorsements** — `skill_endorsements` table; endorse buttons on profiles, endorsed skills surfaced in matching.
-4. **Urdu feed localization** — composer prompts and advisory text already exist in English; extend the i18n dictionary into `/feed` and the farmer intelligence panel.
-5. **WhatsApp/SMS digests** — feed highlights and mandi alerts via the existing WhatsApp support channel for low-bandwidth growers.
-6. **Events & webinars module** — company-hosted field days and university webinars with RSVPs feeding the notification system.
-7. **Escrow-backed trade** — connect the existing Stripe/JazzCash edge functions to feed offers for protected first transactions.
+| **Frontend Framework** | React 19.2 + TypeScript | Next-generation reactive UI with modern hooks and transitions |
+| **Meta-Framework** | TanStack Start (SSR) | Server-Side Rendering with type-safe server functions |
+| **Routing** | TanStack Router 1.170 | File-based, zero-runtime error route tree with automatic code splitting |
+| **Styling & Design System** | Tailwind CSS v4 + Custom "Field Ledger" | Harvest-inspired palette: Evergreen (`#0F5132`), Harvest Gold (`#E6B00F`), Rice Canvas (`#F4F2E9`) |
+| **Typography** | Fraunces + Inter + Noto Nastaliq Urdu | Editorial almanac serif headers, modern sans UI body, native Urdu typography |
+| **Database & Security** | Supabase (PostgreSQL 15) | Multi-tenant isolation with 12 RLS policies, custom ENUMs, and GIN Trigram indexes |
+| **Server Runtime** | Nitro 3.0 (Vercel Preset) | Ultra-lightweight SSR serverless handler generating `.vercel/output` |
+| **Data Fetching & Cache** | TanStack Query v5 | Optimized server state synchronization and client cache management |
 
 ---
 
@@ -111,7 +68,7 @@ Eleven curated programs across all provinces and AJK/GB — Punjab Kisan Card, P
 
 AgriBusiness implements an authentic 5-Role Role-Based Access Control (RBAC) model with dedicated workbench tooling for each persona, plus a Super Admin governance layer:
 
-| Feature / Capability | 🚜 Farmer (`farmer`) | 🏢 Buyer / Miller (`buyer`) | 🔬 Consultant / Vet (`consultant`) | 🏭 Agribusiness Enterprise (`company`) | 🎓 Student / Researcher (`student`) | 🛡️ Super Admin (`admin`) |
+| Feature / Capability | 🚜 Farmer (`farmer`) | 🏢 Buyer / Miller (`buyer`) | 🔬 Consultant / Vet (`consultant`) | 🏭 Enterprise (`company`) | 🎓 Student (`student`) | 🛡️ Super Admin (`admin`) |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Farm Profile & Crop Acreage** | ✅ Full CRUD | ❌ | ❌ | ❌ | ❌ | ✅ View |
 | **Commodity Procurement Desk** | ❌ | ✅ Full CRUD | ❌ | ❌ | ❌ | ✅ View |
@@ -119,141 +76,153 @@ AgriBusiness implements an authentic 5-Role Role-Based Access Control (RBAC) mod
 | **Company Registration & Staff** | ❌ | ❌ | ❌ | ✅ Full CRUD | ❌ | ✅ View |
 | **Academic & Research Portfolio** | ❌ | ❌ | ❌ | ❌ | ✅ Full CRUD | ✅ View |
 | **Publish Produce / Input Listings** | ✅ Produce | ❌ | ✅ Advisory | ✅ Products / Inputs | ❌ | ✅ Moderate |
-| **Publish RFPs & Requirements** | ✅ Farm Needs | ✅ Sourcing RFP | ❌ | ✅ Enterprise RFP | ❌ | ✅ Moderate |
+| **Publish RFPs & Farm Needs** | ✅ Farm Needs | ✅ Sourcing RFP | ❌ | ✅ Enterprise RFP | ❌ | ✅ Moderate |
 | **Submit Technical Proposals** | ❌ | ❌ | ✅ Full Bidding | ❌ | ❌ | ✅ Moderate |
-| **Clinical Diagnostic Cases** | ✅ Report Case | ❌ | ✅ Diagnostic Solution | ❌ | ❌ | ✅ Moderate |
+| **Clinical Diagnostic Cases** | ✅ Report Case | ❌ | ✅ Solutions | ❌ | ❌ | ✅ Moderate |
 | **Consented Connection Inbox** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Audit |
-| **Member Moderation & Verification** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Full RPC |
-| **Audit Logs & System Health** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Full |
+| **Member Verification Badges** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Full RPC |
+| **Audit Logs & Telemetry** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ Full |
 
 ---
 
 ## 🔒 Privacy & Consented Contact Card Architecture
 
-Direct contact details (Phone number, WhatsApp, Email, CNIC) are **never publicly exposed** on profile pages:
-1. **Public View (`directory_profiles`):** Safely exposes only `display_name`, `user_type`, `city`, `province`, `is_verified`, and public bio.
-2. **Private Storage (`profile_private`):** Encrypted contact fields isolated behind Row Level Security (RLS).
+Direct contact details (Phone number, WhatsApp, Email, CNIC) are **never publicly exposed** in directory searches or profile URLs:
+1. **Public View (`directory_profiles`):** Exposes only safe attributes: `display_name`, `user_type`, `city`, `province`, `is_verified`, and public bio.
+2. **Private Storage (`profile_private`):** Encrypted contact fields isolated behind strict Row Level Security (RLS).
 3. **Consented Contact Exchange:** Members exchange a formal Connection Request (`connection_requests`). Only upon **mutual acceptance** does the PostgreSQL RPC `get_accepted_connection_contact(peer_id)` return the contact methods that the member has explicitly opted to share.
 
 ---
 
-## 📧 Frictionless Registration (Email Verification Bypassed)
+## 🌾 Pakistan Agricultural Intelligence Engine
 
-To provide an instant, friction-free onboarding experience for growers and agribusinesses in Pakistan:
-- **Instant Auto-Login:** When a user registers on `/onboarding`, their session is established immediately without any blocking email confirmation screens, redirecting directly to `/dashboard`.
-- **Automatic Fallback Provisioning:** If the database trigger has not yet executed, the frontend initializes the profile from metadata with zero waiting.
-
-### Supabase Email Confirmation Configuration:
-In your [Supabase Dashboard](https://supabase.com):
-1. Go to **Authentication** → **Providers** → **Email**.
-2. Toggle **"Confirm email"** to **OFF** (Disabled).
-3. Under **Sign Up**, ensure **"Allow new users to sign up"** is enabled.
-4. Click **Save**.
+The platform integrates custom localized agricultural intelligence:
+- **12-Crop Pakistan Calendar:** Seasonality, sowing windows, harvest periods, and regional belts for Wheat, Basmati Rice, Cotton, Sugarcane, Maize, Potato, Tomato, Onion, Kinnow, Mango, Chickpea, and Canola.
+- **Open-Meteo Weather Integration:** Real-time 4-day weather forecasts and temperature tracking mapped to 34 Pakistani agricultural hubs without requiring third-party API keys.
+- **Derived Advisory Generator:** Automated weather-aware field recommendations (spray warnings during rain, heat mitigation for livestock, irrigation scheduling during dry spells).
+- **Mandi Live Rates Feed:** Real-time modal prices tracked across Punjab, Sindh, KPK, and Balochistan grain and produce markets.
 
 ---
 
-## 🛠️ Technology Stack
+## 🔑 Pre-Configured Demo Accounts
 
-| Layer | Technology | Description |
-|---|---|---|
-| **Frontend Framework** | React 19 + TypeScript | High-performance reactive UI with modern hooks |
-| **Full-Stack Meta-Framework** | TanStack Start (SSR) | Server-side rendering and type-safe server functions |
-| **Routing** | TanStack Router | File-based, type-safe route tree (`src/routes`) |
-| **Design System & Styling** | Tailwind CSS v4 + Material Symbols | Curated agricultural palette: Evergreen (`#0F5132`), Harvest Gold (`#E6B00F`), Rice Canvas (`#F4F2E9`) |
-| **Database & Auth** | Supabase (PostgreSQL 15 + RLS + Auth) | Multi-tenant relational storage with Row Level Security |
-| **Server Engine** | Nitro (`nitro.preset = "vercel"`) + Vite 8 | Ultra-fast build engine optimized for Vercel Serverless Functions |
-| **Deployment Target** | Vercel | Vercel Build Output API v3 with edge static caching and serverless SSR |
+All demo accounts use the standard password: **`DemoAgri2026!`**
+
+| Persona | Email | City | Role Capabilities |
+|---|---|---|---|
+| 🚜 **Farmer** | `ali.hassan.farmer@agribiz.demo` | Multan | Farm profile, crop calendar, weather advisory, produce listings |
+| 🏢 **Buyer** | `tariq.foods.buyer@agribiz.demo` | Lahore | Sourcing desk, procurement RFPs, commodity matching |
+| 🔬 **Consultant** | `dr.ayesha.agro@agribiz.demo` | Faisalabad | Lead radar, agronomy credentials, proposal bidding, clinic solutions |
+| 🏭 **Enterprise** | `admin.greentech@agribiz.demo` | Karachi | Machinery & input catalog, corporate RFPs, commercial engagements |
+| 🎓 **Student** | `zara.student@agribiz.demo` | Faisalabad | Academic portfolio, opportunity radar, thesis fieldwork search |
 
 ---
 
-## 📦 Deploying to Vercel (Step-by-Step)
+## 🚀 Production Deployment Guide (Vercel)
 
-The repository is preconfigured for **Vercel** deployment with `vercel.json` and Nitro SSR.
+AgriBusiness is fully pre-configured for automated deployment to **Vercel** with Nitro Build Output API v3.
 
-### Step 1: Push Repository to GitHub
+### 1. Push to Git Repository
 ```bash
 git add .
-git commit -m "feat: complete production readiness"
+git commit -m "feat: production deployment ready"
 git push origin main
 ```
 
-### Step 2: Import into Vercel
-1. Open [Vercel New Project](https://vercel.com/new).
-2. Connect your GitHub account and select your `agribizness_final` repository.
-3. Framework Preset: **Other** (handled automatically by Nitro & `vercel.json`).
-4. Build Command: `npm run build` (or leave default).
+### 2. Import into Vercel
+1. Go to the [Vercel Dashboard](https://vercel.com/new).
+2. Click **"Add New..."** → **"Project"** and import your Git repository.
+3. Framework Preset: Leave as **Other** (configured by `vercel.json` and Nitro).
+4. Build Command: `npm run build` (configured automatically).
+5. Output Directory: `.vercel/output` (handled automatically).
 
-### Step 3: Add Environment Variables in Vercel
-Under **Project Settings** → **Environment Variables**, add:
+### 3. Configure Environment Variables in Vercel
+Under **Project Settings** → **Environment Variables**, configure the following:
 
 | Variable Name | Required | Description | Example Value |
 |---|:---:|---|---|
-| `VITE_SUPABASE_URL` | **Yes** | Your Supabase Project URL | `https://your-ref.supabase.co` |
+| `VITE_SUPABASE_URL` | **Yes** | Supabase Project URL | `https://your-project.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | **Yes** | Supabase Public Anon Key | `eyJhbGciOi...` |
-| `SUPABASE_URL` | Optional | Server-side Supabase URL | `https://your-ref.supabase.co` |
+| `SUPABASE_URL` | Optional | Server-side Supabase URL | `https://your-project.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase Service Role Key | `eyJhbGciOi...` |
+| `CRON_SECRET` | Optional | Security token for cron triggers | `hex32_random_token` |
+| `OPENAI_API_KEY` | Optional | For vector embeddings | `sk-proj-...` |
 
-### Step 4: Deploy
-Click **Deploy**. Vercel will run `npm run build`, generate `.vercel/output`, and publish both static assets and serverless SSR functions globally.
-
----
-
-## 🗄️ Database Migrations Sequence (00 – 11)
-
-All PostgreSQL schema definitions and RLS policies are located in `supabase/migrations/`:
-
-| # | Migration File | Key Tables & Responsibilities |
-|---|---|---|
-| **00** | `00_extensions.sql` | `uuid-ossp`, `pgcrypto`, `citext`, `pg_trgm` |
-| **01** | `01_enums.sql` | Custom ENUMs: `user_type` (farmer, buyer, consultant, company, student, admin), `subscription_status`, `listing_status`, `project_status`, `ad_status`, `payment_status` |
-| **02** | `02_core_schema.sql` | `profiles`, `profile_private`, `categories`, `listings`, `projects`, `threads`, `messages`, `ads` |
-| **03** | `03_indexes.sql` | GIN trigram indexes for fast commodity and category search |
-| **04** | `04_triggers.sql` | `fn_handle_new_user` on `auth.users` insert, timestamp updater triggers |
-| **05** | `05_rls_policies.sql` | Granular Row Level Security for multi-tenant isolation |
-| **06** | `06_storage_buckets.sql` | Supabase Storage buckets for avatars, listing images, and clinical media |
-| **07** | `07_functions.sql` | Ad rotation, trial expiry, and notification helpers |
-| **08** | `08_seed_categories.sql` | Baseline 24 official agricultural sectors and sub-categories |
-| **09** | `09_role_dashboard_security.sql` | `directory_profiles` safe public view, role tables, `connection_requests` |
-| **10** | `10_production_governance.sql` | Super Admin moderation RPC functions and `admin_audit_log` |
-| **11** | `11_five_role_connections.sql` | Buyer profiles, consented contact RPC (`get_accepted_connection_contact`), and role-specific publishing constraints |
-
-> [!TIP]
-> **One-Step Database Setup**: To initialize or reset a database in one click, run [`supabase/COMPLETE_DATABASE_SETUP.sql`](supabase/COMPLETE_DATABASE_SETUP.sql) inside the Supabase SQL Editor.
+### 4. Deploy
+Click **Deploy**. Vercel will build the SSR bundle and deploy globally with edge static caching and serverless SSR routes.
 
 ---
 
-## 💻 Local Development Setup
+## 🗄️ Database Setup & Migrations
+
+### One-Click Complete Database Initialization
+To set up or refresh your Supabase database from scratch:
+1. Open your [Supabase Project Dashboard](https://supabase.com/dashboard).
+2. Navigate to the **SQL Editor**.
+3. Open [`supabase/COMPLETE_DATABASE_SETUP.sql`](supabase/COMPLETE_DATABASE_SETUP.sql), paste the entire script, and click **Run**.
+4. *(Optional Demo Data)*: Run [`supabase/DEMO_SEED_DATA.sql`](supabase/DEMO_SEED_DATA.sql) to populate demo profiles, market rates, categories, and marketplace listings.
+
+### Sequential Migration Files (`supabase/migrations/`)
+For incremental migration pipelines:
+- `00_extensions.sql` — PostgreSQL extensions (`uuid-ossp`, `pgcrypto`, `citext`, `pg_trgm`)
+- `01_enums.sql` — Domain enums (`user_type`, `subscription_status`, `listing_status`, `project_status`, etc.)
+- `02_core_schema.sql` — Core tables (`profiles`, `profile_private`, `categories`, `listings`, `projects`, `messages`, `ads`)
+- `03_indexes.sql` — Performance B-Tree and GIN Trigram indexes
+- `04_triggers.sql` — Automated user creation triggers and timestamp sync
+- `05_rls_policies.sql` — Multi-tenant Row Level Security policies
+- `06_storage_buckets.sql` — Supabase Storage buckets for avatars and media
+- `07_functions.sql` — Ad rotation, trial expiry, and notification helpers
+- `08_seed_categories.sql` — Baseline 24 official agricultural sectors
+- `09_role_dashboard_security.sql` — Role tables, connection requests, and directory view
+- `10_production_governance.sql` — Super Admin RPC functions and audit logging
+- `11_five_role_connections.sql` — Buyer desk, consented contact exchange RPC, and constraint hardening
+
+---
+
+## 💻 Local Development & Quality Assurance
 
 ### 1. Prerequisites
-- **Node.js**: `v20.x` or `v22.x` (LTS)
-- **npm** or **bun**
+- **Node.js**: `v20.x` or `v22.x` / `v24.x` (LTS recommended)
+- **npm**, **pnpm**, or **bun**
 
-### 2. Installation
+### 2. Setup & Install
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/agribizness_final.git
-cd agribizness_final
+git clone https://github.com/jawadaipy/agribusiness_final.git
+cd agribusiness_final
 
 # Install dependencies
 npm install
 ```
 
-### 3. Environment Setup
-Create a `.env` file in the root directory (based on `.env.example`):
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+### 3. Environment Configuration
+Copy `.env.example` to `.env` and supply your Supabase credentials:
+```bash
+cp .env.example .env
 ```
 
-### 4. Start Local Dev Server
+### 4. Available NPM Scripts
 ```bash
+# Start local development server (http://localhost:8080)
 npm run dev
-```
-Open **`http://localhost:8080`** in your browser.
 
-### 5. Build for Production
-```bash
+# Full production build (Nitro + Vercel SSR output)
 npm run build
+
+# Preview production build locally
+npm run preview
+
+# TypeScript static type check (0 errors)
+npx tsc --noEmit
+
+# Run ESLint across source code
+npm run lint
+
+# Run end-to-end web route & SSR suite
+npm run test:routes
+
+# Verify live database tables and connectivity
+npm run test:db
 ```
 
 ---
@@ -287,7 +256,6 @@ npm run build
 
 ---
 
-## 📄 License & Terms
+## 📄 License & Governance
 
-Engineered for **AgriBusiness Pakistan**. All rights reserved.#   a g r i b u s i n e s s _ f i n a l i z e d  
- 
+Engineered for **AgriBusiness Pakistan**. All rights reserved.

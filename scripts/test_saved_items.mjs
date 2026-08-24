@@ -13,11 +13,10 @@ if (authError || !auth.session) {
   console.error("login failed:", authError?.message);
   process.exit(1);
 }
-const user = createClient(URL, ANON, { global: { headers: { Authorization: `Bearer ${auth.session.access_token}` } } });
-const service = createClient(URL, SERVICE);
+const user = createClient(URL, ANON, { auth: { persistSession: false }, global: { headers: { Authorization: `Bearer ${auth.session.access_token}` } } });
 
-const { data: listing } = await service.from("listings").select("id").eq("status", "active").limit(1).maybeSingle();
-const { data: project } = await service.from("projects").select("id").eq("status", "open").limit(1).maybeSingle();
+const { data: listing } = await user.from("listings").select("id").eq("status", "active").limit(1).maybeSingle();
+const { data: project } = await user.from("projects").select("id").eq("status", "open").limit(1).maybeSingle();
 console.log("targets:", { listing: listing?.id, project: project?.id });
 
 const ins1 = await user.from("saved_items").insert({ profile_id: auth.user.id, listing_id: listing.id });

@@ -16,6 +16,9 @@ import { supabase } from "@/lib/supabase";
 export interface MarketRate {
   commodity: string;
   city: string;
+  province?: string | null;
+  market?: string | null;
+  source?: string | null;
   unit: string | null;
   modalPrice: number;
   minPrice: number | null;
@@ -32,6 +35,9 @@ export const normalizeUnit = (u: string | null | undefined) =>
 interface RawRate {
   commodity: string;
   city: string | null;
+  province: string | null;
+  market: string | null;
+  source: string | null;
   unit: string | null;
   modal_price: number | null;
   min_price: number | null;
@@ -40,7 +46,7 @@ interface RawRate {
   rate_date: string;
 }
 
-export function useMarketRates(limit = 10, pollMs = 60_000) {
+export function useMarketRates(limit = 100, pollMs = 60_000) {
   const [rates, setRates] = useState<MarketRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [indicative, setIndicative] = useState(false);
@@ -50,7 +56,7 @@ export function useMarketRates(limit = 10, pollMs = 60_000) {
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from("market_rates")
-      .select("commodity,city,unit,modal_price,min_price,max_price,trend,rate_date")
+      .select("commodity,city,province,market,source,unit,modal_price,min_price,max_price,trend,rate_date")
       .order("rate_date", { ascending: false })
       .order("recorded_at", { ascending: false })
       .limit(limit);
@@ -92,6 +98,9 @@ export function useMarketRates(limit = 10, pollMs = 60_000) {
       return {
         commodity: r.commodity,
         city: r.city ?? "—",
+        province: r.province,
+        market: r.market,
+        source: r.source,
         unit: r.unit,
         modalPrice: modal,
         minPrice: r.min_price === null ? null : Number(r.min_price),
