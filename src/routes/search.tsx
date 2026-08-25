@@ -1,7 +1,7 @@
 /**
  * Agribusiness network directory: real directory_profiles records only.
- * No sample profiles, fabricated trust data, or raw profile-data fallback.
- * Search is live (deferred value) and mirrored into the URL on submit.
+ * Enriched with keyword tags (crops, commodities, advisory services, tech),
+ * quick keyword chips cloud, role filtering, and verified trust badges.
  */
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -11,14 +11,15 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useDeferredValue } from "react";
 import { SkeletonProfileCard } from "@/components/shared/Skeleton";
 import { useTranslation } from "@/lib/i18n";
-import { supabase } from "@/lib/supabase";
+import { fetchDirectoryWithKeywords } from "@/lib/profile-enrichment";
 
 export const Route = createFileRoute("/search")({
   validateSearch: (search: Record<string, unknown>) => ({ q: (search["q"] as string) || "" }),
   head: () => ({
-    meta: [{ title: "Network Search | AgriBusiness Pakistan" },
-      { name: "description", content: "Search and request a private connection with verified agricultural producers, buyers, advisors, companies, and researchers." },
-      { property: "og:title", content: "AgriBusiness Expert Network" },
+    meta: [
+      { title: "Network Directory | AgriBusiness Pakistan" },
+      { name: "description", content: "Search and connect with verified agricultural producers, buyers, advisors, enterprises, and researchers by keywords and roles." },
+      { property: "og:title", content: "AgriBusiness Verified Network" },
     ],
   }),
   component: SearchPage,
@@ -38,11 +39,30 @@ type DirectoryResult = {
 };
 
 const DIRECTORY_ROLE_FILTERS: { id: UserType; label: string }[] = [
-  { id: "farmer", label: "Farmers / Producers" },
-  { id: "buyer", label: "Buyers / Traders / Millers" },
-  { id: "consultant", label: "Consultants / Vets" },
-  { id: "company", label: "Enterprises / Suppliers" },
-  { id: "student", label: "Students / Researchers" },
+  { id: "farmer", label: "Growers & Farmers" },
+  { id: "buyer", label: "Buyers & Millers" },
+  { id: "consultant", label: "Consultants & Agronomists" },
+  { id: "company", label: "Enterprises & Agri-Tech" },
+  { id: "student", label: "Researchers & Scholars" },
+];
+
+const POPULAR_KEYWORDS = [
+  "Wheat",
+  "Basmati Rice",
+  "Cotton",
+  "Citrus",
+  "Solar Tubewell",
+  "Soil Testing",
+  "Drip Irrigation",
+  "Drone Spraying",
+  "Livestock",
+  "Dairy",
+  "Hybrid Seeds",
+  "Fertilizer",
+  "Cold Storage",
+  "Multan",
+  "Faisalabad",
+  "Lahore",
 ];
 
 function roleHeadline(role: UserType) {
@@ -63,47 +83,38 @@ function SearchPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<UserType[]>([]);
+  const [selectedKeyword, setSelectedKeyword] = useState<string | null>(null);
   const [region, setRegion] = useState("All Pakistan");
 
-  useEffect(() => {
-    let alive = true;
+  const loadDirectory = async () => {
     setIsLoading(true);
     setLoadError("");
-    supabase
-      .from("directory_profiles")
-      .select("id,user_type,display_name,bio,avatar_url,city,province,location,is_verified,rating")
-      .order("rating", { ascending: false, nullsFirst: false })
-      .then(({ data, error }) => {
-        if (!alive) return;
-        if (error) {
-          setProfiles([]);
-          setLoadError("The member directory could not be loaded. Check your connection and try again.");
-        } else {
-          const mapped: DirectoryResult[] = [];
-          for (const profile of data ?? []) {
-            const type = profile.user_type as UserType;
-            if (!["student", "farmer", "buyer", "consultant", "company", "org"].includes(type)) continue;
-            const bio = typeof profile.bio === "string" ? profile.bio.trim() : "";
-            mapped.push({
-              id: profile.id,
-              type,
-              name: profile.display_name || "Profile name not set",
-              title: bio ? bio.slice(0, 90) : roleHeadline(type),
-              location: profile.location || [profile.city, profile.province].filter(Boolean).join(", ") || "Location not set",
-              ...(profile.rating !== null && profile.rating !== undefined ? { rating: Number(profile.rating) } : {}),
-              keywords: [],
-              isVerified: profile.is_verified === true,
-              image: profile.avatar_url || undefined,
-              province: profile.province || "",
-            });
-          }
-          setProfiles(mapped);
-        }
-        setIsLoading(false);
+    const { candidates, error } = await fetchDirectoryWithKeywords();
+    if (error) {
+      setProfiles([]);
+      setLoadError("The member directory could not be loaded. Check your connection and try again.");
+    } else {
+      const mapped: DirectoryResult[] = candidates.map((c) => {
+        const type = c.user_type as UserType;
+        const bio = typeof c.bio === "string" ? c.bio.trim() : "";
+        return {
+          id: c.id,
+          type,
+          name: c.display_name || "AgriBusiness Member",
+          title: bio ? bio.slice(0, 90) : roleHeadline(type),
+          location: c.city ? `${c.city}${c.province ? `, ${c.province}` : ""}` : "Pakistan",
+          keywords: c.keywords || [],
+          isVerified: c.is_verified === true,
+          province: c.province || "",
+        };
       });
-    return () => {
-      alive = false;
-    };
+      setProfiles(mapped);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    void loadDirectory();
   }, []);
 
   const handleSearchSubmit = (event: React.FormEvent) => {
@@ -116,109 +127,150 @@ function SearchPage() {
       current.includes(role) ? current.filter((item) => item !== role) : [...current, role],
     );
 
-  const query = deferredQuery.trim() || q;
+  const toggleKeywordChip = (kw: string) => {
+    if (selectedKeyword === kw) {
+      setSelectedKeyword(null);
+    } else {
+      setSelectedKeyword(kw);
+      setSearchQuery(kw);
+      navigate({ search: { q: kw } });
+    }
+  };
+
+  const query = deferredQuery.trim().toLowerCase() || q.trim().toLowerCase();
   const results = profiles.filter((profile) => {
+    const kwJoined = profile.keywords.join(" ").toLowerCase();
     const matchesQuery =
-      !query || [profile.name, profile.title, profile.location].some((value) =>
-        value.toLowerCase().includes(query.toLowerCase()),
-      );
+      !query ||
+      profile.name.toLowerCase().includes(query) ||
+      profile.title.toLowerCase().includes(query) ||
+      profile.location.toLowerCase().includes(query) ||
+      profile.type.toLowerCase().includes(query) ||
+      kwJoined.includes(query);
+
+    const matchesKeyword =
+      !selectedKeyword ||
+      kwJoined.includes(selectedKeyword.toLowerCase()) ||
+      profile.title.toLowerCase().includes(selectedKeyword.toLowerCase()) ||
+      profile.location.toLowerCase().includes(selectedKeyword.toLowerCase());
+
     const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(profile.type);
-    const matchesRegion = region === "All Pakistan" || profile.province === region;
-    return matchesQuery && matchesRole && matchesRegion;
+    const matchesRegion = region === "All Pakistan" || profile.province.toLowerCase() === region.toLowerCase();
+
+    return matchesQuery && matchesKeyword && matchesRole && matchesRegion;
   });
 
   return (
-    <div className={cn("min-h-screen bg-background", isRTL && "rtl")}>
+    <div className={cn("min-h-screen bg-[#F4F8F4]", isRTL && "rtl")}>
       <Navbar />
-      <main className="pb-14 pt-24 text-left">
-        <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
+      <main className="pb-16 pt-24 text-left">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-          {/* Header + search */}
-          <div className="mb-8 max-w-3xl animate-in fade-in slide-in-from-left-6 duration-500">
-            <p className="eyebrow mb-1">Verified agri-directory</p>
-            <h1 className="mb-4 font-display text-3xl font-bold tracking-tight text-primary md:text-4xl">
-              Connect with <span className="text-secondary">relevant agricultural people</span>
+          {/* Header + Search */}
+          <div className="mb-6 max-w-3xl animate-in fade-in slide-in-from-left-6 duration-500">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-200">
+              Verified Agri-Directory &amp; Synergy Network
+            </span>
+            <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+              Connect with <span className="text-emerald-700">relevant agricultural peers</span>
             </h1>
-            <p className="mb-4 text-sm leading-6 text-on-surface-variant">
-              Profile contact details stay private. Open a real public profile to request a
-              connection; the recipient decides whether to accept.
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              Discover verified farmers, institutional buyers, agronomists, enterprises, and researchers by shared crops, specializations, and complementary roles.
             </p>
-            <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2.5 sm:flex-row">
+
+            <form onSubmit={handleSearchSubmit} className="mt-4 flex flex-col gap-2 sm:flex-row">
               <div className="relative flex-1">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant/60" aria-hidden="true">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400" aria-hidden="true">
                   search
                 </span>
-                <label htmlFor="directory-search" className="sr-only">
-                  Search the member directory
-                </label>
                 <input
                   id="directory-search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  className="w-full rounded-xl border border-outline-variant/60 bg-white py-3 pl-11 pr-4 text-xs font-medium shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Search by name, service, commodity, or city…"
+                  className="w-full rounded-2xl border border-emerald-200 bg-white py-3 pl-10 pr-4 text-xs font-medium text-slate-900 shadow-xs outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  placeholder="Search by keywords (e.g. Wheat, Basmati Rice, Solar, Soil Testing, Multan)…"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded-xl bg-primary px-6 py-3 text-xs font-bold uppercase tracking-wider text-on-primary shadow-md transition-all hover:bg-primary-container"
+                className="rounded-2xl bg-emerald-700 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition hover:bg-emerald-800 cursor-pointer"
               >
-                Search
+                Search Directory
               </button>
             </form>
+
+            {/* Keyword Chips Cloud */}
+            <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-bold text-emerald-950 uppercase tracking-wider mr-1">Popular:</span>
+              {POPULAR_KEYWORDS.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => toggleKeywordChip(kw)}
+                  className={`rounded-lg px-2.5 py-1 font-mono text-[11px] font-bold transition border cursor-pointer ${
+                    selectedKeyword === kw || searchQuery.toLowerCase() === kw.toLowerCase()
+                      ? "bg-emerald-700 text-white border-emerald-700 shadow-xs"
+                      : "bg-white text-emerald-900 border-emerald-200 hover:bg-emerald-50"
+                  }`}
+                >
+                  #{kw}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-start gap-8 lg:flex-row">
-            {/* Filters */}
-            <aside className="sticky top-20 w-full shrink-0 space-y-5 self-start lg:w-72">
-              <div className="rounded-2xl border border-outline-variant/40 bg-white p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between border-b border-outline-variant/30 pb-3">
-                  <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
-                    <span className="material-symbols-outlined text-[18px] text-secondary" aria-hidden="true">tune</span>
-                    Filter network
+          <div className="flex flex-col gap-6 lg:flex-row">
+            {/* Filters Sidebar */}
+            <aside className="sticky top-20 w-full shrink-0 space-y-4 self-start lg:w-72">
+              <div className="rounded-3xl border border-emerald-200/80 bg-white p-5 shadow-xs">
+                <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-900">
+                    <span className="material-symbols-outlined text-[18px] text-emerald-700" aria-hidden="true">tune</span>
+                    Filter Network
                   </h2>
                   <button
                     type="button"
                     onClick={() => {
                       setSearchQuery("");
+                      setSelectedKeyword(null);
                       setSelectedRoles([]);
                       setRegion("All Pakistan");
                       navigate({ search: { q: "" } });
                     }}
-                    className="text-xs font-bold uppercase tracking-wider text-secondary hover:underline"
+                    className="text-xs font-bold uppercase tracking-wider text-emerald-700 hover:underline cursor-pointer"
                   >
                     Reset
                   </button>
                 </div>
 
                 <fieldset>
-                  <legend className="mb-2.5 block text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
-                    Member type
+                  <legend className="mb-2 block text-xs font-bold uppercase tracking-wider text-emerald-950">
+                    Member Role
                   </legend>
                   <div className="space-y-2">
                     {DIRECTORY_ROLE_FILTERS.map((role) => (
-                      <label key={role.id} className="group flex cursor-pointer items-center gap-2.5 text-xs font-medium text-on-surface">
+                      <label key={role.id} className="group flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700 hover:text-slate-900">
                         <input
                           type="checkbox"
                           checked={selectedRoles.includes(role.id)}
                           onChange={() => toggleRole(role.id)}
-                          className="h-4 w-4 rounded accent-primary focus:ring-primary/20"
+                          className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500"
                         />
-                        <span className="transition-colors group-hover:text-primary">{role.label}</span>
+                        <span>{role.label}</span>
                       </label>
                     ))}
                   </div>
                 </fieldset>
 
-                <div className="mt-5">
-                  <label htmlFor="region-filter" className="mb-2 block text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
-                    Region
+                <div className="mt-5 pt-4 border-t border-slate-100">
+                  <label htmlFor="region-filter" className="mb-2 block text-xs font-bold uppercase tracking-wider text-emerald-950">
+                    Region / Province
                   </label>
                   <select
                     id="region-filter"
                     value={region}
                     onChange={(event) => setRegion(event.target.value)}
-                    className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-low px-3 py-2 text-xs font-medium text-primary transition-all focus:border-primary focus:outline-none"
+                    className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option>All Pakistan</option>
                     <option>Punjab</option>
@@ -230,65 +282,59 @@ function SearchPage() {
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-2xl bg-primary p-5 text-white shadow-md">
-                <h3 className="relative z-10 mb-1.5 font-display text-xs font-bold uppercase tracking-wider">
-                  Private connections
-                </h3>
-                <p className="relative z-10 text-xs font-medium leading-relaxed text-white/80">
-                  Only the requester and recipient can see the request. Contact methods appear only
-                  after acceptance and according to each member's contact-sharing preference.
+              <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-800 to-emerald-900 p-5 text-white shadow-xs">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">
+                  <span className="material-symbols-outlined text-[16px]">lock</span>
+                  Consented Connections
+                </div>
+                <p className="text-[11px] font-medium leading-relaxed text-emerald-100">
+                  Contact details stay protected. When you connect, the recipient reviews and accepts to exchange WhatsApp and phone numbers directly.
                 </p>
               </div>
             </aside>
 
-            {/* Results */}
-            <section className="w-full flex-1 space-y-5">
+            {/* Results Section */}
+            <section className="w-full flex-1 space-y-4">
               <div className="flex flex-col items-center justify-between gap-2 px-1 sm:flex-row">
-                <p className="text-xs font-bold text-on-surface-variant/70">
-                  Showing <span className="font-bold text-primary">{isLoading ? "…" : results.length}</span> real directory records
+                <p className="text-xs font-bold text-slate-600">
+                  Showing <span className="font-bold text-emerald-800">{isLoading ? "…" : results.length}</span> verified network profiles
                 </p>
-                <p className="text-xs text-on-surface-variant">Active public profiles only</p>
+                <span className="rounded-md bg-emerald-50 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-800 border border-emerald-200">
+                  Active Directory Records
+                </span>
               </div>
 
               {isLoading ? (
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                   <SkeletonProfileCard />
                   <SkeletonProfileCard />
                   <SkeletonProfileCard />
                   <SkeletonProfileCard />
                 </div>
               ) : loadError ? (
-                <section className="rounded-2xl border border-error/25 bg-error/10 p-6">
-                  <p className="font-bold text-error">Directory data could not be loaded</p>
-                  <p className="mt-2 text-sm leading-6 text-on-surface-variant">{loadError}</p>
+                <section className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-xs">
+                  <p className="font-bold text-rose-800">Directory data could not be loaded</p>
+                  <p className="mt-1 text-slate-600">{loadError}</p>
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsLoading(true);
-                      void supabase
-                        .from("directory_profiles")
-                        .select("id,user_type,display_name,bio,avatar_url,city,province,location,is_verified,rating")
-                        .order("rating", { ascending: false, nullsFirst: false })
-                        .then(() => window.location.reload());
-                    }}
-                    className="mt-4 rounded-xl border border-error/30 bg-white px-4 py-2 text-xs font-bold text-error"
+                    onClick={() => void loadDirectory()}
+                    className="mt-3 rounded-xl border border-rose-300 bg-white px-4 py-2 font-bold text-rose-800 cursor-pointer"
                   >
                     Try again
                   </button>
                 </section>
               ) : results.length ? (
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                   {results.map((profile) => (
                     <ProfileCard key={profile.id} {...profile} />
                   ))}
                 </div>
               ) : (
-                <section className="rounded-2xl border border-dashed border-outline-variant/70 bg-white p-10 text-center">
-                  <span className="material-symbols-outlined text-4xl text-primary/30" aria-hidden="true">search_off</span>
-                  <h2 className="mt-3 font-display text-xl text-primary">No profiles match these filters</h2>
-                  <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-                    Try removing a filter or searching a broader term — new members join the
-                    directory every week.
+                <section className="rounded-3xl border border-dashed border-emerald-200 bg-white p-12 text-center">
+                  <span className="material-symbols-outlined text-4xl text-emerald-300" aria-hidden="true">search_off</span>
+                  <h2 className="mt-3 font-display text-lg font-bold text-slate-900">No profiles match these keywords or filters</h2>
+                  <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
+                    Try removing some filters or searching for common agricultural terms like Wheat, Rice, Cotton, Solar, or Multan.
                   </p>
                 </section>
               )}

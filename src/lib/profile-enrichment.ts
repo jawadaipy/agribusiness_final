@@ -102,3 +102,51 @@ export async function fetchConnectionPeerIds(profileId: string): Promise<string[
   }
   return peers;
 }
+
+/** Save role-specific keywords/tags for a profile. */
+export async function saveProfileKeywords(
+  profileId: string,
+  role: AccountRole,
+  keywords: string[],
+): Promise<{ error: string | null }> {
+  try {
+    const clean = Array.from(
+      new Set(keywords.map((k) => k.trim()).filter((k) => k.length > 0)),
+    );
+
+    if (role === "farmer") {
+      await supabase
+        .from("farmer_profiles")
+        .upsert({ profile_id: profileId, crops: clean }, { onConflict: "profile_id" });
+    } else if (role === "buyer") {
+      await supabase
+        .from("buyer_profiles")
+        .upsert({ profile_id: profileId, commodities: clean }, { onConflict: "profile_id" });
+    } else if (role === "consultant") {
+      await supabase
+        .from("consultant_profiles")
+        .upsert({ profile_id: profileId, services: clean, technologies: clean }, { onConflict: "profile_id" });
+    } else if (role === "student") {
+      await supabase
+        .from("student_profiles")
+        .upsert({ profile_id: profileId, research_interests: clean }, { onConflict: "profile_id" });
+    } else if (role === "company") {
+      await supabase
+        .from("organizations")
+        .update({ services: clean, technologies: clean })
+        .eq("owner_profile_id", profileId);
+    }
+
+    // Also update profile_keywords table
+    if (clean.length > 0) {
+      await supabase.from("profile_keywords").delete().eq("profile_id", profileId);
+      const rows = clean.map((kw) => ({ profile_id: profileId, keyword: kw }));
+      await supabase.from("profile_keywords").insert(rows);
+    }
+
+    return { error: null };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+

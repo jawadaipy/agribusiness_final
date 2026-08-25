@@ -1456,7 +1456,7 @@ function AdsStudioTab({
 }
 
 // ----------------------------------------------------------------------
-// SUBCOMPONENT: MEMBER GOVERNANCE TAB (Light Green & White Theme)
+// SUBCOMPONENT: MEMBER GOVERNANCE & VERIFICATION TAB (Light Green & White Theme)
 // ----------------------------------------------------------------------
 function MembersTab({
   members,
@@ -1469,6 +1469,23 @@ function MembersTab({
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null);
+  const [memberExtra, setMemberExtra] = useState<{
+    listingsCount: number;
+    keywords: string[];
+    phone?: string | null;
+    loading: boolean;
+  } | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  const [kycNote, setKycNote] = useState("");
+
+  const stats = useMemo(() => {
+    const total = members.length;
+    const verified = members.filter((m) => m.is_verified).length;
+    const unverified = total - verified;
+    const suspended = members.filter((m) => !m.is_active).length;
+    const rate = total > 0 ? Math.round((verified / total) * 100) : 0;
+    return { total, verified, unverified, suspended, rate };
+  }, [members]);
 
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
@@ -1476,6 +1493,7 @@ function MembersTab({
       const matchQ =
         !q ||
         (m.full_name && m.full_name.toLowerCase().includes(q)) ||
+        (m.display_name && m.display_name.toLowerCase().includes(q)) ||
         (m.email && m.email.toLowerCase().includes(q)) ||
         (m.city && m.city.toLowerCase().includes(q)) ||
         (m.user_type && m.user_type.toLowerCase().includes(q));
@@ -1493,27 +1511,196 @@ function MembersTab({
 
   const toggleVerified = async (m: MemberRow) => {
     const nextState = !m.is_verified;
-    await supabase.from("profiles").update({ is_verified: nextState }).eq("id", m.id);
-    await onRefresh();
+    const { error } = await supabase.from("profiles").update({ is_verified: nextState }).eq("id", m.id);
+    if (!error) {
+      // Record audit log
+      await supabase.from("admin_audit_logs").insert({
+        action: nextState ? "VERIFY_MEMBER" : "REVOKE_VERIFICATION",
+        target_table: "profiles",
+        target_id: m.id,
+      });
+      setActionFeedback(
+        nextState
+          ? `✓ Verified badge awarded to ${m.full_name || m.display_name || "Member"}.`
+          : `Verification badge revoked for ${m.full_name || m.display_name || "Member"}.`,
+      );
+      if (selectedMember?.id === m.id) {
+        setSelectedMember({ ...selectedMember, is_verified: nextState });
+      }
+      setTimeout(() => setActionFeedback(null), 4000);
+      await onRefresh();
+    }
   };
 
   const toggleActive = async (m: MemberRow) => {
     const nextState = !m.is_active;
-    await supabase.from("profiles").update({ is_active: nextState }).eq("id", m.id);
-    await onRefresh();
+    const { error } = await supabase.from("profiles").update({ is_active: nextState }).eq("id", m.id);
+    if (!error) {
+      await supabase.from("admin_audit_logs").insert({
+        action: nextState ? "ACTIVATE_MEMBER" : "SUSPEND_MEMBER",
+        target_table: "profiles",
+        target_id: m.id,
+      });
+      setActionFeedback(
+        nextState
+          ? `✓ Account activated for ${m.full_name || m.display_name || "Member"}.`
+          : `Account suspended for ${m.full_name || m.display_name || "Member"}.`,
+      );
+      if (selectedMember?.id === m.id) {
+        setSelectedMember({ ...selectedMember, is_active: nextState });
+      }
+      setTimeout(() => setActionFeedback(null), 4000);
+      await onRefresh();
+    }
+  };
+
+  const openInspector = async (m: MemberRow) => {
+    setSelectedMember(m);
+    setMemberExtra({ listingsCount: 0, keywords: [], loading: true });
+    setKycNote("");
+
+    try {
+      const [listingsRes, privateRes, keywordsRes] = await Promise.all([
+        supabase.from("listings").select("id", { count: "exact", head: true }).eq("profile_id", m.id),
+        supabase.from("profile_private").select("phone").eq("profile_id", m.id).maybeSingle(),
+        supabase.from("profile_keywords").select("keyword").eq("profile_id", m.id),
+      ]);
+
+      setMemberExtra({
+        listingsCount: listingsRes.count || 0,
+        phone: privateRes.data?.phone ?? null,
+        keywords: (keywordsRes.data || []).map((k: { keyword: string }) => k.keyword),
+        loading: false,
+      });
+    } catch {
+      setMemberExtra({ listingsCount: 0, keywords: [], loading: false });
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* Verification Telemetry Matrix Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-emerald-200/80 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Total Registered</span>
+            <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700">
+              <span className="material-symbols-outlined text-[20px]">groups</span>
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between">
+            <p className="font-display text-3xl font-bold text-slate-900">{stats.total}</p>
+            <span className="rounded-md bg-emerald-50 px-2 py-0.5 font-mono text-xs font-semibold text-emerald-800 border border-emerald-200">
+              Across Pakistan
+            </span>
+          </div>
+          <p className="mt-2 text-[11px] text-slate-500">Farmers, Buyers, Consultants, Companies, Students</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200/80 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Verified Trust Badges</span>
+            <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700">
+              <span className="material-symbols-outlined text-[20px]">verified</span>
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between">
+            <p className="font-display text-3xl font-bold text-emerald-700">{stats.verified}</p>
+            <span className="rounded-md bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-900 border border-emerald-300">
+              {stats.rate}% Rate
+            </span>
+          </div>
+          <p className="mt-2 text-[11px] text-slate-500">Awarded authenticated ID &amp; SECP trust badges</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200/80 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-800">Pending Verification</span>
+            <div className="rounded-xl bg-amber-100 p-2 text-amber-700">
+              <span className="material-symbols-outlined text-[20px]">pending_actions</span>
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between">
+            <p className="font-display text-3xl font-bold text-amber-700">{stats.unverified}</p>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("unverified")}
+              className="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900 border border-amber-300 hover:bg-amber-200 cursor-pointer"
+            >
+              Review Queue →
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] text-slate-500">Unverified members awaiting verification review</p>
+        </div>
+
+        <div className="rounded-2xl border border-rose-200/80 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-rose-800">Suspended / Inactive</span>
+            <div className="rounded-xl bg-rose-100 p-2 text-rose-700">
+              <span className="material-symbols-outlined text-[20px]">block</span>
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between">
+            <p className="font-display text-3xl font-bold text-rose-700">{stats.suspended}</p>
+            <span className="rounded-md bg-rose-50 px-2 py-0.5 font-mono text-xs font-semibold text-rose-800 border border-rose-200">
+              Moderated
+            </span>
+          </div>
+          <p className="mt-2 text-[11px] text-slate-500">Temporarily deactivated or flagged profiles</p>
+        </div>
+      </div>
+
+      {/* Action Notification Alert */}
+      {actionFeedback && (
+        <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs font-bold text-emerald-900 shadow-xs animate-in fade-in">
+          {actionFeedback}
+        </div>
+      )}
+
+      {/* Filter and Governance Bar */}
       <div className="rounded-2xl border border-emerald-200/80 bg-white p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
-            <h2 className="font-display text-xl font-bold text-slate-900">Member Directory &amp; RBAC Governance</h2>
-            <p className="text-xs text-slate-500">Search, moderate, grant verified badges, and audit member profiles</p>
+            <h2 className="font-display text-xl font-bold text-slate-900">User Verification &amp; Member Governance</h2>
+            <p className="text-xs text-slate-500">Review KYC submissions, grant verified trust badges, and inspect listed offerings</p>
           </div>
-          <span className="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-            {filteredMembers.length} Members
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void onRefresh()}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">refresh</span>
+              Sync Directory
+            </button>
+            <span className="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+              {filteredMembers.length} Matches
+            </span>
+          </div>
+        </div>
+
+        {/* Verification Status Quick Tabs */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {[
+            { id: "all", label: `All Members (${stats.total})`, icon: "groups" },
+            { id: "unverified", label: `Pending Verification (${stats.unverified})`, icon: "pending_actions" },
+            { id: "verified", label: `Verified Trust Badges (${stats.verified})`, icon: "verified" },
+            { id: "inactive", label: `Suspended (${stats.suspended})`, icon: "block" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                statusFilter === tab.id
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -1523,7 +1710,7 @@ function MembersTab({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, city, or role..."
+              placeholder="Search by member name, email, city, crops, or role..."
               className="w-full rounded-xl border border-emerald-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 outline-none focus:border-emerald-500"
             />
           </div>
@@ -1531,13 +1718,13 @@ function MembersTab({
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500"
+            className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500 cursor-pointer"
           >
-            <option value="all">All 5 Roles</option>
+            <option value="all">All 5 Agricultural Roles</option>
             <option value="farmer">Growers &amp; Farmers</option>
             <option value="buyer">Institutional Buyers</option>
             <option value="consultant">Agri Consultants</option>
-            <option value="company">Enterprises</option>
+            <option value="company">Enterprises &amp; Agri-Tech</option>
             <option value="student">Researchers &amp; Students</option>
             <option value="admin">Administrators</option>
           </select>
@@ -1545,173 +1732,316 @@ function MembersTab({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500"
+            className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500 cursor-pointer"
           >
-            <option value="all">All Verification Statuses</option>
-            <option value="verified">Verified Only (Badge awarded)</option>
-            <option value="unverified">Unverified Only</option>
-            <option value="inactive">Deactivated / Suspended</option>
+            <option value="all">All Statuses</option>
+            <option value="unverified">Pending Verification (Action Required)</option>
+            <option value="verified">Verified Only (Badge Active)</option>
+            <option value="inactive">Suspended / Inactive</option>
           </select>
         </div>
       </div>
 
-      {/* Members Table */}
+      {/* Members & Verification Table */}
       <div className="overflow-hidden rounded-2xl border border-emerald-200/80 bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-emerald-100 bg-emerald-50/60 text-[11px] font-bold uppercase tracking-wider text-emerald-950">
-                <th className="px-5 py-3.5">Member Name</th>
+                <th className="px-5 py-3.5">Member Name &amp; ID</th>
                 <th className="px-5 py-3.5">Role</th>
                 <th className="px-5 py-3.5">Location</th>
-                <th className="px-5 py-3.5 text-center">Trust Badge</th>
+                <th className="px-5 py-3.5 text-center">Verification Badge</th>
                 <th className="px-5 py-3.5 text-center">Account State</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+                <th className="px-5 py-3.5 text-right">Verification &amp; Governance Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredMembers.map((m) => (
-                <tr key={m.id} className="hover:bg-emerald-50/40 transition">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-8 w-8 items-center justify-center rounded-xl font-bold text-xs"
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    No members match the selected verification or role filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredMembers.map((m) => (
+                  <tr key={m.id} className="hover:bg-emerald-50/40 transition">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex h-9 w-9 items-center justify-center rounded-xl font-bold text-xs shadow-xs"
+                          style={{
+                            backgroundColor: `${ROLE_COLORS[m.user_type] || "#94A3B8"}15`,
+                            color: ROLE_COLORS[m.user_type] || "#94A3B8",
+                          }}
+                        >
+                          {(m.full_name || m.display_name || "M").charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-slate-900">{m.full_name || m.display_name || "Anonymous Member"}</p>
+                            {m.is_verified && (
+                              <span className="material-symbols-outlined text-[15px] text-emerald-600 font-bold" title="Verified Badge Active">
+                                verified
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-mono text-[10px] text-slate-500">{m.email || `id: ${m.id.slice(0, 8)}`}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-3.5">
+                      <span
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                         style={{
                           backgroundColor: `${ROLE_COLORS[m.user_type] || "#94A3B8"}15`,
                           color: ROLE_COLORS[m.user_type] || "#94A3B8",
                         }}
                       >
-                        {(m.full_name || m.display_name || "M").charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900">{m.full_name || m.display_name || "Anonymous Member"}</p>
-                        <p className="font-mono text-[10px] text-slate-500">{m.email || m.id.slice(0, 8)}</p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-3.5">
-                    <span
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase"
-                      style={{
-                        backgroundColor: `${ROLE_COLORS[m.user_type] || "#94A3B8"}15`,
-                        color: ROLE_COLORS[m.user_type] || "#94A3B8",
-                      }}
-                    >
-                      {ROLE_LABELS[m.user_type] || m.user_type}
-                    </span>
-                  </td>
-
-                  <td className="px-5 py-3.5 text-slate-600">
-                    {m.city ? `${m.city}${m.province ? `, ${m.province}` : ""}` : "—"}
-                  </td>
-
-                  <td className="px-5 py-3.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => toggleVerified(m)}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
-                        m.is_verified
-                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                          : "bg-slate-100 text-slate-500 border border-slate-200"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[13px]">
-                        {m.is_verified ? "verified" : "shield"}
+                        {ROLE_LABELS[m.user_type] || m.user_type}
                       </span>
-                      {m.is_verified ? "Verified" : "Unverified"}
-                    </button>
-                  </td>
+                    </td>
 
-                  <td className="px-5 py-3.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => toggleActive(m)}
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
-                        m.is_active
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-rose-100 text-rose-800"
-                      }`}
-                    >
-                      {m.is_active ? "Active" : "Suspended"}
-                    </button>
-                  </td>
+                    <td className="px-5 py-3.5 text-slate-600">
+                      <div className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-emerald-700">location_on</span>
+                        <span>{m.city ? `${m.city}${m.province ? `, ${m.province}` : ""}` : "Pakistan"}</span>
+                      </div>
+                    </td>
 
-                  <td className="px-5 py-3.5 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMember(m)}
-                      className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1 font-bold text-emerald-800 hover:bg-emerald-100"
-                    >
-                      Inspect
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    <td className="px-5 py-3.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleVerified(m)}
+                        title={m.is_verified ? "Click to Revoke Verification Badge" : "Click to Award Verified Trust Badge"}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold transition shadow-xs cursor-pointer ${
+                          m.is_verified
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200"
+                            : "bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[14px] font-bold">
+                          {m.is_verified ? "verified" : "shield"}
+                        </span>
+                        {m.is_verified ? "Verified ✓" : "Grant Verification"}
+                      </button>
+                    </td>
+
+                    <td className="px-5 py-3.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleActive(m)}
+                        title={m.is_active ? "Click to Suspend Account" : "Click to Reactivate Account"}
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition cursor-pointer ${
+                          m.is_active
+                            ? "bg-emerald-100 text-emerald-800 hover:bg-rose-100 hover:text-rose-800"
+                            : "bg-rose-100 text-rose-800 hover:bg-emerald-100 hover:text-emerald-800"
+                        }`}
+                      >
+                        {m.is_active ? "Active" : "Suspended"}
+                      </button>
+                    </td>
+
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openInspector(m)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1 font-bold text-emerald-800 hover:bg-emerald-100 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">visibility</span>
+                          Inspect &amp; KYC
+                        </button>
+                        <Link
+                          to="/profile/$id"
+                          params={{ id: m.id }}
+                          className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 hover:bg-slate-50 font-bold"
+                          title="Open public profile"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Member Inspector Modal Drawer */}
+      {/* Member Verification & KYC Inspector Modal */}
       {selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl border border-emerald-200 bg-white p-6 text-xs shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="font-display text-base font-bold text-slate-900">Member Profile Details</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-emerald-200 bg-white p-6 text-xs shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl font-bold text-sm"
+                  style={{
+                    backgroundColor: `${ROLE_COLORS[selectedMember.user_type] || "#94A3B8"}20`,
+                    color: ROLE_COLORS[selectedMember.user_type] || "#94A3B8",
+                  }}
+                >
+                  {(selectedMember.full_name || selectedMember.display_name || "M").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-display text-base font-bold text-slate-900">
+                    {selectedMember.full_name || selectedMember.display_name || "Member Profile"}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">ID: {selectedMember.id}</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setSelectedMember(null)}
-                className="text-slate-400 hover:text-slate-700"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Full Name</label>
-                <p className="font-bold text-sm text-slate-900">{selectedMember.full_name || "—"}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+            {/* Verification Status Strip */}
+            <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[24px] text-emerald-700">
+                  {selectedMember.is_verified ? "verified_user" : "shield"}
+                </span>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Role</label>
-                  <p className="font-semibold text-slate-800 capitalize">{selectedMember.user_type}</p>
+                  <p className="font-bold text-slate-900 text-xs">
+                    {selectedMember.is_verified ? "Verified Member Trust Badge Active" : "Unverified / Pending Review"}
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    {selectedMember.is_verified
+                      ? "Public profile displays the official verified badge."
+                      : "Member has not yet received admin verification."}
+                  </p>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">City / Province</label>
-                  <p className="font-semibold text-slate-800">{selectedMember.city || "—"}</p>
-                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => toggleVerified(selectedMember)}
+                className={`rounded-xl px-4 py-2 font-bold text-xs transition shadow-xs cursor-pointer ${
+                  selectedMember.is_verified
+                    ? "bg-rose-100 text-rose-800 border border-rose-300 hover:bg-rose-200"
+                    : "bg-emerald-700 text-white hover:bg-emerald-800"
+                }`}
+              >
+                {selectedMember.is_verified ? "Revoke Verification" : "✓ Grant Trust Badge"}
+              </button>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid gap-3 sm:grid-cols-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Email Address</label>
-                <p className="font-mono text-emerald-800">{selectedMember.email || "—"}</p>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Ecosystem Role</label>
+                <p className="font-bold text-slate-900 capitalize">{ROLE_LABELS[selectedMember.user_type] || selectedMember.user_type}</p>
               </div>
+
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Bio / Professional Summary</label>
-                <p className="text-slate-600">{selectedMember.bio || "No summary provided."}</p>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Operating City / Region</label>
+                <p className="font-bold text-slate-900">{selectedMember.city || "Not specified"}</p>
               </div>
+
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Registered At</label>
-                <p className="font-mono text-slate-500">{new Date(selectedMember.created_at).toLocaleString()}</p>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Email Address</label>
+                <p className="font-mono text-emerald-800">{selectedMember.email || "Private"}</p>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Phone / WhatsApp</label>
+                <p className="font-mono text-slate-900">{memberExtra?.phone || "Private / Consented"}</p>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Active Listings / Lots</label>
+                <p className="font-bold text-slate-900">
+                  {memberExtra?.loading ? "Loading…" : `${memberExtra?.listingsCount || 0} Listed Items`}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Registration Date</label>
+                <p className="font-mono text-slate-600">{new Date(selectedMember.created_at).toLocaleDateString()}</p>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2 border-t border-slate-100 pt-4">
-              <Link
-                to="/profile/$id"
-                params={{ id: selectedMember.id }}
-                className="rounded-xl bg-emerald-700 px-4 py-2 font-bold text-white hover:bg-emerald-800 shadow-xs"
-              >
-                Open Public Profile
-              </Link>
+            {/* Keywords / Crops / Services */}
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 block mb-1.5">
+                Role Keywords &amp; Specializations
+              </label>
+              {memberExtra?.loading ? (
+                <p className="text-slate-400">Loading keywords…</p>
+              ) : (memberExtra?.keywords || []).length === 0 ? (
+                <p className="text-slate-400 italic">No crops or specialized keywords declared yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {memberExtra?.keywords.map((kw) => (
+                    <span key={kw} className="rounded-lg bg-emerald-100 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-800 border border-emerald-200">
+                      #{kw}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Bio Summary */}
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 block mb-1">
+                Bio &amp; Professional Summary
+              </label>
+              <p className="text-slate-700 bg-white p-3 rounded-xl border border-slate-200 leading-relaxed max-h-24 overflow-y-auto">
+                {selectedMember.bio || "No summary provided by member."}
+              </p>
+            </div>
+
+            {/* Admin KYC Internal Notes */}
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 block mb-1">
+                Admin Verification &amp; KYC Audit Notes
+              </label>
+              <input
+                type="text"
+                value={kycNote}
+                onChange={(e) => setKycNote(e.target.value)}
+                placeholder="e.g. CNIC / SECP verified by phone, Kisan Card confirmed..."
+                className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
               <button
                 type="button"
-                onClick={() => setSelectedMember(null)}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 font-bold text-slate-700 hover:bg-slate-100"
+                onClick={() => toggleActive(selectedMember)}
+                className={`rounded-xl px-4 py-2 font-bold transition ${
+                  selectedMember.is_active
+                    ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                    : "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                }`}
               >
-                Dismiss
+                {selectedMember.is_active ? "Suspend Account" : "Reactivate Account"}
               </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMember(null)}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 font-bold text-slate-700 hover:bg-slate-100"
+                >
+                  Close
+                </button>
+                <Link
+                  to="/profile/$id"
+                  params={{ id: selectedMember.id }}
+                  className="rounded-xl bg-emerald-700 px-4 py-2 font-bold text-white hover:bg-emerald-800 shadow-xs"
+                >
+                  Open Full Profile →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
