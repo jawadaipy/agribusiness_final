@@ -318,6 +318,16 @@ export function Navbar() {
                       Post a Listing
                     </Link>
 
+                    <Link
+                      to="/pricing"
+                      onClick={() => setUserDropdownOpen(false)}
+                      role="menuitem"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-700 hover:bg-amber-50 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px] text-amber-600" aria-hidden="true">workspace_premium</span>
+                      Pricing &amp; Plans
+                    </Link>
+
                     <div className="h-px bg-outline-variant/30 my-1" aria-hidden="true" />
 
                     <button

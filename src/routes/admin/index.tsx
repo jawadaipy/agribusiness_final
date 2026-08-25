@@ -38,7 +38,9 @@ type Tab =
   | "content"
   | "clinic"
   | "categories"
-  | "audit";
+  | "audit"
+  | "publish"
+  | "payments";
 
 type MemberRow = {
   id: string;
@@ -416,6 +418,8 @@ function SuperAdminPage() {
               { id: "members", label: "Member Governance", icon: "group", count: stats.members },
               { id: "rates", label: "Mandi Rates Console", icon: "candlestick_chart", count: stats.ratesCount },
               { id: "content", label: "Marketplace & RFPs", icon: "storefront", count: stats.listings + stats.projects },
+              { id: "publish", label: "Publish Product", icon: "add_business" },
+              { id: "payments", label: "Payment Reports", icon: "payments" },
               { id: "clinic", label: "Clinical Telehealth", icon: "stethoscope", count: stats.clinicCases },
               { id: "categories", label: "Agri Disciplines", icon: "category", count: categories.length },
               { id: "audit", label: "Security Audit Trail", icon: "verified_user" },
@@ -757,6 +761,20 @@ function SuperAdminPage() {
         {/* TAB 8: AUDIT LOGS */}
         {activeTab === "audit" && (
           <AuditLogsTab logs={auditLogs} />
+        )}
+
+        {/* TAB 9: PUBLISH PRODUCT/SERVICE */}
+        {activeTab === "publish" && admin && (
+          <AdminPublishPanel
+            adminId={admin.id}
+            categories={categories}
+            onRefresh={loadAllData}
+          />
+        )}
+
+        {/* TAB 10: PAYMENT REPORTS */}
+        {activeTab === "payments" && (
+          <AdminPaymentReport />
         )}
       </main>
     </div>
@@ -2199,6 +2217,299 @@ function AuditLogsTab({ logs }: { logs: AuditRow[] }) {
                 </tr>
               ))
             )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * AdminPublishPanel — Inline admin product/service publishing.
+ * Lets the admin create listings and projects directly from the admin portal.
+ */
+function AdminPublishPanel({ adminId, categories, onRefresh }: { adminId: string; categories: CategoryRow[]; onRefresh: () => void }) {
+  const [publishType, setPublishType] = useState<"listing" | "project">("listing");
+  const [form, setForm] = useState({
+    title: "", description: "", price: "", unit: "per kg", quantity: "",
+    city: "Faisalabad", category_id: "",
+    // project fields
+    budget_min: "", budget_max: "", deadline: "", required_skills: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState("");
+
+  const cities = ["Lahore", "Karachi", "Faisalabad", "Multan", "Islamabad", "Rawalpindi", "Peshawar", "Quetta", "Sahiwal", "Bahawalpur"];
+  const inputCls = "w-full rounded-xl border border-emerald-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100";
+  const labelCls = "text-xs font-bold uppercase tracking-wider text-emerald-800";
+
+  const handleSubmit = async () => {
+    if (!form.title.trim()) { setError("Title is required"); return; }
+    setSaving(true); setError(""); setFeedback("");
+
+    try {
+      if (publishType === "listing") {
+        const { error: err } = await supabase.from("listings").insert({
+          profile_id: adminId,
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          price: form.price ? parseFloat(form.price) : null,
+          unit: form.unit || null,
+          quantity: form.quantity ? parseFloat(form.quantity) : null,
+          city: form.city || null,
+          category_id: form.category_id || null,
+          status: "active",
+        });
+        if (err) throw err;
+        setFeedback("Listing published successfully!");
+      } else {
+        const { error: err } = await supabase.from("projects").insert({
+          profile_id: adminId,
+          title: form.title.trim(),
+          description: form.description.trim() || "Platform project",
+          budget_min: form.budget_min ? parseFloat(form.budget_min) : null,
+          budget_max: form.budget_max ? parseFloat(form.budget_max) : null,
+          city: form.city || null,
+          deadline: form.deadline || null,
+          required_skills: form.required_skills ? form.required_skills.split(",").map(s => s.trim()).filter(Boolean) : [],
+          status: "open",
+        });
+        if (err) throw err;
+        setFeedback("Project/RFP published successfully!");
+      }
+      setForm({ title: "", description: "", price: "", unit: "per kg", quantity: "", city: "Faisalabad", category_id: "", budget_min: "", budget_max: "", deadline: "", required_skills: "" });
+      onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to publish");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl font-bold text-slate-900">Publish Product, Service, or RFP</h2>
+          <p className="text-xs text-slate-500">Create listings and projects directly from the admin portal.</p>
+        </div>
+      </div>
+
+      {/* Type toggle */}
+      <div className="flex gap-2">
+        {(["listing", "project"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setPublishType(t)}
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${publishType === t ? "bg-emerald-700 text-white" : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"}`}
+          >
+            {t === "listing" ? "Product / Service Listing" : "Project / RFP"}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-xs">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="sm:col-span-2"><span className={labelCls}>Title *</span>
+            <input value={form.title} onChange={(e) => setForm(p => ({ ...p, title: e.target.value }))} placeholder={publishType === "listing" ? "e.g. Premium Wheat Seed (Galaxy-21)" : "e.g. Soil Testing Contract — 500 acres"} className={inputCls} />
+          </label>
+          <label className="sm:col-span-2"><span className={labelCls}>Description</span>
+            <textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} rows={3} placeholder="Detailed description..." className={inputCls} />
+          </label>
+
+          {publishType === "listing" ? (
+            <>
+              <label><span className={labelCls}>Price (PKR)</span>
+                <input type="number" value={form.price} onChange={(e) => setForm(p => ({ ...p, price: e.target.value }))} placeholder="0" className={inputCls} />
+              </label>
+              <label><span className={labelCls}>Unit</span>
+                <select value={form.unit} onChange={(e) => setForm(p => ({ ...p, unit: e.target.value }))} className={inputCls}>
+                  {["per kg", "per ton", "per acre", "per unit", "per bag", "per month"].map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+              </label>
+              <label><span className={labelCls}>Quantity</span>
+                <input type="number" value={form.quantity} onChange={(e) => setForm(p => ({ ...p, quantity: e.target.value }))} placeholder="0" className={inputCls} />
+              </label>
+            </>
+          ) : (
+            <>
+              <label><span className={labelCls}>Budget Min (PKR)</span>
+                <input type="number" value={form.budget_min} onChange={(e) => setForm(p => ({ ...p, budget_min: e.target.value }))} className={inputCls} />
+              </label>
+              <label><span className={labelCls}>Budget Max (PKR)</span>
+                <input type="number" value={form.budget_max} onChange={(e) => setForm(p => ({ ...p, budget_max: e.target.value }))} className={inputCls} />
+              </label>
+              <label><span className={labelCls}>Deadline</span>
+                <input type="date" value={form.deadline} onChange={(e) => setForm(p => ({ ...p, deadline: e.target.value }))} className={inputCls} />
+              </label>
+              <label><span className={labelCls}>Required Skills (comma separated)</span>
+                <input value={form.required_skills} onChange={(e) => setForm(p => ({ ...p, required_skills: e.target.value }))} placeholder="e.g. Soil Testing, GIS, Agronomy" className={inputCls} />
+              </label>
+            </>
+          )}
+
+          <label><span className={labelCls}>City</span>
+            <select value={form.city} onChange={(e) => setForm(p => ({ ...p, city: e.target.value }))} className={inputCls}>
+              {cities.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+          {publishType === "listing" && (
+            <label><span className={labelCls}>Category</span>
+              <select value={form.category_id} onChange={(e) => setForm(p => ({ ...p, category_id: e.target.value }))} className={inputCls}>
+                <option value="">Select category</option>
+                {categories.filter(c => c.is_active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+          )}
+        </div>
+
+        {error && <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800">{error}</div>}
+        {feedback && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">{feedback}</div>}
+
+        <button
+          type="button"
+          onClick={() => void handleSubmit()}
+          disabled={saving}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-xs font-bold text-white shadow-md transition hover:bg-emerald-800 disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-[16px]">publish</span>
+          {saving ? "Publishing..." : `Publish ${publishType === "listing" ? "Listing" : "Project"}`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * AdminPaymentReport — Payment and subscription analytics.
+ */
+function AdminPaymentReport() {
+  const [payments, setPayments] = useState<Array<{ id: string; profile_id: string; amount: number; currency: string; gateway: string; status: string; description: string | null; created_at: string }>>([]);
+  const [subs, setSubs] = useState<Array<{ id: string; profile_id: string; plan_name: string; status: string; gateway: string | null; amount: number | null; current_period_end: string | null; created_at: string }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from("payments").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("subscriptions").select("*").order("created_at", { ascending: false }).limit(100),
+    ]).then(([pRes, sRes]) => {
+      setPayments((pRes.data ?? []) as typeof payments);
+      setSubs((sRes.data ?? []) as typeof subs);
+      setLoading(false);
+    });
+  }, []);
+
+  const totalRevenue = payments.filter(p => p.status === "completed").reduce((sum, p) => sum + (p.amount || 0), 0);
+  const activeSubCount = subs.filter(s => s.status === "active").length;
+  const jazzCashRevenue = payments.filter(p => p.status === "completed" && p.gateway === "jazzcash").reduce((sum, p) => sum + (p.amount || 0), 0);
+  const easyPaisaRevenue = payments.filter(p => p.status === "completed" && p.gateway === "easypaisa").reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  if (loading) return <div className="py-16 text-center text-xs text-slate-400">Loading payment data...</div>;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-xl font-bold text-slate-900">Payment & Subscription Reports</h2>
+        <p className="text-xs text-slate-500">Revenue analytics and payment history across all users.</p>
+      </div>
+
+      {/* Revenue KPIs */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-xs">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Total Revenue</span>
+          <p className="mt-2 font-display text-3xl font-bold text-slate-900">PKR {totalRevenue.toLocaleString()}</p>
+        </div>
+        <div className="rounded-2xl border border-blue-200 bg-white p-5 shadow-xs">
+          <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Active Subscriptions</span>
+          <p className="mt-2 font-display text-3xl font-bold text-slate-900">{activeSubCount}</p>
+        </div>
+        <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-xs">
+          <span className="text-xs font-bold uppercase tracking-wider text-red-700">JazzCash Revenue</span>
+          <p className="mt-2 font-display text-3xl font-bold text-slate-900">PKR {jazzCashRevenue.toLocaleString()}</p>
+        </div>
+        <div className="rounded-2xl border border-green-200 bg-white p-5 shadow-xs">
+          <span className="text-xs font-bold uppercase tracking-wider text-green-700">EasyPaisa Revenue</span>
+          <p className="mt-2 font-display text-3xl font-bold text-slate-900">PKR {easyPaisaRevenue.toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Payment History */}
+      <div className="rounded-2xl border border-emerald-200 bg-white shadow-xs overflow-hidden">
+        <div className="border-b border-emerald-100 p-5">
+          <h3 className="font-display text-base font-bold text-slate-900">Recent Payments</h3>
+        </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/60">
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Date</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Amount</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Gateway</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Status</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.length === 0 ? (
+              <tr><td colSpan={5} className="py-8 text-center text-slate-400">No payments recorded yet</td></tr>
+            ) : payments.map((p) => (
+              <tr key={p.id} className="border-b border-slate-50 hover:bg-emerald-50/30 transition">
+                <td className="py-3 px-4 font-mono text-slate-500">{new Date(p.created_at).toLocaleDateString()}</td>
+                <td className="py-3 px-4 font-bold text-slate-900">PKR {p.amount.toLocaleString()}</td>
+                <td className="py-3 px-4">
+                  <span className={`rounded-md px-2 py-0.5 font-bold text-[10px] uppercase ${
+                    p.gateway === "jazzcash" ? "bg-red-50 text-red-700 border border-red-200" :
+                    p.gateway === "easypaisa" ? "bg-green-50 text-green-700 border border-green-200" :
+                    "bg-blue-50 text-blue-700 border border-blue-200"
+                  }`}>{p.gateway}</span>
+                </td>
+                <td className="py-3 px-4">
+                  <span className={`rounded-md px-2 py-0.5 font-bold text-[10px] uppercase ${
+                    p.status === "completed" ? "bg-emerald-50 text-emerald-700" :
+                    p.status === "failed" ? "bg-rose-50 text-rose-700" :
+                    "bg-amber-50 text-amber-700"
+                  }`}>{p.status}</span>
+                </td>
+                <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate">{p.description || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Active Subscriptions */}
+      <div className="rounded-2xl border border-emerald-200 bg-white shadow-xs overflow-hidden">
+        <div className="border-b border-emerald-100 p-5">
+          <h3 className="font-display text-base font-bold text-slate-900">Subscriptions</h3>
+        </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/60">
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Plan</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Status</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Gateway</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Amount</th>
+              <th className="py-3 px-4 text-left font-bold text-slate-600">Expires</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subs.length === 0 ? (
+              <tr><td colSpan={5} className="py-8 text-center text-slate-400">No subscriptions yet</td></tr>
+            ) : subs.map((s) => (
+              <tr key={s.id} className="border-b border-slate-50 hover:bg-emerald-50/30 transition">
+                <td className="py-3 px-4 font-bold text-slate-900 capitalize">{s.plan_name}</td>
+                <td className="py-3 px-4">
+                  <span className={`rounded-md px-2 py-0.5 font-bold text-[10px] uppercase ${
+                    s.status === "active" ? "bg-emerald-50 text-emerald-700" :
+                    s.status === "cancelled" ? "bg-rose-50 text-rose-700" :
+                    "bg-slate-50 text-slate-600"
+                  }`}>{s.status}</span>
+                </td>
+                <td className="py-3 px-4 uppercase text-slate-600">{s.gateway || "—"}</td>
+                <td className="py-3 px-4 font-bold text-slate-900">{s.amount ? `PKR ${s.amount.toLocaleString()}` : "—"}</td>
+                <td className="py-3 px-4 font-mono text-slate-500">{s.current_period_end ? new Date(s.current_period_end).toLocaleDateString() : "—"}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

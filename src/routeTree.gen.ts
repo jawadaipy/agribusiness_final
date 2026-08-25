@@ -17,6 +17,7 @@ import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as RatesRouteImport } from './routes/rates'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ResourcesRouteImport } from './routes/resources'
@@ -70,6 +71,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RatesRoute = RatesRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/rates': typeof RatesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/rates': typeof RatesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/rates': typeof RatesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/notifications'
     | '/onboarding'
+    | '/pricing'
     | '/rates'
     | '/reset-password'
     | '/resources'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/notifications'
     | '/onboarding'
+    | '/pricing'
     | '/rates'
     | '/reset-password'
     | '/resources'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/notifications'
     | '/onboarding'
+    | '/pricing'
     | '/rates'
     | '/reset-password'
     | '/resources'
@@ -300,6 +312,7 @@ export interface RootRouteChildren {
   MessagesRoute: typeof MessagesRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
+  PricingRoute: typeof PricingRoute
   RatesRoute: typeof RatesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rates': {
@@ -484,6 +504,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesRoute: MessagesRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
+  PricingRoute: PricingRoute,
   RatesRoute: RatesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,

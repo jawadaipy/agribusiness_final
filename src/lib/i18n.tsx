@@ -58,12 +58,12 @@ const strings = {
     // Pricing
     pricing_eyebrow: "Flexible Plans",
     pricing_headline: "Pick the plan that fits your scale",
-    pricing_sub: "Start free for 7 days — no card needed. Upgrade whenever you're ready.",
-    pricing_cta_trial: "Start Free 7 Days",
+    pricing_sub: "Start free for 14 days — no card needed. Upgrade whenever you're ready.",
+    pricing_cta_trial: "Start Free 14 Days",
     pricing_cta_pro: "Unlock Professional",
     pricing_cta_enterprise: "Talk to Sales",
     pricing_payment_note: "Pay with JazzCash, Easypaisa, or card",
-    pricing_trial_note: "7 days free, cancel any time",
+    pricing_trial_note: "14 days free, cancel any time",
 
     // Empty states
     empty_search: "No matches for",
@@ -185,12 +185,12 @@ const strings = {
     // Pricing
     pricing_eyebrow: "سستے پلان",
     pricing_headline: "اپنے کام کے مطابق پلان چنیں",
-    pricing_sub: "7 دن مفت — کارڈ کی ضرورت نہیں۔ جب چاہیں اپ گریڈ کریں۔",
-    pricing_cta_trial: "7 دن مفت شروع کریں",
+    pricing_sub: "14 دن مفت — کارڈ کی ضرورت نہیں۔ جب چاہیں اپ گریڈ کریں۔",
+    pricing_cta_trial: "14 دن مفت شروع کریں",
     pricing_cta_pro: "پروفیشنل انلاک کریں",
     pricing_cta_enterprise: "ہم سے بات کریں",
     pricing_payment_note: "جاز کیش، ایزی پیسہ یا کارڈ سے ادا کریں",
-    pricing_trial_note: "7 دن مفت، کسی بھی وقت منسوخ کریں",
+    pricing_trial_note: "14 دن مفت، کسی بھی وقت منسوخ کریں",
 
     // Empty states
     empty_search: "کوئی نتیجہ نہیں",

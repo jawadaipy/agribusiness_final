@@ -283,7 +283,7 @@ export function CtaBand() {
             Your next partner is <em className="text-secondary-light">already here.</em>
           </h2>
           <p className="mt-2.5 text-[13px] leading-6 text-white/60">
-            Free 7-day trial on every plan. No card required — just an honest profile.
+            Free 14-day trial on every plan. No card required — just an honest profile.
           </p>
         </Reveal>
         <Reveal delay={0.15} x={24} y={0}>

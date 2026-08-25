@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { RoleWorkspace } from "@/components/dashboard/RoleWorkspace";
 import { getAuthenticatedMember, type MemberProfile } from "@/lib/member";
 import { supabase } from "@/lib/supabase";
+import { PaywallGuard } from "@/components/shared/PaywallGuard";
+import { SubscriptionBadge } from "@/components/shared/SubscriptionBadge";
+import { isSubscriptionExpired } from "@/lib/payment";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -56,7 +59,37 @@ function DashboardPage() {
       </div>
     );
 
-  if (profile) return <RoleWorkspace profile={profile} onSignOut={signOut} />;
+  if (profile) {
+    const expired = isSubscriptionExpired(profile);
+    return (
+      <div className="min-h-screen bg-[#F4F8F4]">
+        {/* Subscription status bar */}
+        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-emerald-200/60 bg-white/95 backdrop-blur-lg px-4 py-2.5 sm:px-6">
+          <div className="flex items-center gap-3">
+            <span className="font-display text-sm font-bold text-emerald-900">My Workspace</span>
+            <SubscriptionBadge profile={profile} />
+          </div>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition"
+          >
+            Sign out
+          </button>
+        </div>
+
+        {expired ? (
+          <div className="flex min-h-[60vh] items-center justify-center p-8">
+            <PaywallGuard profile={profile} actionLabel="access your workspace">
+              <></>
+            </PaywallGuard>
+          </div>
+        ) : (
+          <RoleWorkspace profile={profile} onSignOut={signOut} />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F4F8F4] p-5 text-slate-800">

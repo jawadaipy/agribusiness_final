@@ -4,6 +4,7 @@ import { RateTicker } from "@/components/shared/RateTicker";
 import { Hero } from "@/components/home/Hero";
 import { TrustBand, RolesExplorer, HowItWorksMinimal, AppsStrip, CtaBand } from "@/components/home/Sections";
 import { FeaturedProjects } from "@/components/home/FeaturedProjects";
+import { HomePricingSection } from "@/components/home/HomePricingSection";
 import { AdSlot } from "@/components/shared/AdSlot";
 import { Footer } from "@/components/layout/Footer";
 
@@ -42,6 +43,9 @@ function Index() {
         <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           <AdSlot variant="banner" />
         </div>
+
+        {/* Transparent PKR Pricing with 14-day free trial */}
+        <HomePricingSection />
 
         <CtaBand />
       </main>

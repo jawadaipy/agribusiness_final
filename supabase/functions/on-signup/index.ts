@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
         email: user.email ?? '',
         full_name: user.user_metadata?.full_name ?? '',
         user_type: safeType,
-        trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         subscription_status: 'trial',
       },
       { onConflict: 'id', ignoreDuplicates: false },
