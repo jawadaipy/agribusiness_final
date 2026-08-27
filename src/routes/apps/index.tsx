@@ -73,6 +73,25 @@ function AppsIndexPage() {
         "Photo analysis helps experts diagnose leaf spots, blights, and pests with precision."
       ],
       cta: "Open Plant Clinic"
+    },
+    {
+      id: "technical-services",
+      name: "Technical Services & Solutions",
+      tagline: "Custom Feasibilities, Lab Tests & Strategies",
+      badge: "Custom Paid Services",
+      icon: "science",
+      color: "from-emerald-800 to-amber-900",
+      accent: "bg-amber-400 text-amber-950",
+      link: "/technical-services",
+      image: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800&q=80&auto=format&fit=crop",
+      overview: "Commercial project feasibilities for Dairy, Poultry, Orchards and Silage, alongside soil and animal laboratory diagnostic testing, certified seed selection, and custom agri-tech web portals.",
+      features: [
+        "Bankable business feasibility reports with CAPEX, OPEX, and ROI forecasts.",
+        "Soil fertility, tubewell water chemistry, and animal milk/blood diagnostics.",
+        "Custom crop cycle production plans and integrated pest management (IPM).",
+        "Custom farm management web applications and IoT solar tubewell automation."
+      ],
+      cta: "Explore Technical Solutions"
     }
   ];
 

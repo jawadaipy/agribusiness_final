@@ -29,7 +29,8 @@ export interface RoleDefinition {
   capabilities: RoleCapability[];
 }
 
-const FEED = "/feed";
+const RATES = "/rates";
+const SCHEMES = "/resources";
 const MARKET = "/apps/agri-biz";
 const PROJECTS = "/projects";
 const CLINIC_P = "/apps/plant-clinic";
@@ -50,7 +51,7 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
       { key: "sell-produce", label: "Sell produce & livestock lots", detail: "Post grain, fruit, vegetable, cattle, and dairy lots with transparent PKR pricing.", icon: "storefront", surface: MARKET },
       { key: "post-rfp", label: "Post farm requirements", detail: "Tender soil testing, solar conversion, machinery repair, and advisory work.", icon: "engineering", surface: PROJECTS },
       { key: "clinic", label: "Free crop & animal clinics", detail: "Report symptoms with photos; verified agronomists and vets reply.", icon: "psychiatry", surface: CLINIC_P },
-      { key: "feed", label: "Field updates & mandi insight", detail: "Share harvest reports and market notes with the whole network.", icon: "dynamic_feed", surface: FEED },
+      { key: "rates", label: "Live mandi rates intelligence", detail: "Track daily wholesale commodity prices across 30+ Pakistani mandis.", icon: "candlestick_chart", surface: RATES },
     ],
   },
   {
@@ -66,7 +67,7 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
       { key: "wanted", label: "Post wanted notices", detail: "Publish commodity demand — volume, grade, and delivery terms.", icon: "campaign", surface: MARKET },
       { key: "buying-rfp", label: "Post procurement tenders", detail: "Tender sourcing, quality inspection, logistics, and export documentation.", icon: "description", surface: PROJECTS },
       { key: "discover", label: "Discover verified producers", detail: "Search the directory by crop, city, and rating; connect with consent.", icon: "search", surface: SEARCH },
-      { key: "feed", label: "Market offers to growers", detail: "Publish forward-contract and spot-purchase offers.", icon: "dynamic_feed", surface: FEED },
+      { key: "rates", label: "Wholesale Mandi Rates", detail: "Access real-time price trends for procurement decisions.", icon: "monitoring", surface: RATES },
     ],
   },
   {
@@ -82,7 +83,7 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
       { key: "services", label: "List professional services", detail: "Agronomy, IPM, irrigation, veterinary, and export-compliance services.", icon: "workspace_premium", surface: MARKET },
       { key: "bid", label: "Bid on open RFPs", detail: "Submit technical proposals on farm and enterprise requirements.", icon: "gavel", surface: PROJECTS },
       { key: "clinic", label: "Answer clinic cases", detail: "Diagnose posted crop and livestock cases; flag solutions.", icon: "medical_services", surface: CLINIC_P },
-      { key: "feed", label: "Publish advisories", detail: "Season alerts, pest warnings, and practice notes to the network.", icon: "dynamic_feed", surface: FEED },
+      { key: "schemes", label: "Gov & Research Schemes", detail: "Explore government subsidies, grants, and credit programs.", icon: "account_balance", surface: SCHEMES },
     ],
   },
   {
@@ -111,7 +112,7 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
     canPostProjects: true,
     canSubmitProposals: true,
     capabilities: [
-      { key: "research", label: "Post research requests", detail: "Recruit orchards for trials, sampling, and surveys on the feed.", icon: "science", surface: FEED },
+      { key: "schemes", label: "Gov Schemes & Grants", detail: "Discover research scholarships, youth agri loans, and academic grants.", icon: "account_balance", surface: SCHEMES },
       { key: "services", label: "Offer research services", detail: "Publish tutoring, data analysis, and research assistance listings.", icon: "school", surface: MARKET },
       { key: "clinic", label: "Follow live case studies", detail: "Real diagnoses from working agronomists and vets.", icon: "psychiatry", surface: CLINIC_P },
       { key: "connect", label: "Connect with professionals", detail: "Build a supervisor and industry network with consented connections.", icon: "handshake", surface: SEARCH },

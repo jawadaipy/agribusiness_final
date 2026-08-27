@@ -122,7 +122,8 @@ export function RoleWorkspace({ profile, onSignOut }: { profile: MemberProfile; 
 
   const navigation = [
     { icon: "dashboard", label: "Workspace Cockpit", to: "/dashboard" },
-    { icon: "dynamic_feed", label: "Network Feed", to: "/feed" },
+    { icon: "account_balance", label: "Gov Schemes", to: "/resources" },
+    { icon: "groups", label: "Network Directory", to: "/search" },
     { icon: "storefront", label: "Agri Marketplace", to: "/apps/agri-biz" },
     { icon: "monitoring", label: "Live Mandi Rates", to: "/rates" },
     { icon: "work", label: "Projects & RFPs", to: "/projects" },

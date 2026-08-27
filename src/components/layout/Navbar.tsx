@@ -126,13 +126,13 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { label: t("nav_feed"), to: "/feed" as const, icon: "dynamic_feed" },
-    { label: t("nav_marketplace"), to: "/apps/agri-biz" as const, icon: "storefront" },
-    { label: t("nav_rates"), to: "/rates" as const, icon: "candlestick_chart" },
-    { label: t("nav_projects"), to: "/projects" as const, icon: "engineering" },
     { label: t("nav_schemes"), to: "/resources" as const, icon: "account_balance" },
+    { label: t("nav_rates"), to: "/rates" as const, icon: "candlestick_chart" },
     { label: t("nav_network"), to: "/search" as const, icon: "groups" },
+    { label: t("nav_marketplace"), to: "/apps/agri-biz" as const, icon: "storefront" },
+    { label: t("nav_projects"), to: "/projects" as const, icon: "engineering" },
     { label: t("nav_apps"), to: "/apps" as const, icon: "apps" },
+    { label: t("nav_technical_services"), to: "/technical-services" as const, icon: "science" },
   ];
 
   const isActive = (to: string) => location.pathname === to || location.pathname.startsWith(to + "/");
@@ -163,13 +163,13 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Search */}
-        <div className="hidden md:flex flex-1 max-w-xs mx-4 relative">
+        {/* Desktop Search (visible on wide screens to preserve 1-line nav links) */}
+        <div className="hidden 2xl:flex flex-1 max-w-[200px] mx-2 relative">
           <label htmlFor="global-search" className="sr-only">
             Search the network
           </label>
           <span
-            className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/50 pointer-events-none text-[18px]"
+            className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 pointer-events-none text-[16px]"
             aria-hidden="true"
           >
             search
@@ -183,31 +183,31 @@ export function Navbar() {
               if (e.key === "Enter") submitSearch(navSearch);
             }}
             className={cn(
-              "w-full rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none transition-all font-medium",
+              "w-full rounded-lg py-1.5 pl-8 pr-3 text-xs focus:outline-none transition-all font-medium",
               "bg-black/[0.03] border border-black/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-on-surface-variant/50",
             )}
-            placeholder={lang === "ur" ? "تلاش کریں..." : "Search people, produce… press Enter"}
+            placeholder={lang === "ur" ? "تلاش کریں..." : "Search network…"}
           />
         </div>
 
-        {/* Desktop Nav Links */}
-        <div className="hidden lg:flex items-center gap-1">
+        {/* Desktop Nav Links (Strictly 1 line with whitespace-nowrap) */}
+        <div className="hidden xl:flex items-center gap-0.5 2xl:gap-1 shrink-0">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               className={cn(
-                "press relative flex h-9 items-center rounded-lg px-2.5 text-[13px] font-medium transition-colors duration-150",
+                "press relative flex h-9 items-center rounded-lg px-2 xl:px-2.5 text-[12px] 2xl:text-[13px] font-semibold whitespace-nowrap shrink-0 transition-colors duration-150",
                 isActive(link.to)
-                  ? "text-primary"
-                  : "text-black/60 hover:text-black hover:bg-black/[0.04]",
+                  ? "text-primary font-bold bg-primary/5"
+                  : "text-black/70 hover:text-black hover:bg-black/[0.04]",
               )}
               aria-current={isActive(link.to) ? "page" : undefined}
             >
               {link.label}
               <span
                 className={cn(
-                  "absolute inset-x-2.5 bottom-0.5 h-[2px] rounded-full bg-primary transition-all duration-200",
+                  "absolute inset-x-2 bottom-0.5 h-[2px] rounded-full bg-primary transition-all duration-200",
                   isActive(link.to) ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
                 )}
                 aria-hidden="true"
@@ -363,7 +363,7 @@ export function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-black/70 hover:bg-black/[0.05] hover:text-black transition-colors cursor-pointer"
+            className="xl:hidden w-9 h-9 rounded-lg flex items-center justify-center text-black/70 hover:bg-black/[0.05] hover:text-black transition-colors cursor-pointer"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
@@ -381,7 +381,7 @@ export function Navbar() {
           id="mobile-nav"
           role="dialog"
           aria-label="Mobile navigation menu"
-          className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-outline-variant/30 shadow-2xl animate-in fade-in slide-in-from-top-3 duration-200 max-h-[85vh] overflow-y-auto"
+          className="xl:hidden absolute top-full left-0 right-0 bg-white border-b border-outline-variant/30 shadow-2xl animate-in fade-in slide-in-from-top-3 duration-200 max-h-[85vh] overflow-y-auto"
         >
           {/* Top gradient accent */}
           <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-primary opacity-70" aria-hidden="true" />

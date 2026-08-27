@@ -38,18 +38,16 @@ export const Route = createFileRoute("/pricing")({
 type PaymentGateway = "jazzcash" | "easypaisa";
 
 const CHECK_FEATURES = [
-  { standard: true, enterprise: true, label: "Publish products & services" },
-  { standard: true, enterprise: true, label: "Post RFPs & requirements" },
-  { standard: true, enterprise: true, label: "Plant & animal clinic access" },
-  { standard: true, enterprise: true, label: "Network feed & marketplace" },
-  { standard: true, enterprise: true, label: "Smart matching & directory" },
-  { standard: true, enterprise: true, label: "Mandi rate intelligence" },
-  { standard: false, enterprise: true, label: "Priority listing placement" },
-  { standard: false, enterprise: true, label: "Corporate ad studio" },
-  { standard: false, enterprise: true, label: "Unlimited product catalog" },
-  { standard: false, enterprise: true, label: "Advanced analytics" },
-  { standard: false, enterprise: true, label: "Dedicated account support" },
-  { standard: false, enterprise: true, label: "Corporate verification badge" },
+  { standard: true, enterprise: true, label: "24-Hour Live Access to Mandi Rates (30+ Mandis)" },
+  { standard: true, enterprise: true, label: "Marketplace: 5 Verified Posts / Month (Unlimited for Company)" },
+  { standard: true, enterprise: true, label: "Access to Updated Agri Gov Schemes & Subsidies" },
+  { standard: true, enterprise: true, label: "AgriBusiness Networking & Direct Consented Connections" },
+  { standard: true, enterprise: true, label: "Our Recommended Projects & High-Value RFPs" },
+  { standard: true, enterprise: true, label: "Plant & Animal Clinical Telehealth Support" },
+  { standard: false, enterprise: true, label: "Priority Listing Placement & Highlighted Badges" },
+  { standard: false, enterprise: true, label: "Corporate Ad Studio & Banner Placement" },
+  { standard: false, enterprise: true, label: "Corporate Verified Trust Badge" },
+  { standard: false, enterprise: true, label: "Dedicated Key Account Manager" },
 ];
 
 function PricingPage() {

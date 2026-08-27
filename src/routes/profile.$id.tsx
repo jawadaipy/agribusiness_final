@@ -153,6 +153,7 @@ function ProfilePage() {
   // Connection & privacy states
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [connection, setConnection] = useState<ConnectionState | null>(null);
+  const [acceptedConnectionsCount, setAcceptedConnectionsCount] = useState<number>(0);
   const [connectionContact, setConnectionContact] = useState<ContactCard | null>(null);
   const [connectionLoading, setConnectionLoading] = useState(false);
   const [connectionFeedback, setConnectionFeedback] = useState("");
@@ -281,7 +282,7 @@ function ProfilePage() {
     setUserKeywords(kw);
     setEditKeywordsInput(kw.join(", "));
 
-    // Load Connection Status
+    // Load Connection Status & Total Count
     const rel = relationRes?.data as ConnectionState | null;
     if (rel) {
       setConnection(rel);
@@ -294,6 +295,17 @@ function ProfilePage() {
           setConnectionContact({ email: contact.email ?? null, phone: contact.phone ?? null });
         }
       }
+    }
+
+    try {
+      const { count: cCount } = await supabase
+        .from("connection_requests")
+        .select("id", { count: "exact", head: true })
+        .or(`requester_profile_id.eq.${effectiveId},recipient_profile_id.eq.${effectiveId}`)
+        .eq("status", "accepted");
+      setAcceptedConnectionsCount(cCount ?? 0);
+    } catch {
+      setAcceptedConnectionsCount(0);
     }
 
     // Load Familiar / Synergy Matches
@@ -743,6 +755,19 @@ function ProfilePage() {
                       <span className="material-symbols-outlined text-[13px]">{roleMeta.icon}</span>
                       {roleMeta.title}
                     </span>
+
+                    {/* Follower-style Connection Badge: Visible ONLY to real owner or connected users */}
+                    {(isOwner || connection?.status === "accepted") && (
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-300 px-3 py-1 text-xs font-bold text-emerald-900 shadow-xs">
+                        <span className="material-symbols-outlined text-[16px] text-emerald-700">groups</span>
+                        <span>{acceptedConnectionsCount} {acceptedConnectionsCount === 1 ? "Connection" : "Connections"}</span>
+                        {!isOwner && connection?.status === "accepted" && (
+                          <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                            ✓ Connected
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <p className="flex items-center gap-1.5 text-xs font-medium text-slate-600 pt-1">

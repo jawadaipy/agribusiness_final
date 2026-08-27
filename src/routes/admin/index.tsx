@@ -1473,6 +1473,16 @@ function MembersTab({
     listingsCount: number;
     keywords: string[];
     phone?: string | null;
+    connections: {
+      id: string;
+      otherId: string;
+      otherName: string;
+      otherRole: string;
+      otherCity: string;
+      status: string;
+      createdAt: string;
+      direction: "incoming" | "outgoing";
+    }[];
     loading: boolean;
   } | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
@@ -1556,24 +1566,66 @@ function MembersTab({
 
   const openInspector = async (m: MemberRow) => {
     setSelectedMember(m);
-    setMemberExtra({ listingsCount: 0, keywords: [], loading: true });
+    setMemberExtra({ listingsCount: 0, keywords: [], connections: [], loading: true });
     setKycNote("");
 
     try {
-      const [listingsRes, privateRes, keywordsRes] = await Promise.all([
+      const [listingsRes, privateRes, keywordsRes, connsRes] = await Promise.all([
         supabase.from("listings").select("id", { count: "exact", head: true }).eq("profile_id", m.id),
         supabase.from("profile_private").select("phone").eq("profile_id", m.id).maybeSingle(),
         supabase.from("profile_keywords").select("keyword").eq("profile_id", m.id),
+        supabase
+          .from("connection_requests")
+          .select("id, requester_profile_id, recipient_profile_id, status, created_at")
+          .or(`requester_profile_id.eq.${m.id},recipient_profile_id.eq.${m.id}`)
+          .order("created_at", { ascending: false }),
       ]);
+
+      const rawConns = connsRes.data || [];
+      const otherIds = Array.from(
+        new Set(
+          rawConns.map((c) => (c.requester_profile_id === m.id ? c.recipient_profile_id : c.requester_profile_id))
+        )
+      );
+
+      let profilesMap: Record<string, { full_name?: string; display_name?: string; user_type?: string; city?: string }> = {};
+      if (otherIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("directory_profiles")
+          .select("id, full_name, display_name, user_type, city")
+          .in("id", otherIds);
+        if (profs) {
+          profs.forEach((p) => {
+            profilesMap[p.id] = p;
+          });
+        }
+      }
+
+      const mappedConnections = rawConns.map((c) => {
+        const isOut = c.requester_profile_id === m.id;
+        const otherId = isOut ? c.recipient_profile_id : c.requester_profile_id;
+        const prof = profilesMap[otherId] || members.find((mb) => mb.id === otherId);
+        return {
+          id: c.id,
+          otherId,
+          otherName: prof?.full_name || prof?.display_name || "Agri Member",
+          otherRole: prof?.user_type || "farmer",
+          otherCity: prof?.city || "Pakistan",
+          status: c.status || "pending",
+          createdAt: c.created_at,
+          direction: (isOut ? "outgoing" : "incoming") as "incoming" | "outgoing",
+        };
+      });
 
       setMemberExtra({
         listingsCount: listingsRes.count || 0,
         phone: privateRes.data?.phone ?? null,
         keywords: (keywordsRes.data || []).map((k: { keyword: string }) => k.keyword),
+        connections: mappedConnections,
         loading: false,
       });
     } catch {
-      setMemberExtra({ listingsCount: 0, keywords: [], loading: false });
+      setMemberExtra({ listingsCount: 0, keywords: [], connections: [], loading: false });
     }
   };
 
@@ -1983,6 +2035,63 @@ function MembersTab({
                     <span key={kw} className="rounded-lg bg-emerald-100 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-800 border border-emerald-200">
                       #{kw}
                     </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Network Connections & Governance */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">
+                  Network Connections &amp; Relationships ({memberExtra?.connections?.length || 0})
+                </label>
+                <span className="text-[11px] font-mono text-emerald-800 font-bold">
+                  {memberExtra?.connections?.filter((c) => c.status === "accepted").length || 0} Accepted
+                </span>
+              </div>
+
+              {memberExtra?.loading ? (
+                <p className="text-slate-400">Loading network relations…</p>
+              ) : (memberExtra?.connections || []).length === 0 ? (
+                <p className="text-slate-400 italic bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  No connection requests sent or received yet.
+                </p>
+              ) : (
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {memberExtra?.connections.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px] text-emerald-700">person</span>
+                        <div>
+                          <p className="font-bold text-slate-900 leading-none">{c.otherName}</p>
+                          <p className="text-[10px] text-slate-500 capitalize">{c.otherRole} · {c.otherCity}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            c.status === "accepted"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : "bg-amber-100 text-amber-900 border border-amber-300"
+                          }`}
+                        >
+                          {c.status === "accepted" ? "✓ Accepted" : c.status}
+                        </span>
+                        <Link
+                          to="/profile/$id"
+                          params={{ id: c.otherId }}
+                          className="text-emerald-700 hover:text-emerald-900"
+                          title="View connected profile"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}

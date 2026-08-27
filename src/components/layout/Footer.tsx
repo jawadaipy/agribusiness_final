@@ -40,18 +40,18 @@ export function Footer() {
   };
 
   const platformLinks = [
-    { label: t("nav_marketplace"), to: "/apps/agri-biz" as const },
-    { label: "Plant Clinic", to: "/apps/plant-clinic" as const },
-    { label: "Animal & Vet Clinic", to: "/apps/animal-clinic" as const },
-    { label: t("nav_projects"), to: "/projects" as const },
-    { label: t("nav_rates"), to: "/rates" as const },
     { label: t("nav_schemes"), to: "/resources" as const },
+    { label: t("nav_rates"), to: "/rates" as const },
+    { label: t("nav_network"), to: "/search" as const },
+    { label: t("nav_marketplace"), to: "/apps/agri-biz" as const },
+    { label: t("nav_projects"), to: "/projects" as const },
     { label: t("nav_apps"), to: "/apps" as const },
+    { label: t("nav_technical_services"), to: "/technical-services" as const },
   ];
 
   const supportLinks = [
-    { label: t("nav_network"), to: "/search" as const },
-    { label: t("nav_feed"), to: "/feed" as const },
+    { label: "Plant Clinic", to: "/apps/plant-clinic" as const },
+    { label: "Animal & Vet Clinic", to: "/apps/animal-clinic" as const },
     { label: lang === "ur" ? "واٹس ایپ سپورٹ" : "WhatsApp Support", href: "https://wa.me/923001234567" },
   ];
 

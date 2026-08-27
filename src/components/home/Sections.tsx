@@ -270,7 +270,18 @@ export function AppsStrip() {
 
 export function CtaBand() {
   return (
-    <section className="relative overflow-hidden bg-exchange">
+    <section className="relative overflow-hidden bg-[#06150c]">
+      <img
+        src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=2400&q=85"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-30"
+        loading="lazy"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#05140b]/95 via-[#071d11]/85 to-[#05140b]/95"
+        aria-hidden="true"
+      />
       <div
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "100% 44px" }}

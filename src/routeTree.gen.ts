@@ -22,6 +22,7 @@ import { Route as RatesRouteImport } from './routes/rates'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as TechnicalServicesRouteImport } from './routes/technical-services'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppsIndexRouteImport } from './routes/apps/index'
 import { Route as AppsAgriBizRouteImport } from './routes/apps/agri-biz'
@@ -98,6 +99,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TechnicalServicesRoute = TechnicalServicesRouteImport.update({
+  id: '/technical-services',
+  path: '/technical-services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/technical-services': typeof TechnicalServicesRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
   '/apps/plant-clinic': typeof AppsPlantClinicRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/technical-services': typeof TechnicalServicesRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
   '/apps/plant-clinic': typeof AppsPlantClinicRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/technical-services': typeof TechnicalServicesRoute
   '/apps/agri-biz': typeof AppsAgriBizRoute
   '/apps/animal-clinic': typeof AppsAnimalClinicRoute
   '/apps/plant-clinic': typeof AppsPlantClinicRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/resources'
     | '/search'
+    | '/technical-services'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
     | '/apps/plant-clinic'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/resources'
     | '/search'
+    | '/technical-services'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
     | '/apps/plant-clinic'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/resources'
     | '/search'
+    | '/technical-services'
     | '/apps/agri-biz'
     | '/apps/animal-clinic'
     | '/apps/plant-clinic'
@@ -317,6 +329,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
+  TechnicalServicesRoute: typeof TechnicalServicesRoute
   AppsAgriBizRoute: typeof AppsAgriBizRoute
   AppsAnimalClinicRoute: typeof AppsAnimalClinicRoute
   AppsPlantClinicRoute: typeof AppsPlantClinicRoute
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/technical-services': {
+      id: '/technical-services'
+      path: '/technical-services'
+      fullPath: '/technical-services'
+      preLoaderRoute: typeof TechnicalServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -509,6 +529,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
+  TechnicalServicesRoute: TechnicalServicesRoute,
   AppsAgriBizRoute: AppsAgriBizRoute,
   AppsAnimalClinicRoute: AppsAnimalClinicRoute,
   AppsPlantClinicRoute: AppsPlantClinicRoute,

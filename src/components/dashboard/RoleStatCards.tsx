@@ -108,8 +108,8 @@ export function RoleStatCards({ profile }: { profile: MemberProfile }) {
                     { icon: "handshake", label: "Proposals received", value: prec, to: "/dashboard" },
                   ]
                 : [
-                    { icon: "dynamic_feed", label: "Network posts shared", value: mp, to: "/feed" },
-                    { icon: "chat_bubble", label: "Answers & comments", value: mc, to: "/feed" },
+                    { icon: "groups", label: "Network connections", value: mp, to: "/search" },
+                    { icon: "monitoring", label: "Mandi rates viewed", value: mc, to: "/rates" },
                   ];
       setStats([...base, ...roleSpecific]);
     };

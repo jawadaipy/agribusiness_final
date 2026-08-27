@@ -41,13 +41,13 @@ function StaggerHeadline() {
   ];
   if (reduced) {
     return (
-      <h1 className="display-hero mt-6 max-w-[11ch] text-[42px] text-white sm:text-[52px] lg:text-[60px]">
+      <h1 className="display-hero mt-6 max-w-2xl text-[34px] leading-[1.12] text-white sm:text-[44px] lg:text-[50px]">
         {line1} <em className="text-secondary-light">{line2}</em>
       </h1>
     );
   }
   return (
-    <h1 className="display-hero mt-6 max-w-[11ch] text-[42px] text-white sm:text-[52px] lg:text-[60px]" aria-label={`${line1} ${line2}`}>
+    <h1 className="display-hero mt-6 max-w-2xl text-[34px] leading-[1.12] text-white sm:text-[44px] lg:text-[50px]" aria-label={`${line1} ${line2}`}>
       {words.map((w, i) => (
         <span key={`${w.text}-${i}`} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
           <motion.span
@@ -113,12 +113,63 @@ function trendClasses(trend: string) {
   return { glyph: "—", color: "text-white/35", label: "stable" };
 }
 
+/** Ordered category priority for the exchange board display */
+const BOARD_CATEGORY_ORDER = [
+  { key: "poultry",    label: "🐔 Poultry",    keywords: ["broiler", "murgh", "desi murgh"] },
+  { key: "livestock",  label: "🐄 Livestock",   keywords: ["beef", "cattle", "qurbani"] },
+  { key: "eggs",       label: "🥚 Eggs",        keywords: ["eggs", "egg"] },
+  { key: "sugarcane",  label: "🌿 Sugarcane",   keywords: ["sugarcane"] },
+  { key: "cotton",     label: "🧶 Cotton",       keywords: ["cotton"] },
+  { key: "maize",      label: "🌽 Maize",        keywords: ["maize"] },
+  { key: "wheat",      label: "🌾 Wheat",        keywords: ["wheat"] },
+  { key: "barley",     label: "🌾 Barley",       keywords: ["barley", "jow"] },
+  { key: "oilseeds",   label: "🫚 Oilseeds",    keywords: ["mustard", "canola", "sesame", "sunflower", "oilseed"] },
+  { key: "rice",       label: "🍚 Rice",         keywords: ["basmati", "rice", "irri"] },
+];
+
+/** Static board fallback rows — one per category, shown when DB has no matching row */
+const BOARD_STATIC_FALLBACK = [
+  { commodity: "Broiler Chicken (Live)", city: "Lahore",     unit: "per kg",       modalPrice: 395, trend: "up" },
+  { commodity: "Beef (Boneless)",        city: "Lahore",     unit: "per kg",       modalPrice: 1100, trend: "up" },
+  { commodity: "Eggs (Farm White)",      city: "Lahore",     unit: "per dozen",    modalPrice: 185, trend: "up" },
+  { commodity: "Sugarcane",              city: "Lahore",     unit: "40 kg",        modalPrice: 450, trend: "up" },
+  { commodity: "Cotton Phutti",          city: "Multan",     unit: "40 kg (Maund)",modalPrice: 8700, trend: "up" },
+  { commodity: "Maize",                  city: "Faisalabad", unit: "40 kg (Maund)",modalPrice: 3250, trend: "up" },
+  { commodity: "Wheat",                  city: "Lahore",     unit: "40 kg (Maund)",modalPrice: 4380, trend: "up" },
+  { commodity: "Barley (Jow)",           city: "Multan",     unit: "40 kg (Maund)",modalPrice: 2800, trend: "stable" },
+  { commodity: "Mustard / Canola",       city: "Lahore",     unit: "40 kg (Maund)",modalPrice: 9200, trend: "up" },
+  { commodity: "Super Basmati",          city: "Lahore",     unit: "40 kg (Maund)",modalPrice: 9800, trend: "up" },
+];
+
+function pickOrderedBoardRows(allRates: ReturnType<typeof useMarketRates>["rates"]) {
+  const fallbackMap = new Map(
+    BOARD_STATIC_FALLBACK.map((row, i) => [BOARD_CATEGORY_ORDER[i]?.key ?? "", row])
+  );
+  const result: typeof BOARD_STATIC_FALLBACK = [];
+  for (const cat of BOARD_CATEGORY_ORDER) {
+    // Try to find a live DB row matching this category
+    const live = allRates.find((r) =>
+      cat.keywords.some((kw) => r.commodity.toLowerCase().includes(kw))
+    );
+    if (live) {
+      result.push({ commodity: live.commodity, city: live.city, unit: live.unit ?? "", modalPrice: live.modalPrice, trend: live.trend });
+    } else {
+      const fb = fallbackMap.get(cat.key);
+      if (fb) result.push(fb);
+    }
+    if (result.length >= 10) break;
+  }
+  return result;
+}
+
 function ExchangeBoard() {
   const { t } = useTranslation();
-  const { rates, loading, indicative, lastUpdated } = useMarketRates(8);
-  // the "board is alive" cue: one row at a time receives an attention pulse
+  const { rates: rawRates, loading, indicative, lastUpdated } = useMarketRates(80);
   const [flashRow, setFlashRow] = useState(-1);
   const reduced = useReducedMotion();
+
+  // Build the ordered board rows from DB + static fallback
+  const rates = pickOrderedBoardRows(rawRates);
 
   useEffect(() => {
     if (loading || reduced || rates.length === 0) return;
@@ -134,8 +185,6 @@ function ExchangeBoard() {
     return () => clearTimeout(timer);
   }, [loading, reduced, rates.length]);
 
-  // Pointer parallax — the board tilts a couple of degrees toward the cursor.
-  // Fine-pointer devices only; entirely skipped for reduced motion.
   const px = useMotionValue(0);
   const py = useMotionValue(0);
   const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [2.2, -2.2]), { stiffness: 120, damping: 20 });
@@ -155,18 +204,18 @@ function ExchangeBoard() {
         py.set((e.clientY - r.top) / r.height - 0.5);
       } : undefined}
       onPointerLeave={canTilt ? () => { px.set(0); py.set(0); } : undefined}
-      className="overflow-hidden rounded-2xl border border-white/12 bg-exchange-raised shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
+      className="overflow-hidden rounded-3xl border border-white/20 bg-[#071d11]/85 backdrop-blur-xl shadow-[0_24px_60px_rgba(0,0,0,0.45)] ring-1 ring-white/10"
     >
       {/* Board header */}
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5 bg-black/20">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
           <span className="relative flex h-2 w-2" aria-hidden="true">
             <span className="absolute h-full w-full animate-ping rounded-full bg-secondary opacity-70" />
             <span className="relative h-2 w-2 rounded-full bg-secondary" />
           </span>
           {t("board_title")}
         </p>
-        <p className="stat-num text-xs font-semibold uppercase tracking-[0.12em] text-white/40">
+        <p className="stat-num text-xs font-semibold uppercase tracking-[0.12em] text-white/50">
           {updatedLabel ? `${t("board_updated")} ${updatedLabel} PKT` : "…"}
         </p>
       </div>
@@ -174,7 +223,7 @@ function ExchangeBoard() {
       {/* Column headers */}
       <div
         role="row"
-        className="hidden grid-cols-[1.4fr_1fr_0.9fr_0.5fr] gap-3 border-b border-white/[0.07] px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/35 sm:grid"
+        className="hidden grid-cols-[1.4fr_1fr_0.9fr_0.5fr] gap-3 border-b border-white/[0.07] px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/40 sm:grid"
       >
         <span role="columnheader">{t("board_col_commodity")}</span>
         <span role="columnheader">{t("board_col_mandi")}</span>
@@ -185,7 +234,7 @@ function ExchangeBoard() {
       {/* Rows */}
       <motion.div variants={enterStagger} initial="hidden" animate="show" role="rowgroup" className="divide-y divide-white/[0.06]">
         {loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
+          Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="px-5 py-3" aria-hidden="true">
               <div className="h-4 w-3/4 animate-pulse rounded bg-white/[0.07]" />
             </div>
@@ -198,16 +247,16 @@ function ExchangeBoard() {
                 key={`${rate.commodity}-${rate.city}`}
                 variants={enterItem}
                 role="row"
-                className={`grid grid-cols-[1fr_auto] items-center gap-x-4 px-5 py-3 transition-colors duration-300 hover:bg-white/[0.03] sm:grid-cols-[1.4fr_1fr_0.9fr_0.5fr] sm:gap-3 ${index === flashRow ? "row-flash" : ""}`}
+                className={`grid grid-cols-[1fr_auto] items-center gap-x-4 px-5 py-3 transition-colors duration-300 hover:bg-white/[0.05] sm:grid-cols-[1.4fr_1fr_0.9fr_0.5fr] sm:gap-3 ${index === flashRow ? "row-flash" : ""}`}
               >
                 <span role="cell" className="min-w-0">
-                  <span className="block truncate text-[13px] font-semibold text-white/90">{rate.commodity}</span>
-                  <span className="block truncate text-xs text-white/55 sm:hidden">{rate.city}</span>
+                  <span className="block truncate text-[13px] font-semibold text-white/95">{rate.commodity}</span>
+                  <span className="block truncate text-xs text-white/60 sm:hidden">{rate.city}</span>
                 </span>
-                <span role="cell" className="hidden truncate text-xs text-white/55 sm:block">{rate.city}</span>
+                <span role="cell" className="hidden truncate text-xs text-white/60 sm:block">{rate.city}</span>
                 <span role="cell" className="stat-num text-right text-[13px] font-semibold text-white">
                   ₨ <Counter to={rate.modalPrice} fast />
-                  {rate.unit ? <span className="ml-1 text-xs font-normal text-white/40">/{normalizeUnit(rate.unit)}</span> : null}
+                  {rate.unit ? <span className="ml-1 text-xs font-normal text-white/50">/{normalizeUnit(rate.unit)}</span> : null}
                 </span>
                 <span
                   role="cell"
@@ -223,8 +272,8 @@ function ExchangeBoard() {
       </motion.div>
 
       {/* Board footer */}
-      <div className="flex items-center justify-between border-t border-white/10 bg-black/20 px-5 py-3">
-        <p className="text-xs text-white/40">
+      <div className="flex items-center justify-between border-t border-white/10 bg-black/30 px-5 py-3">
+        <p className="text-xs text-white/50">
           {indicative ? t("board_footer_indicative") : t("board_footer_live")}
         </p>
         <Link to="/rates" className="group flex items-center gap-1 text-xs font-semibold text-secondary hover:underline">
@@ -247,72 +296,93 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-exchange">
-      {/* Ruled board texture — faint horizontal rules like a rate register */}
+    <section className="relative overflow-hidden bg-[#07180e]">
+      {/* High-resolution Pakistani agricultural farmlands & crops background photograph - clearly visible */}
+      <img
+        src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=2400&q=90"
+        alt="Lush Agricultural Farmland Pakistan"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center transform scale-100"
+        loading="eager"
+      />
+
+      {/* Light, translucent gradient overlay — keeps the green fields, horizon, and trees clearly visible */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
-        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "100% 44px" }}
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#03150a]/80 via-[#051c0d]/50 to-[#072412]/25"
         aria-hidden="true"
       />
-      {/* Terminal scan line drifting down the board */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-full overflow-hidden" aria-hidden="true">
-        <div className="scanline h-px w-full bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
-      </div>
-      {/* Ambient gold depth behind the board position */}
-      <div className="pointer-events-none absolute right-[8%] top-[30%] h-[380px] w-[380px] rounded-full bg-secondary/10 blur-[110px] glow-breathe" aria-hidden="true" />
+
+      {/* Soft top and bottom blend */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#041208]/80"
+        aria-hidden="true"
+      />
+
+      {/* Warm natural sunbeam accent */}
+      <div className="pointer-events-none absolute right-[15%] top-[15%] h-[350px] w-[350px] rounded-full bg-amber-300/20 blur-[100px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-[5%] bottom-[15%] h-[250px] w-[250px] rounded-full bg-emerald-400/20 blur-[90px]" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
         <div className="grid items-center gap-12 pb-16 pt-12 md:gap-16 md:pb-20 md:pt-16 lg:grid-cols-12 lg:gap-14 lg:pb-24 lg:pt-20">
           {/* Left: thesis + actions */}
           <motion.div variants={enterStagger} initial="hidden" animate="show" className="lg:col-span-5">
-            <motion.p variants={enterItem} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
-              <span className="h-px w-5 bg-secondary" aria-hidden="true" />
-              {t("hero_badge")}
-            </motion.p>
+            <motion.div variants={enterItem} className="inline-flex items-center gap-2 rounded-full bg-emerald-950/70 border border-emerald-400/40 px-3.5 py-1 backdrop-blur-md shadow-md">
+              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" aria-hidden="true" />
+              <span className="text-xs font-bold uppercase tracking-[0.14em] text-amber-300">
+                {t("hero_badge")}
+              </span>
+            </motion.div>
 
-            <StaggerHeadline />
+            <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+              <StaggerHeadline />
+            </div>
 
-            <motion.p variants={enterItem} className="mt-5 max-w-md text-[15px] leading-7 text-white/65">
+            <motion.p variants={enterItem} className="mt-5 max-w-md text-[15px] font-medium leading-7 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
               {t("hero_sub_short")}
             </motion.p>
 
-            <motion.form variants={enterItem} onSubmit={handleSearch} className="mt-8 flex max-w-lg items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] p-1.5 backdrop-blur transition focus-within:border-secondary/50 focus-within:ring-4 focus-within:ring-secondary/10">
-              <span className="material-symbols-outlined pl-2 text-[20px] text-white/40" aria-hidden="true">search</span>
+            <motion.form
+              variants={enterItem}
+              onSubmit={handleSearch}
+              className="mt-8 flex max-w-lg items-center gap-2 rounded-2xl border border-white/40 bg-white/95 p-1.5 shadow-2xl backdrop-blur-lg transition focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20"
+            >
+              <span className="material-symbols-outlined pl-2.5 text-[22px] text-emerald-800" aria-hidden="true">search</span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t("hero_search_placeholder")}
                 aria-label={t("hero_search_placeholder")}
-                className="min-w-0 flex-1 bg-transparent py-2 text-sm font-medium text-white outline-none placeholder:text-white/40"
+                className="min-w-0 flex-1 bg-transparent py-2 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-500"
               />
-              <button type="submit" className="press shrink-0 rounded-lg bg-secondary px-4 py-2 text-[13px] font-semibold text-on-secondary hover:bg-secondary-light">
+              <button type="submit" className="press shrink-0 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-md hover:from-emerald-700 hover:to-emerald-800 cursor-pointer">
                 {t("hero_search_cta")}
               </button>
             </motion.form>
 
-            <motion.div variants={enterItem} className="mt-7 flex flex-wrap items-center gap-5">
-              <Link to="/onboarding" className="press inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-exchange transition-colors hover:bg-white/90">
+            <motion.div variants={enterItem} className="mt-7 flex flex-wrap items-center gap-4">
+              <Link to="/onboarding" className="press inline-flex items-center gap-2 rounded-xl bg-amber-400 px-5 py-2.5 text-sm font-bold text-emerald-950 shadow-xl transition hover:bg-amber-300">
                 {t("hero_join_free")}
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
+                <span className="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
               </Link>
-              <Link to="/apps/agri-biz" className="group inline-flex items-center gap-1 text-sm font-semibold text-white/75 hover:text-white">
+              <Link to="/apps/agri-biz" className="group inline-flex items-center gap-1.5 rounded-xl border border-white/40 bg-emerald-950/60 px-4 py-2.5 text-sm font-bold text-white shadow-lg backdrop-blur-md hover:bg-emerald-900/80">
                 {t("hero_cta_primary")}
-                <span className="material-symbols-outlined text-[16px] text-white/40 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                <span className="material-symbols-outlined text-[16px] text-amber-300 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
               </Link>
             </motion.div>
 
-            {/* Facts — one line, counting up */}
-            <motion.p variants={enterItem} className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/12 pt-6 text-xs font-semibold uppercase tracking-[0.13em] text-white/45">
+            {/* Facts — counting up with translucent backing */}
+            <motion.div variants={enterItem} className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-white/20 bg-black/40 px-4 py-3 text-xs font-bold uppercase tracking-[0.13em] text-white/90 backdrop-blur-md shadow-md">
               {FACTS.map((fact, index) => (
-                <span key={fact.labelKey} className="flex items-center gap-4">
-                  {index > 0 ? <span className="h-0.5 w-0.5 rounded-full bg-white/30" aria-hidden="true" /> : null}
-                  <span className="stat-num">
-                    <Counter to={fact.n} /> {t(fact.labelKey)}
+                <span key={fact.labelKey} className="flex items-center gap-3">
+                  {index > 0 ? <span className="h-1 w-1 rounded-full bg-amber-400" aria-hidden="true" /> : null}
+                  <span className="stat-num text-amber-300 font-mono">
+                    <Counter to={fact.n} />
                   </span>
+                  <span>{t(fact.labelKey)}</span>
                 </span>
               ))}
-            </motion.p>
+            </motion.div>
           </motion.div>
 
           {/* Right: the board IS the product */}

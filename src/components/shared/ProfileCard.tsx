@@ -10,11 +10,11 @@ interface ProfileCardProps {
   name: string;
   title: string;
   location: string;
-  rating?: number;
-  keywords?: string[];
-  isVerified?: boolean;
-  image?: string;
-  className?: string;
+  rating?: number | undefined;
+  keywords?: string[] | undefined;
+  isVerified?: boolean | undefined;
+  image?: string | undefined;
+  className?: string | undefined;
 }
 
 /** Distinct chip color per role — all six read differently at a glance. */

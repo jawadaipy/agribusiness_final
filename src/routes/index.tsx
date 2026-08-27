@@ -12,8 +12,8 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "AgriBusiness — Pakistan's Agri Professional Network" },
-      { name: "description", content: "The professional network where Pakistan's farmers, buyers, consultants, enterprises, and researchers do real business — live mandi rates, verified listings, open tenders." },
+      { title: "AgriBusiness — Agri, Poultry & Livestock Business Platform Pakistan" },
+      { name: "description", content: "Pakistan's premier digital platform connecting farmers, poultry growers, livestock traders, buyers, and agri-consultants — live mandi rates, verified listings, and open tenders." },
     ],
   }),
 });

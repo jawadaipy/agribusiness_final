@@ -71,12 +71,12 @@ export function HomePricingSection() {
 
               <ul className="space-y-2.5">
                 {[
-                  "Publish produce lots, harvest batches & services",
-                  "Post procurement RFPs & farm requirements",
-                  "Access Plant & Animal clinical telehealth",
-                  "Live PAMIS Mandi rates across 34 cities",
-                  "Direct consented WhatsApp contact exchange",
-                  "Search directory & verified agricultural network",
+                  "24-Hour Live Access to Mandi Rates (30+ Mandis)",
+                  "Marketplace: 5 Verified Posts / Month",
+                  "Access to Updated Agri Gov Schemes & Subsidies",
+                  "AgriBusiness Networking & Direct Consents",
+                  "Access to Our Recommended Projects & RFPs",
+                  "Free Plant & Animal Clinical Telehealth Support",
                 ].map((feat) => (
                   <li key={feat} className="flex items-start gap-2.5 text-xs text-slate-700">
                     <span className="material-symbols-outlined text-[16px] text-emerald-600 mt-0.5 shrink-0">
@@ -149,13 +149,13 @@ export function HomePricingSection() {
 
               <ul className="space-y-2.5">
                 {[
-                  "Everything in Standard plan included",
-                  "Unlimited commercial product catalog & inventory",
-                  "Priority search & marketplace listing placement",
-                  "Corporate Ad Studio with banner placements",
-                  "B2B procurement contracts & tender submission",
-                  "Corporate verified organization badge",
-                  "Dedicated account & campaign management",
+                  "Everything in Individual plan included",
+                  "Marketplace: Unlimited Posts & Commercial Catalog",
+                  "24-Hour Live Access to Mandi Rates & Analytics",
+                  "Access to Updated Agri Gov Schemes & Tenders",
+                  "Priority Company Verified Trust Badge",
+                  "Access to Our Recommended High-Value Projects",
+                  "Corporate Ad Studio & Sponsored Banner Placements",
                 ].map((feat) => (
                   <li key={feat} className="flex items-start gap-2.5 text-xs text-slate-700">
                     <span className="material-symbols-outlined text-[16px] text-amber-600 mt-0.5 shrink-0">

@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getAuthenticatedMember, type MemberProfile } from "@/lib/member";
 import { MediaUploader } from "@/components/shared/MediaUploader";
-import { uploadFeedMedia } from "@/lib/feed";
+import { uploadMedia } from "@/lib/storage";
 
 export interface ClinicConfig {
   icon: string;
@@ -195,7 +195,7 @@ export function ClinicPage({ config }: { config: ClinicConfig }) {
     const uploadedUrls: string[] = [];
     for (const file of pendingFiles.slice(0, 3)) {
       if (!file.type.startsWith("image/")) continue;
-      const { url } = await uploadFeedMedia(member.id, file);
+      const { url } = await uploadMedia("problem-media", member.id, file);
       if (url) uploadedUrls.push(url);
     }
 
